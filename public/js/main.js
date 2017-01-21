@@ -87,6 +87,10 @@ var creatingLineHorizontal = false, creatingLineVertical = false;
 var hline, vline;
 var mouseDownTime;
 
+function generateTruthTable () {
+	
+}
+
 function getGate (type) {
 	return TYPE_NAMES[type];
 }

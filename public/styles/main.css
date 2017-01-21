@@ -3,6 +3,10 @@ html {
   font-family: 'Open Sans', sans-serif; }
 
 canvas {
-  border: 1px solid black; }
+  border: 1px solid black;
+  display: inline-block; }
+
+#truth-table {
+  display: inline-block; }
 
 /*# sourceMappingURL=main.css.map */
