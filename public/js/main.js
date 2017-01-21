@@ -21,9 +21,9 @@ var STATES = {
 }
 
 var opts = {
-	height: 650,
-	width: 700,
-	gridSize: 50
+	height: window.innerHeight - 100,
+	width: window.outerWidth-330,
+	gridSize: (window.outerWidth-330)/17
 };
 
 var gates = [
@@ -108,7 +108,7 @@ function injectLatex (table, inputs) {
 		ret += "\\\\";
 	}
 	ret += "\\end{array}";
-	$("#truth-table").text(ret);
+	$("#truth-table-content").text(ret);
 	MathJax.Hub.Queue(["Typeset",MathJax.Hub,"truth-table"]);
 }
 
@@ -272,7 +272,7 @@ function getOutput (currGate, inputMap) {
 	if (currGate.type == TYPES.HORIZONTAL_LINE || currGate.type == TYPES.VERTICAL_LINE) {
 		var ret = getOutput(currGate.inputs[0], inputMap);
 		if (!inputMap)
-			currGate.element.setStroke(ret ? "#22A80C" : "#333");
+			currGate.element.setStroke(ret ? "#22A80C" : "#81a2be");
 	} else if (currGate.type == TYPES.AND_GATE || currGate.type == TYPES.NAND_GATE) {
 		var ret = 1;
 		for (var i = 0; i < currGate.inputs.length; i++)
@@ -313,16 +313,16 @@ function init () {
 	canvas.setHeight(opts.height);
 
 	// initialize grid
-	for (var i = 0; i < opts.width / opts.gridSize; i++) {
+	for (var i = 1; i < opts.width / opts.gridSize; i++) {
 		canvas.add(new fabric.Line([i * opts.gridSize, 0, i * opts.gridSize, opts.height], {
-			stroke: '#ddd',
-			selectable: false
+			stroke: '#373b41',
+			selectable: false 
 		}));
 	}
 
-	for (var i = 0; i < opts.height / opts.gridSize; i++) {
-		canvas.add(new fabric.Line([0, i * opts.gridSize, opts.width, i * opts.gridSize], {
-			stroke: '#ddd',
+	for (var i = 1; i < opts.height / opts.gridSize; i++) {
+		canvas.add(new fabric.Line([opts.gridSize, i * opts.gridSize, opts.width, i * opts.gridSize], {
+			stroke: '#373b41',
 			selectable: false
 		}))
 	}
@@ -541,24 +541,24 @@ function init () {
 						}
 
 						var hlineElement1 = new fabric.Line([initialX, initialY, initialX, initialY], {
-							stroke: '#333',
+							stroke: '#81a2be',
 							selectable: false,
 							id: currObjectId++,
-							strokeWidth: 2
+							strokeWidth: 3
 						});
 
 						var hlineElement2 = new fabric.Line([initialX, initialY, initialX, initialY], {
-							stroke: '#333',
+							stroke: '#81a2be',
 							selectable: false,
 							id: currObjectId++,
-							strokeWidth: 2
+							strokeWidth: 3
 						});
 
 						var vlineElement = new fabric.Line([initialX, initialY, initialX, initialY], {
-							stroke: '#333',
+							stroke: '#81a2be',
 							selectable: false,
 							id: currObjectId++,
-							strokeWidth: 2
+							strokeWidth: 3
 						});
 
 						hline1 = {
