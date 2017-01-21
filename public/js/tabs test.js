@@ -14,10 +14,10 @@
     <div>
       <!-- Tabs -->
       <ul id="nav-tab" class="nav">
-        <li class="active"><a href="#home">Home</a></li>
-        <li><a href="#profile">Profile</a></li>
-        <li><a href="#messages">Messages</a></li>
-        <li><a href="#settings">Settings</a></li>
+        <li class="active"><a href="#home">Circuit</a></li>
+        <li><a href="#profile">Circuit2</a></li>
+        <li><a href="#messages">Circuit3</a></li>
+        <li><a href="#settings">Circuit4</a></li>
       </ul>
 
       <!-- Tab panes -->
