@@ -22,10 +22,10 @@
 
       <!-- Tab panes -->
       <div class="tab-content">
-        <div class="tab-pane active" id="home">Home Panel</div>
-        <div class="tab-pane" id="profile">Profile Panel</div>
-        <div class="tab-pane" id="messages">Messages Panel</div>
-        <div class="tab-pane" id="settings">Settings Panel</div>
+        <div class="tab-pane active" id="Circuit1">Circuit1 Panel</div>
+        <div class="tab-pane" id="Circuit2">Circuit2 Panel</div>
+        <div class="tab-pane" id="Circuit3">Circuit3 Panel</div>
+        <div class="tab-pane" id="Circuit4">Circuit4 Panel</div>
       </div>
     </div>
     
