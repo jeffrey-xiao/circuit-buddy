@@ -15,9 +15,9 @@
       <!-- Tabs -->
       <ul id="nav-tab" class="nav">
         <li class="active"><a href="#home">Circuit</a></li>
-        <li><a href="#profile">Circuit2</a></li>
-        <li><a href="#messages">Circuit3</a></li>
-        <li><a href="#settings">Circuit4</a></li>
+        <li><a href="#Circuit">Circuit2</a></li>
+        <li><a href="#Circuit">Circuit3</a></li>
+        <li><a href="#Circuit">Circuit4</a></li>
       </ul>
 
       <!-- Tab panes -->
