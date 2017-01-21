@@ -23,7 +23,7 @@ var STATES = {
 var opts = {
 	height: window.innerHeight - 100,
 	width: window.outerWidth-330,
-	gridSize: (window.outerWidth-330)/17
+	gridSize: 50//(window.outerWidth-330)/17
 };
 
 var gates = [
@@ -336,7 +336,9 @@ function init () {
 			id: currGate.id,
 			selectable: false,
 			isToolbox: true,
-			top: i * 50
+			top: i * opts.gridSize,
+			height: opts.gridSize,
+			width: opts.gridSize
 		});
 	}
 
@@ -366,15 +368,19 @@ function init () {
 						type: currGate.type,
 						output: null,
 						inputs: [],
-						top: currGate.id * 50,
-						left: 50,
+						top: currGate.id * opts.gridSize,
+						left: opts.gridSize,
+						width: opts.gridSize,
+						height: opts.gridSize,
 						state: STATES.INPUT_OFF
 					};
 					generateTruthTable();
 				}, {
 					id: currObjectId++,
-					top: currGate.id * 50,
-					left: 50,
+					top: currGate.id * opts.gridSize,
+					left: opts.gridSize,
+					height: opts.gridSize,
+					width: opts.gridSize,
 					hasBorders: false,
 					hasControls: false,
 					hasRotatingPoint: false
