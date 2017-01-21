@@ -2,15 +2,20 @@ var TYPES = {
 	INPUT_GATE: 0,
 	OUTPUT_GATE: 1,
 	AND_GATE: 2,
-	OR_GATE: 3,
-	XOR_GATE: 4,
+	NAND_GATE: 3,
+	OR_GATE: 4,
+	NOR_GATE: 5,
+	XOR_GATE: 6,
+	NXOR_GATE: 7,
 	HORIZONTAL_LINE: 10,
 	VERTICAL_LINE: 11
 }
 
 var STATES = {
-	ON: "img/input_gate_on.png",
-	OFF: "img/input_gate_off.png"
+	INPUT_ON: "img/input_gate_on.png",
+	INPUT_OFF: "img/input_gate_off.png",
+	OUTPUT_ON: "img/output_gate_on.png",
+	OUTPUT_OFF: "img/output_gate_off.png"
 }
 
 var opts = {
@@ -21,12 +26,12 @@ var opts = {
 
 var gates = [
 	{
-		url: STATES.OFF,
+		url: STATES.INPUT_OFF,
 		id: TYPES.INPUT_GATE,
 		type: TYPES.INPUT_GATE
 	},
 	{
-		url: STATES.OFF,
+		url: STATES.OUTPUT_OFF,
 		id: TYPES.OUTPUT_GATE,
 		type: TYPES.OUTPUT_GATE
 	},
@@ -34,57 +39,169 @@ var gates = [
 		url: 'img/and_gate.png',
 		id: TYPES.AND_GATE,
 		type: TYPES.AND_GATE
+	},
+	{
+		url: 'img/nand_gate.png',
+		id: TYPES.NAND_GATE,
+		type: TYPES.NAND_GATE
+	},
+	{
+		url: 'img/or_gate.png',
+		id: TYPES.OR_GATE,
+		type: TYPES.OR_GATE
+	},
+	{
+		url: 'img/nor_gate.png',
+		id: TYPES.NOR_GATE,
+		type: TYPES.NOR_GATE
+	},
+	{
+		url: 'img/xor_gate.png',
+		id: TYPES.XOR_GATE,
+		type: TYPES.XOR_GATE
+	},
+	{
+		url: 'img/nxor_gate.png',
+		id: TYPES.NXOR_GATE,
+		type: TYPES.NXOR_GATE
 	}
-
 ];
 
 var currObjectId = 11;
 
+/*******STRUCTURE*******\
+
+element: oImage,
+type: currGate.type,
+output: null,
+inputs: [],
+top: currGate.id * 50,
+left: 50,
+state: STATES.OFF
+
+\***********************/
 var editableGates = {};
 var creatingLineHorizontal = false, creatingLineVertical = false;
 var hline, vline;
 var mouseDownTime;
 
 function isGate (type) {
-	return type <= 2;
+	return type <= 9;
 }
 
 // only have to adjust elements two deep
-function propagateInputMovement (dx, dy, element, depth) {
+function propagateInputMovement (dx, dy, element, depth, prevX, prevY) {
 	if (depth == 2 || !element)
 		return;
 	for (var i = 0; i < element.inputs.length; i++) {
 		var input = element.inputs[i];
-		if (input.type == TYPES.HORIZONTAL_LINE)
-			input.element.set({
-				y1: input.element.y1 + dy,
-				y2: input.element.y2 + dy,
-				x2: input.element.x2 + dx
-			});
-		else if (input.type == TYPES.VERTICAL_LINE)
-			input.element.set({
-				y2: input.element.y2 + dy
-			});
-		propagateInputMovement(dx, dy, input, depth + 1);
+		var nextPrevX = input.element.x2;
+		var nextPrevY = input.element.y2;
+		if (input.type == TYPES.HORIZONTAL_LINE) {
+			if (Math.abs(input.element.x2 - prevX) < 1e-6) {
+				input.element.set({
+					y1: input.element.y1 + dy,
+					y2: input.element.y2 + dy,
+					x2: input.element.x2 + dx
+				});
+			} else {
+				input.element.set({
+					y1: input.element.y1 + dy,
+					y2: input.element.y2 + dy,
+					x1: input.element.x1 + dx
+				});
+			}
+		}
+		else if (input.type == TYPES.VERTICAL_LINE) {
+			if (Math.abs(input.element.y2 - prevY) < 1e-6) {
+				input.element.set({
+					y2: input.element.y2 + dy
+				});
+			} else {
+				input.element.set({
+					y1: input.element.y1 + dy
+				});
+			}
+		}
+		propagateInputMovement(dx, dy, input, depth + 1, nextPrevX, nextPrevY);
 	}
 }
 
-function propagateOutputMovement (dx, dy, element, depth) {
+function propagateOutputMovement (dx, dy, element, depth, prevX, prevY) {
 	if (depth == 2 || !element)
 		return;
 	if (element.output) {
 		var output = element.output;
-		if (output.type == TYPES.HORIZONTAL_LINE)
-			output.element.set({
-				y1: output.element.y1 + dy,
-				y2: output.element.y2 + dy,
-				x2: output.element.x2 + dx
+		var nextPrevX = output.element.x2;
+		var nextPrevY = output.element.y2;
+		if (output.type == TYPES.HORIZONTAL_LINE) {
+			if (Math.abs(output.element.x2 - prevX) < 1e-6) {
+				output.element.set({
+					y1: output.element.y1 + dy,
+					y2: output.element.y2 + dy,
+					x2: output.element.x2 + dx
+				});
+			} else {
+				output.element.set({
+					y1: output.element.y1 + dy,
+					y2: output.element.y2 + dy,
+					x1: output.element.x1 + dx
+				});
+			}
+		} else if (output.type == TYPES.VERTICAL_LINE) {
+			if (Math.abs(output.element.y2 - prevY) < 1e-6) {
+				output.element.set({
+					y2: output.element.y2 + dy
+				});
+			} else {
+				output.element.set({
+					y1: output.element.y1 + dy
+				});
+			}
+		}
+		propagateOutputMovement(dx, dy, element.output, depth + 1, nextPrevX, nextPrevY);
+	}
+}
+
+function getOutput (currGate) {
+	if (!currGate)
+		return 0;
+	if (currGate.type == TYPES.INPUT_GATE)
+		return currGate.state == STATES.INPUT_ON;
+	if (currGate.inputs.length == 0)
+		return 0;
+	if (currGate.type == TYPES.HORIZONTAL_LINE || currGate.type == TYPES.VERTICAL_LINE) {
+		return getOutput(currGate.inputs[0]);
+	} else if (currGate.type == TYPES.AND_GATE || currGate.type == TYPES.NAND_GATE) {
+		var ret = 1;
+		for (var i = 0; i < currGate.inputs.length; i++)
+			ret &= getOutput(currGate.inputs[i]);
+		if (currGate.type == TYPES.NAND_GATE) ret = !ret;
+	} else if (currGate.type == TYPES.OR_GATE || currGate.type == TYPES.NOR_GATE) {
+		var ret = 0;
+		for (var i = 0; i < currGate.inputs.length; i++)
+			ret |= getOutput(currGate.input[i]);
+		if (currGate.type == TYPES.NOR_GATE) ret = !ret;
+	} else if (currGate.type == TYPES.XOR_GATE || currGate.type == TYPES.NXOR_GATE) {
+		var ret = 0;
+		for (var i = 0; i < currGate.inputs.length; i++)
+			ret ^= getOutput(currGate.input[i]);
+		if (currGate.type == TYPES.NXOR_GATE) ret = !ret;
+	}
+	return ret;
+}
+
+function updateOutputs (canvas) {
+	for (var key in editableGates) {
+		var currGate = editableGates[key];
+		if (currGate.type == TYPES.OUTPUT_GATE) {
+			var currState = STATES.OUTPUT_OFF;
+			if (currGate.inputs.length > 0)
+				currState = getOutput(currGate.inputs[0]) == 1 ? STATES.OUTPUT_ON : STATES.OUTPUT_OFF;
+			currGate.element.setSrc(currState, function () {
+				canvas.renderAll();
 			});
-		else if (output.type == TYPES.VERTICAL_LINE)
-			output.element.set({
-				y2: output.element.y2 + dy
-			});
-		propagateOutputMovement(dx, dy, element.output, depth + 1);
+		}
 	}
 }
 
@@ -137,7 +254,7 @@ function init () {
 						inputs: [],
 						top: currGate.id * 50,
 						left: 50,
-						state: STATES.OFF
+						state: STATES.INPUT_OFF
 					};
 				}, {
 					id: currObjectId++,
@@ -149,22 +266,62 @@ function init () {
 				});
 			} else if (options.target && editableGates[options.target.id].type == TYPES.INPUT_GATE) {
 				var currGate = editableGates[options.target.id];	
-				currGate.state = currGate.state == STATES.ON ? STATES.OFF : STATES.ON;
+				currGate.state = currGate.state == STATES.INPUT_ON ? STATES.INPUT_OFF : STATES.INPUT_ON;
 				currGate.element.setSrc(currGate.state, function () {
 					canvas.renderAll();
 				});
-				canvas.renderAll();
+				updateOutputs(canvas);
 			}
 		}
 
-		creatingLineVertical = false;
-		creatingLineHorizontal = false;
 		if (hline && vline) {
+			if (creatingLineVertical) {
+				var x = hline.element.x1;
+				var y = hline.element.y1;
+
+				for (var key in editableGates) {
+					var currGate = editableGates[key];
+					if (isGate(currGate.type) && currGate.element.left - 10 <= x && x <= currGate.element.left + 10 &&
+						currGate.element.top <= y && y <= currGate.element.top + 50) {
+						hline.output = currGate;
+						currGate.inputs.push(hline);
+						hline.element.set({
+							x1: currGate.element.left
+						});
+						updateOutputs(canvas);
+						canvas.renderAll();
+					}
+					if (isGate(currGate.type) && currGate.element.left + 40 <= x && x <= currGate.element.left + 60 &&
+						currGate.element.top + 20 <= y && y <= currGate.element.top + 30) {
+						hline.inputs.push(currGate);
+						if (hline.output) {
+							if (Math.abs(hline.output.element.y1 - hline.element.y1) < 1e-6)
+								hline.output.element.set({
+									y1: currGate.element.top + 25
+								});
+							if (Math.abs(hline.output.element.y2 - hline.element.y1) < 1e-6)
+								hline.output.element.set({
+									y2: currGate.element.top + 25
+								});
+						}
+						currGate.output = hline;
+						hline.element.set({
+							x1: currGate.element.left + 50,
+							y1: currGate.element.top + 25,
+							y2: currGate.element.top + 25
+						});
+						updateOutputs(canvas);
+						canvas.renderAll();
+					}
+				}
+			}
 			editableGates[hline.element.id] = hline;
 			editableGates[vline.element.id] = vline;
 			hline = null;
 			vline = null;
 		}
+		creatingLineVertical = false;
+		creatingLineHorizontal = false;
 		canvas.selection = true;
 	});
 
@@ -180,8 +337,8 @@ function init () {
 		});
 		editableGates[options.target.id].left = finalX;
 		editableGates[options.target.id].top = finalY;
-		propagateInputMovement(finalX - initialX, finalY - initialY, editableGates[options.target.id], 0);
-		propagateOutputMovement(finalX - initialX, finalY - initialY, editableGates[options.target.id], 0);
+		propagateInputMovement(finalX - initialX, finalY - initialY, editableGates[options.target.id], 0, initialX, initialY);
+		propagateOutputMovement(finalX - initialX, finalY - initialY, editableGates[options.target.id], 0, initialX + 50, initialY);
 		canvas.renderAll();
 	});
 
@@ -234,8 +391,6 @@ function init () {
 				if (isGate(editableGates[key].type)) {
 					var connectedInput = obj.left - 10 <= x && x <= obj.left && obj.top <= y && y <= obj.top + obj.height;
 					var connectedOutput = obj.left + 50 <= x && x <= obj.left + 60 && obj.top + 20 <= y && y <= obj.top + 30;
-
-
 
 					if (connectedInput) {
 						creatingLineHorizontal = true;
@@ -331,12 +486,16 @@ function init () {
 								element: vlineElement,
 								type: TYPES.VERTICAL_LINE,
 								output: null,
-								inputs: [hline]
+								inputs: []
 							}
 
-							hline.output = vline;
-							console.log("Created vline element");
-							console.log(vlineElement);
+							if (hline.output) {
+								hline.inputs.push(vline);
+								vline.output = hline;
+							} else {
+								vline.inputs.push(hline);
+								hline.output = vline;
+							}
 						} else {
 							creatingLineVertical = true;
 							vline = editableGates[key];
@@ -353,10 +512,15 @@ function init () {
 								element: hlineElement,
 								type: TYPES.HORIZONTAL_LINE,
 								output: null,
-								inputs: [vline]
+								inputs: []
 							}
-
-							vline.output = vline;
+							if (vline.output) {
+								vline.inputs.push(hline);
+								hline.output = vline;
+							} else {
+								hline.inputs.push(vline);
+								vline.output = hline;
+							}
 						}
 					}
 				}
