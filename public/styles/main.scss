@@ -35,6 +35,11 @@ body {
 	box-sizing:border-box;
 	background:#282a2e;
 }
-button.active {
+
+#tabs div {
+	background-color: white;
+}
+
+div.active {
 	background-color: black;
 }

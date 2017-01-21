@@ -660,6 +660,7 @@ function removeAllCanvasObjects (tab) {
 function addAllCanvasObjects (tab) {
 	for (var key in editableGates[tab])
 		canvas.add(editableGates[tab][key].element);
+	generateTruthTable();
 }
 
 // removes all objects from the canvas and the map
@@ -688,50 +689,56 @@ $(function () {
 		init();
 		// adding a tab
 		$("#add-tab").click(function () {
-			var len = $("button[id^='tab']").length;
-			$("button[id^='tab']").each(function () {
+			var len = $("div[id^='tab-']").length;
+			
+			$("div[id^='tab-']").each(function () {
 				$(this).removeClass("active");
 			});
-			$("#tabs").append("<button id='tab-" + len + "' class='active'>" + (len + 1) + "</button>");
 
+			$("#tabs").append("<div id='tab-" + len + "' class='active'><span>" + (len + 1) + "</span><button id='delete-tab-" + len + "'>x</button></div>");
+			
 			removeAllCanvasObjects(currTab);
 			currTab = len;
 			editableGates.push({});
 		});
 
 		// removing the current tab
-		$("#delete-tab").click(function () {
-			removeAllObjects(currTab);
-			editableGates.splice(currTab, 1);
-			console.log("DELETE");
-			console.log($("#tabs:last-child"));
+		$("body").on('click', "button[id^='delete-tab']", function () {
+			var id = parseInt($(this).attr('id').split("-")[2]);
+			removeAllObjects(id);
+			editableGates.splice(id, 1);
+
 			$("#tabs").children().last().remove();	
 
 			if (editableGates.length == 0) {
 				editableGates.push({});
-				$("#tabs").append("<button id='tab-0' class='active'>1</button>");
+				$("#tabs").append("<div id='tab-0' class='active'><span>1</span><button id='delete-tab-0'>x</button></div>");
 			}
 
-			$("button[id^='tab']").each(function () {
+			$("div[id^='tab-']").each(function () {
 				$(this).removeClass("active");
 			});
-			$("button[id='tab-0']").addClass("active");
 
-			currTab = 0;
+			if (id == editableGates.length)
+				id--;
+
+			$("button[id='tab-" + id + "']").addClass("active");
+
+			currTab = id;
 			addAllCanvasObjects(currTab);
 		});
 
 		// switching tabs
-		$("body").on('click', "button[id^='tab']", function () {
-			var id = parseInt($(this).attr	('id').split("-")[1]);
-			$("button[id^='tab']").each(function () {
+		$("body").on('click', "div[id^='tab-']", function () {
+			console.log("SWITCHING");
+			var id = parseInt($(this).attr('id').split("-")[1]);
+			$("div[id^='tab-']").each(function () {
 				$(this).removeClass("active");
 			});
-			$("button[id='tab-" + id + "']").addClass("active");
+			$("div[id='tab-" + id + "']").addClass("active");
 			removeAllCanvasObjects(currTab);
 			addAllCanvasObjects(id);
 			currTab = id;
-
 		});
 	});
 });
