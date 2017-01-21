@@ -11,7 +11,8 @@ var TYPES = {
 	VERTICAL_LINE: 9
 }
 
-var TYPE_NAMES = ["Input Gate", "Output Gate", "And Gate", "Nand Gate", "Or Gate", "Nor Gate", "Xor Gate", "Nxor Gate", "Horizontal Line", "Vertical Line"];
+var TYPE_NAMES = ["Input Gate", "Output Gate", "And Gate", "Nand Gate", "Or Gate", 
+				  "Nor Gate", "Xor Gate", "Nxor Gate", "Horizontal Line", "Vertical Line"];
 
 var STATES = {
 	INPUT_ON: "img/input_gate_on.png",
@@ -21,8 +22,8 @@ var STATES = {
 }
 
 var opts = {
-	height: window.innerHeight - 100,
-	width: window.outerWidth-330,
+	height: Math.round((window.innerHeight - 100) / 50.0) * 50,
+	width: Math.round((window.outerWidth- 330) / 50.0) * 50,
 	gridSize: 50//(window.outerWidth-330)/17
 };
 
@@ -87,13 +88,18 @@ var creatingLine = false;
 var hline1, hline2, vline;
 var initialX, initialY;
 var mouseDownTime;
+var isDeleting = false;
 
 function injectLatex (table, inputs) {
+	if (table.length == 0) {
+		$("#truth-table-content").text("");
+		return;
+	}
 	var ret = "\\begin{array}{";
-	for (var i = 0; i < table[1].length; i++)
+	for (var i = 0; i < table[0].length; i++)
 		ret += i == 0 ? "C" : "|C";
 	ret += "}"
-	for (var i = 0; i < table[1].length; i++) {
+	for (var i = 0; i < table[0].length; i++) {
 		if (i != 0)
 			ret += "&";
 		ret += i < inputs ? String.fromCharCode(65 + i) : String.fromCharCode(65 + i - inputs);
@@ -226,8 +232,8 @@ function propagateInputMovement (dx, dy, element, depth, prevX, prevY) {
 function propagateOutputMovement (dx, dy, element, depth, prevX, prevY) {
 	if (depth == 2 || !element)
 		return;
-	if (element.output) {
-		var output = element.output;
+	for (var i = 0; i < element.outputs.length; i++) {
+		var output = element.outputs[i];
 		var nextPrevX = output.element.x2;
 		var nextPrevY = output.element.y2;
 		if (output.type == TYPES.HORIZONTAL_LINE) {
@@ -255,7 +261,7 @@ function propagateOutputMovement (dx, dy, element, depth, prevX, prevY) {
 				});
 			}
 		}
-		propagateOutputMovement(dx, dy, element.output, depth + 1, nextPrevX, nextPrevY);
+		propagateOutputMovement(dx, dy, output, depth + 1, nextPrevX, nextPrevY);
 	}
 }
 
@@ -306,11 +312,24 @@ function updateOutputs (canvas) {
 	}
 }
 
+function removeObject (element, depth, canvas) {
+	if (depth == 4)
+		return;
+	for (var i = 0; i < element.inputs.length; i++)
+		removeObject(element.inputs[i], depth + 1, canvas);
+	for (var i = 0; i < element.outputs.length; i++)
+		removeObject(element.outputs[i], depth + 1, canvas);
+	canvas.remove(element.element);
+	delete editableGates[element.element.id];
+}
+
+
 function init () {
 	// initialize the canvas
 	var canvas = new fabric.Canvas('editor');
 	canvas.setWidth(opts.width);
 	canvas.setHeight(opts.height);
+	canvas.selection = false;
 
 	// initialize grid
 	for (var i = 1; i < opts.width / opts.gridSize; i++) {
@@ -345,12 +364,16 @@ function init () {
 	canvas.on('mouse:over', function (options) {
 		if (options.target && options.target.id >= 11) {
 			var id = options.target.id;
-			if (editableGates[id].type == TYPES.INPUT_GATE)
-				$('#current-hovered-element').text("Hovered: Input Gate: " + getInputId(id));
-			else if (editableGates[id].type == TYPES.OUTPUT_GATE)
-				$('#current-hovered-element').text("Hovered: Output Gate: " + getOutputId(id));
-			else
-				$('#current-hovered-element').text("Hovered: " + getGate(editableGates[id].type));
+			if (isDeleting) {
+				removeObject(editableGates[id], 0, canvas);
+			} else {
+				if (editableGates[id].type == TYPES.INPUT_GATE)
+					$('#current-hovered-element').text("Hovered: Input Gate: " + getInputId(id));
+				else if (editableGates[id].type == TYPES.OUTPUT_GATE)
+					$('#current-hovered-element').text("Hovered: Output Gate: " + getOutputId(id));
+				else
+					$('#current-hovered-element').text("Hovered: " + getGate(editableGates[id].type));
+			}
 		} else {
 			$('#current-hovered-element').text("Hovered: No element.");
 		}
@@ -366,7 +389,7 @@ function init () {
 					editableGates[oImage.id] = {
 						element: oImage,
 						type: currGate.type,
-						output: null,
+						outputs: [],
 						inputs: [],
 						top: currGate.id * opts.gridSize,
 						left: opts.gridSize,
@@ -404,7 +427,9 @@ function init () {
 				var currGate = editableGates[key];
 				if (isGate(currGate.type) && currGate.element.left - 10 <= x && x <= currGate.element.left + 10 &&
 					currGate.element.top <= y && y <= currGate.element.top + 50) {
-					hline2.output = currGate;
+					if (currGate.type == TYPES.INPUT_GATE)
+						continue;
+					hline2.outputs.push(currGate);
 					currGate.inputs.push(hline2);
 					hline2.element.set({
 						x2: currGate.element.left
@@ -417,18 +442,20 @@ function init () {
 				}
 				if (isGate(currGate.type) && currGate.element.left + 40 <= x && x <= currGate.element.left + 60 &&
 					currGate.element.top + 20 <= y && y <= currGate.element.top + 30) {
+					if (currGate.type == TYPES.OUTPUT_GATE)
+						continue;
 					hline2.inputs.push(currGate);
-					if (hline2.output) {
-						if (Math.abs(hline2.output.element.y1 - hline2.element.y2) < 1e-6)
-							hline2.output.element.set({
+					if (hline2.outputs.length == 1) {
+						if (Math.abs(hline2.outputs[0].element.y1 - hline2.element.y2) < 1e-6)
+							hline2.outputs[0].element.set({
 								y1: currGate.element.top + 25
 							});
-						if (Math.abs(hline2.output.element.y2 - hline2.element.y2) < 1e-6)
-							hline2.output.element.set({
+						if (Math.abs(hline2.outputs[0].element.y2 - hline2.element.y2) < 1e-6)
+							hline2.outputs[0].element.set({
 								y2: currGate.element.top + 25
 							});
 					}
-					currGate.output = hline2;
+					currGate.outputs.push(hline2);
 					hline2.element.set({
 						x2: currGate.element.left + 50,
 						y1: currGate.element.top + 25,
@@ -444,11 +471,12 @@ function init () {
 
 			if (!connected) {
 				for (var i = 0; i < hline1.inputs.length; i++)
-					if (hline1.inputs[i].output == hline1)
-						hline1.inputs[i].output = null;
-				hline1.output.inputs = hline1.output.inputs.filter(function (el) {
-					return el.element.id != hline1.element.id;
-				});
+					if (hline1.inputs[i].outputs.length == 1 && hline1.inputs[i].outputs[0] == hline1)
+						hline1.inputs[i].outputs = [];
+				if (hline1.outputs.length == 1)
+					hline1.outputs[0].inputs = hline1.outputs[0].inputs.filter(function (el) {
+						return el.element.id != hline1.element.id;
+					});
 				canvas.remove(hline1.element);
 				canvas.remove(hline2.element);
 				canvas.remove(vline.element);
@@ -464,7 +492,6 @@ function init () {
 		}
 		
 		creatingLine = false;
-		canvas.selection = true;
 	});
 
 	canvas.on('object:moving', function (options) {
@@ -535,8 +562,11 @@ function init () {
 					var connectedOutput = obj.left + 50 <= x && x <= obj.left + 60 && obj.top + 20 <= y && y <= obj.top + 30;
 
 					if (connectedInput || connectedOutput) {
+						if (connectedOutput && editableGates[key].type == TYPES.OUTPUT_GATE)
+							continue;
+						if (connectedInput && editableGates[key].type == TYPES.INPUT_GATE)
+							continue;
 						creatingLine = true;
-						canvas.selection = false;
 
 						initialX = obj.left;
 						initialY = y;
@@ -548,21 +578,21 @@ function init () {
 
 						var hlineElement1 = new fabric.Line([initialX, initialY, initialX, initialY], {
 							stroke: '#81a2be',
-							selectable: false,
+							selectable: true,
 							id: currObjectId++,
 							strokeWidth: 3
 						});
 
 						var hlineElement2 = new fabric.Line([initialX, initialY, initialX, initialY], {
 							stroke: '#81a2be',
-							selectable: false,
+							selectable: true,
 							id: currObjectId++,
 							strokeWidth: 3
 						});
 
 						var vlineElement = new fabric.Line([initialX, initialY, initialX, initialY], {
 							stroke: '#81a2be',
-							selectable: false,
+							selectable: true,
 							id: currObjectId++,
 							strokeWidth: 3
 						});
@@ -570,21 +600,21 @@ function init () {
 						hline1 = {
 							element: hlineElement1,
 							type: TYPES.HORIZONTAL_LINE,
-							output: null,
+							outputs: [],
 							inputs: []
 						}; 
 
 						hline2 = {
 							element: hlineElement2,
 							type: TYPES.HORIZONTAL_LINE,
-							output: null,
+							outputs: [],
 							inputs: []
 						}
 
 						vline = {
 							element: vlineElement,
 							type: TYPES.VERTICAL_LINE,
-							output: null,
+							outputs: [],
 							inputs: []
 						}; 
 
@@ -595,18 +625,18 @@ function init () {
 
 						if (connectedOutput) {
 							hline1.inputs.push(editableGates[key]);
-							hline1.output = vline;
+							hline1.outputs = [vline];
 
 							vline.inputs.push(hline1);
-							vline.output = hline2;
+							vline.outputs = [hline2];
 
 							hline2.inputs.push(vline);
 
-							editableGates[key].output = hline1;
+							editableGates[key].outputs.push(hline1);
 						} else {
-							hline1.output = editableGates[key];
-							vline.output = hline1;
-							hline2.output = vline;
+							hline1.outputs = [editableGates[key]];
+							vline.outputs = [hline1];
+							hline2.outputs = [vline];
 
 							editableGates[key].inputs.push(hline1);
 							hline1.inputs.push(vline);
@@ -622,4 +652,16 @@ function init () {
 
 $(function () {
 	init();
+
+	window.onkeydown = function (e) {
+		var key = e.keyCode ? e.keyCode : e.which;
+		if (key == 8)
+			isDeleting = true;
+	}
+
+	window.onkeyup = function (e) {
+		var key = e.keyCode ? e.keyCode : e.which;
+		if (key == 8)
+			isDeleting = false;
+	}
 });
