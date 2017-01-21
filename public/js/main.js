@@ -88,6 +88,12 @@ var hline1, hline2, vline;
 var initialX, initialY;
 var mouseDownTime;
 
+$.getScript("tabs_test.js", function(){
+
+   alert("Script loaded but not necessarily executed.");
+
+});
+
 function injectLatex (table, inputs) {
 	var ret = "\\begin{array}{";
 	for (var i = 0; i < table[1].length; i++)
