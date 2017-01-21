@@ -7,9 +7,11 @@ var TYPES = {
 	NOR_GATE: 5,
 	XOR_GATE: 6,
 	NXOR_GATE: 7,
-	HORIZONTAL_LINE: 10,
-	VERTICAL_LINE: 11
+	HORIZONTAL_LINE: 8,
+	VERTICAL_LINE: 9
 }
+
+var TYPE_NAMES = ["Input Gate", "Output Gate", "And Gate", "Nand Gate", "Or Gate", "Nor Gate", "Xor Gate", "Nxor Gate", "Horizontal Line", "Vertical Line"];
 
 var STATES = {
 	INPUT_ON: "img/input_gate_on.png",
@@ -85,8 +87,26 @@ var creatingLineHorizontal = false, creatingLineVertical = false;
 var hline, vline;
 var mouseDownTime;
 
+function getGate (type) {
+	return TYPE_NAMES[type];
+}
+
+function getInput (id) {
+	var ids = [];
+	
+	for (var key in editableGates) {
+		if (editableGates[key].type == TYPES.INPUT_GATE)
+			ids.push(editableGates[key].element.id);
+	}
+	ids.sort();
+
+	for (var i = 0; i < ids.length; i++)
+		if (ids[i] == id) 
+			return String.fromCharCode(65 + i);
+}
+
 function isGate (type) {
-	return type <= 9;
+	return type <= 7;
 }
 
 // only have to adjust elements two deep
@@ -180,12 +200,12 @@ function getOutput (currGate) {
 	} else if (currGate.type == TYPES.OR_GATE || currGate.type == TYPES.NOR_GATE) {
 		var ret = 0;
 		for (var i = 0; i < currGate.inputs.length; i++)
-			ret |= getOutput(currGate.input[i]);
+			ret |= getOutput(currGate.inputs[i]);
 		if (currGate.type == TYPES.NOR_GATE) ret = !ret;
 	} else if (currGate.type == TYPES.XOR_GATE || currGate.type == TYPES.NXOR_GATE) {
 		var ret = 0;
 		for (var i = 0; i < currGate.inputs.length; i++)
-			ret ^= getOutput(currGate.input[i]);
+			ret ^= getOutput(currGate.inputs[i]);
 		if (currGate.type == TYPES.NXOR_GATE) ret = !ret;
 	}
 	return ret;
@@ -239,12 +259,25 @@ function init () {
 		});
 	}
 
+	canvas.on('mouse:over', function (options) {
+		console.log(options);
+		if (options.target && options.target.id >= 11) {
+			var id = options.target.id;
+			if (editableGates[id].type == TYPES.INPUT_GATE)
+				$('#current-hovered-element').text("Hovered: Input Gate: " + getInput(id));
+			else
+				$('#current-hovered-element').text("Hovered: " + getGate(editableGates[id].type));
+		} else {
+			$('#current-hovered-element').text("Hovered: No element.");
+		}
+	});
+
 	canvas.on('mouse:up', function (options) {
 		// handling clicks
+		console.log(options);
 		if (new Date().getTime() - mouseDownTime < 100) {
 			if (options.target && options.target.isToolbox) {
 				var currGate = gates[options.target.id];
-				console.log(currGate);
 				fabric.Image.fromURL(currGate.url, function (oImage) {
 					canvas.add(oImage);
 					editableGates[oImage.id] = {
