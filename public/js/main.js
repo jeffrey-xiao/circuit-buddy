@@ -71,6 +71,7 @@ var gates = [
 ];
 
 var currObjectId = 11;
+var currTab = 0;
 
 /*******STRUCTURE*******\
 
@@ -83,12 +84,13 @@ left: 50,
 state: STATES.OFF
 
 \***********************/
-var editableGates = {};
+var editableGates = [{}];
 var creatingLine = false;
 var hline1, hline2, vline;
 var initialX, initialY;
 var mouseDownTime;
 var isDeleting = false;
+var canvas;
 
 function injectLatex (table, inputs) {
 	if (table.length == 0) {
@@ -122,11 +124,11 @@ function generateTruthTable () {
 	var inputIds = [];
 	var outputNodes = [];
 
-	for (var key in editableGates) {
-		if (editableGates[key].type == TYPES.INPUT_GATE)
-			inputIds.push(editableGates[key].element.id);
-		else if (editableGates[key].type == TYPES.OUTPUT_GATE)
-			outputNodes.push(editableGates[key]);
+	for (var key in editableGates[currTab]) {
+		if (editableGates[currTab][key].type == TYPES.INPUT_GATE)
+			inputIds.push(editableGates[currTab][key].element.id);
+		else if (editableGates[currTab][key].type == TYPES.OUTPUT_GATE)
+			outputNodes.push(editableGates[currTab][key]);
 	}
 	inputIds.sort();
 	outputNodes.sort(function (a, b) {
@@ -161,9 +163,9 @@ function getGate (type) {
 function getInputId (id) {
 	var ids = [];
 	
-	for (var key in editableGates) {
-		if (editableGates[key].type == TYPES.INPUT_GATE)
-			ids.push(editableGates[key].element.id);
+	for (var key in editableGates[currTab]) {
+		if (editableGates[currTab][key].type == TYPES.INPUT_GATE)
+			ids.push(editableGates[currTab][key].element.id);
 	}
 	ids.sort();
 
@@ -175,9 +177,9 @@ function getInputId (id) {
 function getOutputId (id) {
 	var ids = [];
 	
-	for (var key in editableGates) {
-		if (editableGates[key].type == TYPES.OUTPUT_GATE)
-			ids.push(editableGates[key].element.id);
+	for (var key in editableGates[currTab]) {
+		if (editableGates[currTab][key].type == TYPES.OUTPUT_GATE)
+			ids.push(editableGates[currTab][key].element.id);
 	}
 	ids.sort();
 
@@ -299,8 +301,8 @@ function getOutput (currGate, inputMap) {
 }
 
 function updateOutputs (canvas) {
-	for (var key in editableGates) {
-		var currGate = editableGates[key];
+	for (var key in editableGates[currTab]) {
+		var currGate = editableGates[currTab][key];
 		if (currGate.type == TYPES.OUTPUT_GATE) {
 			var currState = STATES.OUTPUT_OFF;
 			if (currGate.inputs.length > 0)
@@ -320,13 +322,13 @@ function removeObject (element, depth, canvas) {
 	for (var i = 0; i < element.outputs.length; i++)
 		removeObject(element.outputs[i], depth + 1, canvas);
 	canvas.remove(element.element);
-	delete editableGates[element.element.id];
+	delete editableGates[currTab][element.element.id];
 }
 
 
 function init () {
 	// initialize the canvas
-	var canvas = new fabric.Canvas('editor');
+	canvas = new fabric.Canvas('editor');
 	canvas.setWidth(opts.width);
 	canvas.setHeight(opts.height);
 	canvas.selection = false;
@@ -365,14 +367,14 @@ function init () {
 		if (options.target && options.target.id >= 11) {
 			var id = options.target.id;
 			if (isDeleting) {
-				removeObject(editableGates[id], 0, canvas);
+				removeObject(editableGates[currTab][id], 0, canvas);
 			} else {
-				if (editableGates[id].type == TYPES.INPUT_GATE)
+				if (editableGates[currTab][id].type == TYPES.INPUT_GATE)
 					$('#current-hovered-element').text("Hovered: Input Gate: " + getInputId(id));
-				else if (editableGates[id].type == TYPES.OUTPUT_GATE)
+				else if (editableGates[currTab][id].type == TYPES.OUTPUT_GATE)
 					$('#current-hovered-element').text("Hovered: Output Gate: " + getOutputId(id));
 				else
-					$('#current-hovered-element').text("Hovered: " + getGate(editableGates[id].type));
+					$('#current-hovered-element').text("Hovered: " + getGate(editableGates[currTab][id].type));
 			}
 		} else {
 			$('#current-hovered-element').text("Hovered: No element.");
@@ -386,7 +388,7 @@ function init () {
 				var currGate = gates[options.target.id];
 				fabric.Image.fromURL(currGate.url, function (oImage) {
 					canvas.add(oImage);
-					editableGates[oImage.id] = {
+					editableGates[currTab][oImage.id] = {
 						element: oImage,
 						type: currGate.type,
 						outputs: [],
@@ -408,8 +410,8 @@ function init () {
 					hasControls: false,
 					hasRotatingPoint: false
 				});
-			} else if (options.target && editableGates[options.target.id].type == TYPES.INPUT_GATE) {
-				var currGate = editableGates[options.target.id];	
+			} else if (options.target && editableGates[currTab][options.target.id] && editableGates[currTab][options.target.id].type == TYPES.INPUT_GATE) {
+				var currGate = editableGates[currTab][options.target.id];	
 				currGate.state = currGate.state == STATES.INPUT_ON ? STATES.INPUT_OFF : STATES.INPUT_ON;
 				currGate.element.setSrc(currGate.state, function () {
 					canvas.renderAll();
@@ -423,8 +425,8 @@ function init () {
 			var y = hline2.element.y2;
 			var connected = false;
 
-			for (var key in editableGates) {
-				var currGate = editableGates[key];
+			for (var key in editableGates[currTab]) {
+				var currGate = editableGates[currTab][key];
 				if (isGate(currGate.type) && currGate.element.left - 10 <= x && x <= currGate.element.left + 10 &&
 					currGate.element.top <= y && y <= currGate.element.top + 50) {
 					if (currGate.type == TYPES.INPUT_GATE)
@@ -481,9 +483,9 @@ function init () {
 				canvas.remove(hline2.element);
 				canvas.remove(vline.element);
 			} else {
-				editableGates[hline1.element.id] = hline1;
-				editableGates[hline2.element.id] = hline2;
-				editableGates[vline.element.id] = vline;
+				editableGates[currTab][hline1.element.id] = hline1;
+				editableGates[currTab][hline2.element.id] = hline2;
+				editableGates[currTab][vline.element.id] = vline;
 			}
 
 			hline1 = null;
@@ -495,8 +497,8 @@ function init () {
 	});
 
 	canvas.on('object:moving', function (options) {
-		var startX = editableGates[options.target.id].left;
-		var startY = editableGates[options.target.id].top;
+		var startX = editableGates[currTab][options.target.id].left;
+		var startY = editableGates[currTab][options.target.id].top;
 		var finalX = Math.round(options.target.left / opts.gridSize) * opts.gridSize;
 		var finalY = Math.round(options.target.top / opts.gridSize) * opts.gridSize;
 
@@ -505,11 +507,11 @@ function init () {
 			top: finalY
 		});
 
-		editableGates[options.target.id].left = finalX;
-		editableGates[options.target.id].top = finalY;
+		editableGates[currTab][options.target.id].left = finalX;
+		editableGates[currTab][options.target.id].top = finalY;
 
-		propagateInputMovement(finalX - startX, finalY - startY, editableGates[options.target.id], 0, startX, startY);
-		propagateOutputMovement(finalX - startX, finalY - startY, editableGates[options.target.id], 0, startX + 50, startY);
+		propagateInputMovement(finalX - startX, finalY - startY, editableGates[currTab][options.target.id], 0, startX, startY);
+		propagateOutputMovement(finalX - startX, finalY - startY, editableGates[currTab][options.target.id], 0, startX + 50, startY);
 		
 		canvas.renderAll();
 	});
@@ -548,8 +550,8 @@ function init () {
 	canvas.on('mouse:down', function (options) {
 		mouseDownTime = new Date().getTime();
 		if (!creatingLine) {
-			for (var key in editableGates) {
-				var obj = editableGates[key].element;
+			for (var key in editableGates[currTab]) {
+				var obj = editableGates[currTab][key].element;
 
 				// adding to left of editable object
 				var pointer = canvas.getPointer(options.e);
@@ -557,14 +559,14 @@ function init () {
 				var y = pointer.y;
 
 				
-				if (isGate(editableGates[key].type)) {
+				if (isGate(editableGates[currTab][key].type)) {
 					var connectedInput = obj.left - 10 <= x && x <= obj.left && obj.top <= y && y <= obj.top + obj.height;
 					var connectedOutput = obj.left + 50 <= x && x <= obj.left + 60 && obj.top + 20 <= y && y <= obj.top + 30;
 
 					if (connectedInput || connectedOutput) {
-						if (connectedOutput && editableGates[key].type == TYPES.OUTPUT_GATE)
+						if (connectedOutput && editableGates[currTab][key].type == TYPES.OUTPUT_GATE)
 							continue;
-						if (connectedInput && editableGates[key].type == TYPES.INPUT_GATE)
+						if (connectedInput && editableGates[currTab][key].type == TYPES.INPUT_GATE)
 							continue;
 						creatingLine = true;
 
@@ -624,7 +626,7 @@ function init () {
 						canvas.add(vlineElement);
 
 						if (connectedOutput) {
-							hline1.inputs.push(editableGates[key]);
+							hline1.inputs.push(editableGates[currTab][key]);
 							hline1.outputs = [vline];
 
 							vline.inputs.push(hline1);
@@ -632,13 +634,13 @@ function init () {
 
 							hline2.inputs.push(vline);
 
-							editableGates[key].outputs.push(hline1);
+							editableGates[currTab][key].outputs.push(hline1);
 						} else {
-							hline1.outputs = [editableGates[key]];
+							hline1.outputs = [editableGates[currTab][key]];
 							vline.outputs = [hline1];
 							hline2.outputs = [vline];
 
-							editableGates[key].inputs.push(hline1);
+							editableGates[currTab][key].inputs.push(hline1);
 							hline1.inputs.push(vline);
 							vline.inputs.push(hline2);
 						}
@@ -650,8 +652,25 @@ function init () {
 	});
 }
 
+function removeAllCanvasObjects (tab) {
+	for (var key in editableGates[tab])
+		canvas.remove(editableGates[tab][key].element);
+}
+
+function addAllCanvasObjects (tab) {
+	for (var key in editableGates[tab])
+		canvas.add(editableGates[tab][key].element);
+}
+
+// removes all objects from the canvas and the map
+function removeAllObjects (tab) {
+	for (var key in editableGates[tab]) {
+		canvas.remove(editableGates[tab][key].element);
+		delete editableGates[tab][key];
+	}
+}
+
 $(function () {
-	init();
 
 	window.onkeydown = function (e) {
 		var key = e.keyCode ? e.keyCode : e.which;
@@ -664,4 +683,55 @@ $(function () {
 		if (key == 8)
 			isDeleting = false;
 	}
+
+	$(document).ready(function () {
+		init();
+		// adding a tab
+		$("#add-tab").click(function () {
+			var len = $("button[id^='tab']").length;
+			$("button[id^='tab']").each(function () {
+				$(this).removeClass("active");
+			});
+			$("#tabs").append("<button id='tab-" + len + "' class='active'>" + (len + 1) + "</button>");
+
+			removeAllCanvasObjects(currTab);
+			currTab = len;
+			editableGates.push({});
+		});
+
+		// removing the current tab
+		$("#delete-tab").click(function () {
+			removeAllObjects(currTab);
+			editableGates.splice(currTab, 1);
+			console.log("DELETE");
+			console.log($("#tabs:last-child"));
+			$("#tabs").children().last().remove();	
+
+			if (editableGates.length == 0) {
+				editableGates.push({});
+				$("#tabs").append("<button id='tab-0' class='active'>1</button>");
+			}
+
+			$("button[id^='tab']").each(function () {
+				$(this).removeClass("active");
+			});
+			$("button[id='tab-0']").addClass("active");
+
+			currTab = 0;
+			addAllCanvasObjects(currTab);
+		});
+
+		// switching tabs
+		$("body").on('click', "button[id^='tab']", function () {
+			var id = parseInt($(this).attr	('id').split("-")[1]);
+			$("button[id^='tab']").each(function () {
+				$(this).removeClass("active");
+			});
+			$("button[id='tab-" + id + "']").addClass("active");
+			removeAllCanvasObjects(currTab);
+			addAllCanvasObjects(id);
+			currTab = id;
+
+		});
+	});
 });
