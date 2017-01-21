@@ -3,11 +3,14 @@ html {
 	font-family: 'Open Sans', sans-serif;
 }
 
-canvas {
+.canvas-container {
 	border: 1px solid black;
-	display: inline-block;
+	display: block;
+	float: left;
 }
 
 #truth-table {
-	display: inline-block;
+	padding-left: 10px;
+	float: left;
+	display: block;
 }

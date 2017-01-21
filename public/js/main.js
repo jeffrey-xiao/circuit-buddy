@@ -87,19 +87,89 @@ var creatingLineHorizontal = false, creatingLineVertical = false;
 var hline, vline;
 var mouseDownTime;
 
+function injectLatex (table, inputs) {
+	var ret = "\\begin{array}{";
+	for (var i = 0; i < table[1].length; i++)
+		ret += i == 0 ? "C" : "|C";
+	ret += "}"
+	for (var i = 0; i < table[1].length; i++) {
+		if (i != 0)
+			ret += "&";
+		ret += i < inputs ? String.fromCharCode(65 + i) : String.fromCharCode(65 + i - inputs);
+	}
+	ret += "\\\\\\hline ";
+	for (var i = 0; i < table.length; i++) {
+		for (var j = 0; j < table[i].length; j++) {
+			if (j != 0)
+				ret += "&";
+			ret += table[i][j] ? "T" : "F";
+		}
+		ret += "\\\\";
+	}
+	ret += "\\end{array}";
+	$("#truth-table").text(ret);
+	MathJax.Hub.Queue(["Typeset",MathJax.Hub,"truth-table"]);
+}
+
 function generateTruthTable () {
+	var inputIds = [];
+	var outputNodes = [];
+
+	for (var key in editableGates) {
+		if (editableGates[key].type == TYPES.INPUT_GATE)
+			inputIds.push(editableGates[key].element.id);
+		else if (editableGates[key].type == TYPES.OUTPUT_GATE)
+			outputNodes.push(editableGates[key]);
+	}
+	inputIds.sort();
+	outputNodes.sort(function (a, b) {
+		return a.element.id - b.element.id;
+	});
+
+	var inputMap = {};
+
+	var ret = [];
 	
+	for (var i = 0; i < 1 << inputIds.length; i++) {
+		ret.push(new Array(inputIds.length + outputNodes.length));
+		for (var j = 0; j < inputIds.length; j++) {
+			inputMap[inputIds[j]] = (i & 1 << j) > 0 ? 1 : 0;
+			ret[i][j] = (i & 1 << j) > 0 ? 1 : 0;
+		}
+		for (var j = 0; j < outputNodes.length; j++) {
+			if (outputNodes[j].inputs.length == 0)
+				ret[i][inputIds.length + j] = 0;
+			else
+				ret[i][inputIds.length + j] = getOutput(outputNodes[j].inputs[0], inputMap);
+		}
+	}
+
+	injectLatex(ret, inputIds.length);
 }
 
 function getGate (type) {
 	return TYPE_NAMES[type];
 }
 
-function getInput (id) {
+function getInputId (id) {
 	var ids = [];
 	
 	for (var key in editableGates) {
 		if (editableGates[key].type == TYPES.INPUT_GATE)
+			ids.push(editableGates[key].element.id);
+	}
+	ids.sort();
+
+	for (var i = 0; i < ids.length; i++)
+		if (ids[i] == id) 
+			return String.fromCharCode(65 + i);
+}
+
+function getOutputId (id) {
+	var ids = [];
+	
+	for (var key in editableGates) {
+		if (editableGates[key].type == TYPES.OUTPUT_GATE)
 			ids.push(editableGates[key].element.id);
 	}
 	ids.sort();
@@ -187,29 +257,34 @@ function propagateOutputMovement (dx, dy, element, depth, prevX, prevY) {
 	}
 }
 
-function getOutput (currGate) {
+function getOutput (currGate, inputMap) {
 	if (!currGate)
 		return 0;
-	if (currGate.type == TYPES.INPUT_GATE)
+	if (currGate.type == TYPES.INPUT_GATE) {
+		if (inputMap)
+			return inputMap[currGate.element.id];
 		return currGate.state == STATES.INPUT_ON;
+	}
 	if (currGate.inputs.length == 0)
 		return 0;
 	if (currGate.type == TYPES.HORIZONTAL_LINE || currGate.type == TYPES.VERTICAL_LINE) {
-		return getOutput(currGate.inputs[0]);
+		var ret = getOutput(currGate.inputs[0], inputMap);
+		if (!inputMap)
+			currGate.element.setStroke(ret ? "#22A80C" : "#333");
 	} else if (currGate.type == TYPES.AND_GATE || currGate.type == TYPES.NAND_GATE) {
 		var ret = 1;
 		for (var i = 0; i < currGate.inputs.length; i++)
-			ret &= getOutput(currGate.inputs[i]);
+			ret &= getOutput(currGate.inputs[i], inputMap);
 		if (currGate.type == TYPES.NAND_GATE) ret = !ret;
 	} else if (currGate.type == TYPES.OR_GATE || currGate.type == TYPES.NOR_GATE) {
 		var ret = 0;
 		for (var i = 0; i < currGate.inputs.length; i++)
-			ret |= getOutput(currGate.inputs[i]);
+			ret |= getOutput(currGate.inputs[i], inputMap);
 		if (currGate.type == TYPES.NOR_GATE) ret = !ret;
 	} else if (currGate.type == TYPES.XOR_GATE || currGate.type == TYPES.NXOR_GATE) {
 		var ret = 0;
 		for (var i = 0; i < currGate.inputs.length; i++)
-			ret ^= getOutput(currGate.inputs[i]);
+			ret ^= getOutput(currGate.inputs[i], inputMap);
 		if (currGate.type == TYPES.NXOR_GATE) ret = !ret;
 	}
 	return ret;
@@ -221,7 +296,7 @@ function updateOutputs (canvas) {
 		if (currGate.type == TYPES.OUTPUT_GATE) {
 			var currState = STATES.OUTPUT_OFF;
 			if (currGate.inputs.length > 0)
-				currState = getOutput(currGate.inputs[0]) == 1 ? STATES.OUTPUT_ON : STATES.OUTPUT_OFF;
+				currState = getOutput(currGate.inputs[0], null) == 1 ? STATES.OUTPUT_ON : STATES.OUTPUT_OFF;
 			currGate.element.setSrc(currState, function () {
 				canvas.renderAll();
 			});
@@ -238,14 +313,14 @@ function init () {
 	// initialize grid
 	for (var i = 0; i < opts.width / opts.gridSize; i++) {
 		canvas.add(new fabric.Line([i * opts.gridSize, 0, i * opts.gridSize, opts.height], {
-			stroke: '#ccc',
+			stroke: '#ddd',
 			selectable: false
 		}));
 	}
 
 	for (var i = 0; i < opts.height / opts.gridSize; i++) {
 		canvas.add(new fabric.Line([0, i * opts.gridSize, opts.width, i * opts.gridSize], {
-			stroke: '#ccc',
+			stroke: '#ddd',
 			selectable: false
 		}))
 	}
@@ -264,11 +339,12 @@ function init () {
 	}
 
 	canvas.on('mouse:over', function (options) {
-		console.log(options);
 		if (options.target && options.target.id >= 11) {
 			var id = options.target.id;
 			if (editableGates[id].type == TYPES.INPUT_GATE)
-				$('#current-hovered-element').text("Hovered: Input Gate: " + getInput(id));
+				$('#current-hovered-element').text("Hovered: Input Gate: " + getInputId(id));
+			else if (editableGates[id].type == TYPES.OUTPUT_GATE)
+				$('#current-hovered-element').text("Hovered: Output Gate: " + getOutputId(id));
 			else
 				$('#current-hovered-element').text("Hovered: " + getGate(editableGates[id].type));
 		} else {
@@ -278,7 +354,6 @@ function init () {
 
 	canvas.on('mouse:up', function (options) {
 		// handling clicks
-		console.log(options);
 		if (new Date().getTime() - mouseDownTime < 100) {
 			if (options.target && options.target.isToolbox) {
 				var currGate = gates[options.target.id];
@@ -293,6 +368,7 @@ function init () {
 						left: 50,
 						state: STATES.INPUT_OFF
 					};
+					generateTruthTable();
 				}, {
 					id: currObjectId++,
 					top: currGate.id * 50,
@@ -312,20 +388,47 @@ function init () {
 		}
 
 		if (hline && vline) {
-			if (creatingLineVertical) {
+			if (creatingLineVertical || creatingLineHorizontal) {
 				var x = hline.element.x1;
 				var y = hline.element.y1;
+
+				if (creatingLineHorizontal) {
+					x = vline.element.x1;
+					y = vline.element.y1;
+				}
 
 				for (var key in editableGates) {
 					var currGate = editableGates[key];
 					if (isGate(currGate.type) && currGate.element.left - 10 <= x && x <= currGate.element.left + 10 &&
 						currGate.element.top <= y && y <= currGate.element.top + 50) {
-						hline.output = currGate;
-						currGate.inputs.push(hline);
-						hline.element.set({
-							x1: currGate.element.left
-						});
+						if (creatingLineVertical) {
+							hline.output = currGate;
+							currGate.inputs.push(hline);
+							hline.element.set({
+								x1: currGate.element.left
+							});
+						} else {
+							var newHlineElement = new fabric.Line([x, y, currGate.element.left, y], {
+								stroke: '#333',
+								selectable: false,
+								id: currObjectId++,
+								strokeWidth: 2
+							});
+							
+							newHline = {
+								element: newHlineElement,
+								type: TYPES.HORIZONTAL_LINE,
+								output: currGate,
+								inputs: [vline]
+							};
+
+							canvas.add(newHlineElement);
+
+							vline.output = newHline;
+							currGate.inputs.push(newHline);
+						}
 						updateOutputs(canvas);
+						generateTruthTable();
 						canvas.renderAll();
 					}
 					if (isGate(currGate.type) && currGate.element.left + 40 <= x && x <= currGate.element.left + 60 &&
@@ -347,7 +450,9 @@ function init () {
 							y1: currGate.element.top + 25,
 							y2: currGate.element.top + 25
 						});
+						
 						updateOutputs(canvas);
+						generateTruthTable();
 						canvas.renderAll();
 					}
 				}
@@ -434,15 +539,17 @@ function init () {
 						canvas.selection = false;
 
 						var hlineElement = new fabric.Line([obj.left, y, obj.left, y], {
-							stroke: '#000',
+							stroke: '#333',
 							selectable: false,
-							id: currObjectId++
+							id: currObjectId++,
+							strokeWidth: 2
 						});
 
 						var vlineElement = new fabric.Line([obj.left, y, obj.left, y], {
-							stroke: '#000',
+							stroke: '#333',
 							selectable: false,
-							id: currObjectId++
+							id: currObjectId++,
+							strokeWidth: 2
 						});
 
 						canvas.add(hlineElement);
@@ -464,20 +571,23 @@ function init () {
 
 						hline.inputs.push(vline);
 						editableGates[key].inputs.push(hline);
+						generateTruthTable();
 					} else if (connectedOutput) {
 						creatingLineHorizontal = true;
 						canvas.selection = false;
 
 						var hlineElement = new fabric.Line([obj.left + 50, obj.top + 25, obj.left + 50, obj.top + 25], {
-							stroke: '#000',
+							stroke: '#333',
 							selectable: false,
-							id: currObjectId++
+							id: currObjectId++,
+							strokeWidth: 2
 						});
 
 						var vlineElement = new fabric.Line([obj.left + 50, obj.top + 25, obj.left + 50, obj.top + 25], {
-							stroke: '#000',
+							stroke: '#333',
 							selectable: false,
-							id: currObjectId++
+							id: currObjectId++,
+							strokeWidth: 2
 						});
 
 						canvas.add(hlineElement);
@@ -500,6 +610,7 @@ function init () {
 
 						vline.inputs.push(hline);
 						editableGates[key].output = hline;
+						generateTruthTable();
 					}
 				} else {
 					var connected = Math.abs(obj.x1 - x) <= 5 && Math.abs(obj.y1 - y) <= 5;
@@ -512,9 +623,10 @@ function init () {
 							hline = editableGates[key];
 
 							var vlineElement = new fabric.Line([obj.x1, obj.y1, obj.x1, obj.y1], {
-								stroke: '#000',
+								stroke: '#333',
 								selectable: false,
-								id: currObjectId++
+								id: currObjectId++,
+								strokeWidth: 2
 							});
 
 							canvas.add(vlineElement);
@@ -538,9 +650,10 @@ function init () {
 							vline = editableGates[key];
 
 							var hlineElement = new fabric.Line([obj.x1, obj.y1, obj.x1, obj.y1], {
-								stroke: '#000',
+								stroke: '#333',
 								selectable: false,
-								id: currObjectId++
+								id: currObjectId++,
+								strokeWidth: 2
 							});
 
 							canvas.add(hlineElement);
@@ -559,6 +672,7 @@ function init () {
 								vline.output = hline;
 							}
 						}
+						generateTruthTable();
 					}
 				}
 			}
