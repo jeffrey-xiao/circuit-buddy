@@ -83,8 +83,9 @@ state: STATES.OFF
 
 \***********************/
 var editableGates = {};
-var creatingLineHorizontal = false, creatingLineVertical = false;
-var hline, vline;
+var creatingLine = false;
+var hline1, hline2, vline;
+var initialX, initialY;
 var mouseDownTime;
 
 function injectLatex (table, inputs) {
@@ -187,6 +188,7 @@ function isGate (type) {
 function propagateInputMovement (dx, dy, element, depth, prevX, prevY) {
 	if (depth == 2 || !element)
 		return;
+
 	for (var i = 0; i < element.inputs.length; i++) {
 		var input = element.inputs[i];
 		var nextPrevX = input.element.x2;
@@ -386,90 +388,82 @@ function init () {
 				updateOutputs(canvas);
 			}
 		}
+		
+		if (hline1 && hline2 && vline && creatingLine) {
+			var x = hline2.element.x2;
+			var y = hline2.element.y2;
+			var connected = false;
 
-		if (hline && vline) {
-			if (creatingLineVertical || creatingLineHorizontal) {
-				var x = hline.element.x1;
-				var y = hline.element.y1;
+			for (var key in editableGates) {
+				var currGate = editableGates[key];
+				if (isGate(currGate.type) && currGate.element.left - 10 <= x && x <= currGate.element.left + 10 &&
+					currGate.element.top <= y && y <= currGate.element.top + 50) {
+					hline2.output = currGate;
+					currGate.inputs.push(hline2);
+					hline2.element.set({
+						x2: currGate.element.left
+					});
+					connected = true;
 
-				if (creatingLineHorizontal) {
-					x = vline.element.x1;
-					y = vline.element.y1;
+					updateOutputs(canvas);
+					generateTruthTable();
+					canvas.renderAll();
 				}
-
-				for (var key in editableGates) {
-					var currGate = editableGates[key];
-					if (isGate(currGate.type) && currGate.element.left - 10 <= x && x <= currGate.element.left + 10 &&
-						currGate.element.top <= y && y <= currGate.element.top + 50) {
-						if (creatingLineVertical) {
-							hline.output = currGate;
-							currGate.inputs.push(hline);
-							hline.element.set({
-								x1: currGate.element.left
+				if (isGate(currGate.type) && currGate.element.left + 40 <= x && x <= currGate.element.left + 60 &&
+					currGate.element.top + 20 <= y && y <= currGate.element.top + 30) {
+					hline2.inputs.push(currGate);
+					if (hline2.output) {
+						if (Math.abs(hline2.output.element.y1 - hline2.element.y2) < 1e-6)
+							hline2.output.element.set({
+								y1: currGate.element.top + 25
 							});
-						} else {
-							var newHlineElement = new fabric.Line([x, y, currGate.element.left, y], {
-								stroke: '#333',
-								selectable: false,
-								id: currObjectId++,
-								strokeWidth: 2
+						if (Math.abs(hline2.output.element.y2 - hline2.element.y2) < 1e-6)
+							hline2.output.element.set({
+								y2: currGate.element.top + 25
 							});
-							
-							newHline = {
-								element: newHlineElement,
-								type: TYPES.HORIZONTAL_LINE,
-								output: currGate,
-								inputs: [vline]
-							};
-
-							canvas.add(newHlineElement);
-
-							vline.output = newHline;
-							currGate.inputs.push(newHline);
-						}
-						updateOutputs(canvas);
-						generateTruthTable();
-						canvas.renderAll();
 					}
-					if (isGate(currGate.type) && currGate.element.left + 40 <= x && x <= currGate.element.left + 60 &&
-						currGate.element.top + 20 <= y && y <= currGate.element.top + 30) {
-						hline.inputs.push(currGate);
-						if (hline.output) {
-							if (Math.abs(hline.output.element.y1 - hline.element.y1) < 1e-6)
-								hline.output.element.set({
-									y1: currGate.element.top + 25
-								});
-							if (Math.abs(hline.output.element.y2 - hline.element.y1) < 1e-6)
-								hline.output.element.set({
-									y2: currGate.element.top + 25
-								});
-						}
-						currGate.output = hline;
-						hline.element.set({
-							x1: currGate.element.left + 50,
-							y1: currGate.element.top + 25,
-							y2: currGate.element.top + 25
-						});
-						
-						updateOutputs(canvas);
-						generateTruthTable();
-						canvas.renderAll();
-					}
+					currGate.output = hline2;
+					hline2.element.set({
+						x2: currGate.element.left + 50,
+						y1: currGate.element.top + 25,
+						y2: currGate.element.top + 25
+					});
+					connected = true;
+					
+					updateOutputs(canvas);
+					generateTruthTable();
+					canvas.renderAll();
 				}
 			}
-			editableGates[hline.element.id] = hline;
-			editableGates[vline.element.id] = vline;
-			hline = null;
+
+			if (!connected) {
+				for (var i = 0; i < hline1.inputs.length; i++)
+					if (hline1.inputs[i].output == hline1)
+						hline1.inputs[i].output = null;
+				hline1.output.inputs = hline1.output.inputs.filter(function (el) {
+					return el.element.id != hline1.element.id;
+				});
+				canvas.remove(hline1.element);
+				canvas.remove(hline2.element);
+				canvas.remove(vline.element);
+			} else {
+				editableGates[hline1.element.id] = hline1;
+				editableGates[hline2.element.id] = hline2;
+				editableGates[vline.element.id] = vline;
+			}
+
+			hline1 = null;
+			hline2 = null;
 			vline = null;
 		}
-		creatingLineVertical = false;
-		creatingLineHorizontal = false;
+		
+		creatingLine = false;
 		canvas.selection = true;
 	});
 
 	canvas.on('object:moving', function (options) {
-		var initialX = editableGates[options.target.id].left;
-		var initialY = editableGates[options.target.id].top;
+		var startX = editableGates[options.target.id].left;
+		var startY = editableGates[options.target.id].top;
 		var finalX = Math.round(options.target.left / opts.gridSize) * opts.gridSize;
 		var finalY = Math.round(options.target.top / opts.gridSize) * opts.gridSize;
 
@@ -477,41 +471,41 @@ function init () {
 			left: finalX,
 			top: finalY
 		});
+
 		editableGates[options.target.id].left = finalX;
 		editableGates[options.target.id].top = finalY;
-		propagateInputMovement(finalX - initialX, finalY - initialY, editableGates[options.target.id], 0, initialX, initialY);
-		propagateOutputMovement(finalX - initialX, finalY - initialY, editableGates[options.target.id], 0, initialX + 50, initialY);
+
+		propagateInputMovement(finalX - startX, finalY - startY, editableGates[options.target.id], 0, startX, startY);
+		propagateOutputMovement(finalX - startX, finalY - startY, editableGates[options.target.id], 0, startX + 50, startY);
+		
 		canvas.renderAll();
 	});
 
 	canvas.on('mouse:move', function (options) {
-		if (creatingLineHorizontal) {
+		if (creatingLine) {
 			var pointer = canvas.getPointer(options.e);
-			var x = pointer.x;
-			var y = pointer.y;
-			hline.element.set({
-				x1: x
+			var finalX = pointer.x;
+			var finalY = pointer.y;
+
+			hline1.element.set({
+				x1: initialX,
+				x2: (finalX + initialX) / 2.0,
+				y1: initialY,
+				y2: initialY
 			});
 
 			vline.element.set({
-				x1: x,
-				x2: x,
-				y1: y
+				x1: (finalX + initialX) / 2.0,
+				x2: (finalX + initialX) / 2.0,
+				y1: initialY,
+				y2: finalY
 			});
 
-			canvas.renderAll();
-		} else if (creatingLineVertical) {
-			var pointer = canvas.getPointer(options.e);
-			var x = pointer.x;
-			var y = pointer.y;
-			vline.element.set({
-				y1: y
-			});
-
-			hline.element.set({
-				y1: y,
-				y2: y,
-				x1: x
+			hline2.element.set({
+				x1: (finalX + initialX) / 2.0,
+				x2: finalX,
+				y1: finalY,
+				y2: finalY
 			});
 
 			canvas.renderAll();
@@ -520,7 +514,7 @@ function init () {
 
 	canvas.on('mouse:down', function (options) {
 		mouseDownTime = new Date().getTime();
-		if (!creatingLineVertical && !creatingLineHorizontal) {
+		if (!creatingLine) {
 			for (var key in editableGates) {
 				var obj = editableGates[key].element;
 
@@ -534,65 +528,52 @@ function init () {
 					var connectedInput = obj.left - 10 <= x && x <= obj.left && obj.top <= y && y <= obj.top + obj.height;
 					var connectedOutput = obj.left + 50 <= x && x <= obj.left + 60 && obj.top + 20 <= y && y <= obj.top + 30;
 
-					if (connectedInput) {
-						creatingLineHorizontal = true;
+					if (connectedInput || connectedOutput) {
+						creatingLine = true;
 						canvas.selection = false;
 
-						var hlineElement = new fabric.Line([obj.left, y, obj.left, y], {
+						initialX = obj.left;
+						initialY = y;
+
+						if (connectedOutput) {
+							initialX = obj.left + 50;
+							initialY = obj.top + 25;
+						}
+
+						var hlineElement1 = new fabric.Line([initialX, initialY, initialX, initialY], {
 							stroke: '#333',
 							selectable: false,
 							id: currObjectId++,
 							strokeWidth: 2
 						});
 
-						var vlineElement = new fabric.Line([obj.left, y, obj.left, y], {
+						var hlineElement2 = new fabric.Line([initialX, initialY, initialX, initialY], {
 							stroke: '#333',
 							selectable: false,
 							id: currObjectId++,
 							strokeWidth: 2
 						});
 
-						canvas.add(hlineElement);
-						canvas.add(vlineElement);
+						var vlineElement = new fabric.Line([initialX, initialY, initialX, initialY], {
+							stroke: '#333',
+							selectable: false,
+							id: currObjectId++,
+							strokeWidth: 2
+						});
 
-						hline = {
-							element: hlineElement,
+						hline1 = {
+							element: hlineElement1,
 							type: TYPES.HORIZONTAL_LINE,
-							output: obj,
+							output: null,
 							inputs: []
 						}; 
 
-						vline = {
-							element: vlineElement,
-							type: TYPES.VERTICAL_LINE,
-							output: hline,
+						hline2 = {
+							element: hlineElement2,
+							type: TYPES.HORIZONTAL_LINE,
+							output: null,
 							inputs: []
-						}; 
-
-						hline.inputs.push(vline);
-						editableGates[key].inputs.push(hline);
-						generateTruthTable();
-					} else if (connectedOutput) {
-						creatingLineHorizontal = true;
-						canvas.selection = false;
-
-						var hlineElement = new fabric.Line([obj.left + 50, obj.top + 25, obj.left + 50, obj.top + 25], {
-							stroke: '#333',
-							selectable: false,
-							id: currObjectId++,
-							strokeWidth: 2
-						});
-
-						var vlineElement = new fabric.Line([obj.left + 50, obj.top + 25, obj.left + 50, obj.top + 25], {
-							stroke: '#333',
-							selectable: false,
-							id: currObjectId++,
-							strokeWidth: 2
-						});
-
-						canvas.add(hlineElement);
-						canvas.add(vlineElement);
-
+						}
 
 						vline = {
 							element: vlineElement,
@@ -601,76 +582,29 @@ function init () {
 							inputs: []
 						}; 
 
-						hline = {
-							element: hlineElement,
-							type: TYPES.HORIZONTAL_LINE,
-							output: vline,
-							inputs: [editableGates[key]]
-						}; 
 
-						vline.inputs.push(hline);
-						editableGates[key].output = hline;
-						generateTruthTable();
-					}
-				} else {
-					var connected = Math.abs(obj.x1 - x) <= 5 && Math.abs(obj.y1 - y) <= 5;
-					if (connected) {
+						canvas.add(hlineElement1);
+						canvas.add(hlineElement2);
+						canvas.add(vlineElement);
 
-						canvas.selection = false;
+						if (connectedOutput) {
+							hline1.inputs.push(editableGates[key]);
+							hline1.output = vline;
 
-						if (editableGates[key].type == TYPES.HORIZONTAL_LINE) {
-							creatingLineHorizontal = true;
-							hline = editableGates[key];
+							vline.inputs.push(hline1);
+							vline.output = hline2;
 
-							var vlineElement = new fabric.Line([obj.x1, obj.y1, obj.x1, obj.y1], {
-								stroke: '#333',
-								selectable: false,
-								id: currObjectId++,
-								strokeWidth: 2
-							});
+							hline2.inputs.push(vline);
 
-							canvas.add(vlineElement);
-
-							vline = {
-								element: vlineElement,
-								type: TYPES.VERTICAL_LINE,
-								output: null,
-								inputs: []
-							}
-
-							if (hline.output) {
-								hline.inputs.push(vline);
-								vline.output = hline;
-							} else {
-								vline.inputs.push(hline);
-								hline.output = vline;
-							}
+							editableGates[key].output = hline1;
 						} else {
-							creatingLineVertical = true;
-							vline = editableGates[key];
+							hline1.output = editableGates[key];
+							vline.output = hline1;
+							hline2.output = vline;
 
-							var hlineElement = new fabric.Line([obj.x1, obj.y1, obj.x1, obj.y1], {
-								stroke: '#333',
-								selectable: false,
-								id: currObjectId++,
-								strokeWidth: 2
-							});
-
-							canvas.add(hlineElement);
-
-							hline = {
-								element: hlineElement,
-								type: TYPES.HORIZONTAL_LINE,
-								output: null,
-								inputs: []
-							}
-							if (vline.output) {
-								vline.inputs.push(hline);
-								hline.output = vline;
-							} else {
-								hline.inputs.push(vline);
-								vline.output = hline;
-							}
+							editableGates[key].inputs.push(hline1);
+							hline1.inputs.push(vline);
+							vline.inputs.push(hline2);
 						}
 						generateTruthTable();
 					}
