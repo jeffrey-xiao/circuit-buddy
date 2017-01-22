@@ -195,6 +195,7 @@ function parseString (str) {
 			left: 600,
 			state: STATES.OFF
 		};
+		wireObjects(oImage.id, map[outputGate].id, currTab);
 		addAllCanvasObjects(currTab);
 		generateTruthTable();
 		updateCost();
@@ -1079,7 +1080,7 @@ $(function () {
 			$("#export-modal").css("display", "block");
 		});
 		$("#export-exit-button").click(function () {
-			$("#camera-modal").css("display", "none");
+			$("#export-modal").css("display", "none");
 		});
 
 		$('#camera-button').click(function() {
