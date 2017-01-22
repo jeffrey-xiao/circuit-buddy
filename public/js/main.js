@@ -91,6 +91,7 @@ var initialX, initialY;
 var mouseDownTime;
 var isDeleting = false;
 var canvas;
+var isDrawingFromInput = false;
 
 $.getScript("tabs_test.js", function(){
 
@@ -452,6 +453,8 @@ function init () {
 					currGate.element.top + 20 <= y && y <= currGate.element.top + 30) {
 					if (currGate.type == TYPES.OUTPUT_GATE)
 						continue;
+					if (isDrawingFromInput)
+						continue;
 					hline2.inputs.push(currGate);
 					if (hline2.outputs.length == 1) {
 						if (Math.abs(hline2.outputs[0].element.y1 - hline2.element.y2) < 1e-6)
@@ -500,6 +503,7 @@ function init () {
 		}
 		
 		creatingLine = false;
+		isDrawingFromInput = false;
 	});
 
 	canvas.on('object:moving', function (options) {
@@ -574,6 +578,8 @@ function init () {
 							continue;
 						if (connectedInput && editableGates[currTab][key].type == TYPES.INPUT_GATE)
 							continue;
+						if (connectedOutput && editableGates[currTab][key].type == TYPES.INPUT_GATE)
+							isDrawingFromInput = true;
 						creatingLine = true;
 
 						initialX = obj.left;
