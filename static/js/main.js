@@ -196,7 +196,8 @@ function parseString (str) {
 			state: STATES.OFF
 		};
 		addAllCanvasObjects(currTab);
-		wireObjects(oImage.id, map[outputGate].id, currTab);
+		generateTruthTable();
+		updateCost();
 	}, {
 		id: currObjectId++,
 		top: 50,
@@ -1176,6 +1177,7 @@ $(function () {
 			setTimeout(function () {
 				generateTruthTable();
 				updateOutputs(canvas);
+				updateCost();
 			}, 500);
 		});
 	});
