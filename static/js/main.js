@@ -488,6 +488,9 @@ function init () {
 			var x = hline2.element.x2;
 			var y = hline2.element.y2;
 			var connected = false;
+			objects[currTab][hline1.element.id] = hline1;
+			objects[currTab][hline2.element.id] = hline2;
+			objects[currTab][vline.element.id] = vline;
 
 			for (var key in objects[currTab]) {
 				var currGate = objects[currTab][key];
@@ -539,9 +542,6 @@ function init () {
 				}
 			}
 
-			objects[currTab][hline1.element.id] = hline1;
-			objects[currTab][hline2.element.id] = hline2;
-			objects[currTab][vline.element.id] = vline;
 			updateJsonOutput();
 			updateCost();
 			if (!connected) {
@@ -756,7 +756,7 @@ function init () {
 							vline.outputs = [hline1.element.id];
 							hline2.outputs = [vline.element.id];
 
-							objects[currTab][key].inputs.push(hline1);
+							objects[currTab][key].inputs.push(hline1.element.id);
 							hline1.inputs.push(vline.element.id);
 							vline.inputs.push(hline2.element.id);
 						}
@@ -791,10 +791,7 @@ var globalTabCounter = 2;
 
 function addTab () {
 	var len = $("div[id^='tab-']").length;
-	
-	$("div[id^='tab-']").each(function () {
-		$(this).removeClass("active");
-	});
+	$("#tabs .tab.active").removeClass("active");
 
 	$("#tabs").append("<div id='tab-" + len + "' class='active tab'><span>Tab " + globalTabCounter + "</span><button id='delete-tab-" + len + "'><i class=\"el el-remove\"></i></button></div>");
 	
@@ -824,7 +821,7 @@ $(function () {
 		$("#add-tab").click(addTab);
 
 		// removing the current tab
-		$("body").on('click', "button[id^='delete-tab']", function () {
+		$("body").on('click', "button[id^='delete-tab']", function (e) {
 			var id = parseInt($(this).attr('id').split("-")[2]);
 			removeAllObjects(id);
 			objects.splice(id, 1);
@@ -842,19 +839,19 @@ $(function () {
 
 			if (id == objects.length)
 				id--;
-
-			$("button[id='tab-" + id + "']").addClass("active");
+			
+			$("div[id='tab-" + id + "']").addClass("active");
 
 			currTab = id;
 			addAllCanvasObjects(currTab);
 		});
 
 		// switching tabs
-		$("body").on('click', "div[id^='tab-']", function () {
+		$("body").on('click', "div[id^='tab-']", function (e) {
+			if ($(e.target).is('button')) return;
+			if ($(e.target).is('i')) return;
 			var id = parseInt($(this).attr('id').split("-")[1]);
-			$("div.tab.active").each(function () {
-				$(this).removeClass("active");
-			});
+			$("#tabs .tab.active").removeClass("active");
 			$("div[id='tab-" + id + "']").addClass("active");
 			removeAllCanvasObjects(currTab);
 			addAllCanvasObjects(id);
@@ -876,6 +873,9 @@ $(function () {
 			$("#import-modal").css("display", "block");
 		});
 		$("#import-exit-button").click(function () {
+			$("#import-modal").css("display", "none");
+		});
+		$("#import-import-button").click(function () {
 			removeAllCanvasObjects(currTab);
 			delete objects;
 			currTab = 0;
