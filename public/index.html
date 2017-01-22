@@ -19,13 +19,20 @@
         <canvas id="editor"></canvas><!--
         --><div id="truth-table">
             <button class="truth-button" id="export-button"><i class="el el-download-alt"></i></button><!--
-            --><button class="truth-button"><i class="el el-eject"></i></button><!--
+            --><button class="truth-button" id="import-button"><i class="el el-eject"></i></button><!--
             --><button class="truth-button"><i class="el el-cogs"></i></button><br/>
             Truth Table
             <div id="truth-table-content"></div>
         </div>
         <div id="current-hovered-element">Hovered: No element.</div>
-        <div class="modal">
+        <div class="modal" id="export-modal">
+            <div class="modal-inner">
+                <h1 class="modal-title">Export Content</h1>
+                <textarea class="modal-textarea" id="export-modal-textarea"></textarea>
+                <button class="modal-button" id="export-exit-button">Exit</button>
+            </div>
+        </div>
+        <div class="modal" id="import-modal">
             <div class="modal-inner">
                 <h1 class="modal-title">Import Content</h1>
                 <textarea class="modal-textarea"></textarea>

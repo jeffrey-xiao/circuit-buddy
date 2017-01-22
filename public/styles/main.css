@@ -173,6 +173,12 @@ div.active {
   overflow-y: auto;
   outline: 0; }
 
+#export-modal {
+  display: none; }
+
+#import-modal {
+  display: none; }
+
 .modal-textarea:focus {
   border-bottom: #4271ae; }
 
