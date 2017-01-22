@@ -390,6 +390,8 @@ function init () {
 	canvas.setWidth(opts.width);
 	canvas.setHeight(opts.height);
 	canvas.selection = false;
+	canvas.hoverCursor = 'default';
+	canvas.moveCursor = 'default';
 
 	// initialize grid
 	for (var i = 1; i < opts.width / opts.gridSize; i++) {
@@ -630,8 +632,8 @@ function init () {
 			canvas.remove(selectableIndicator.pop());
 		for (var key in objects[currTab]) {
 			var obj = objects[currTab][key].element;
-			var connectedInput = obj.left - 20 <= x && x <= obj.left + 20 && obj.top - 20 <= y && y <= obj.top + 20 + obj.height;
-			var connectedOutput = obj.left + 30 <= x && x <= obj.left + 80 && obj.top <= y && y <= obj.top + 50;
+			var connectedInput = obj.left - 15 <= x && x <= obj.left && obj.top + 15 <= y && y <= obj.top + 35;
+			var connectedOutput = obj.left + 50 <= x && x <= obj.left + 65 && obj.top + 15 <= y && y <= obj.top + 35;
 
 			if (connectedOutput && objects[currTab][key].type != TYPES.OUTPUT_GATE && isGate(objects[currTab][key].type)) {
 				var centerX = obj.left;
