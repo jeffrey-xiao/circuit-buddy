@@ -1017,8 +1017,6 @@ $(function () {
 		var key = e.keyCode ? e.keyCode : e.which;
 		if (key == 8)
 			isDeleting = true;
-		if(key==77)
-			getMinimize();
 	}
 
 	window.onkeyup = function (e) {
@@ -1072,6 +1070,11 @@ $(function () {
 			updateCost();
 		});
 
+		// click on simplify
+		$("#simplify-button").click(function () {
+			getMinimize();
+		});
+
 		// click on export
 		$("#export-button").click(function () {
 			$("#export-modal").css("display", "block");
@@ -1080,7 +1083,7 @@ $(function () {
 			$("#export-modal").css("display", "none");
 		});
 
-		// click on imprt
+		// click on import
 		$("#import-button").click(function () {
 			$("#import-modal").css("display", "block");
 		});
