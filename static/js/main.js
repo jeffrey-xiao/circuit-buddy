@@ -1073,6 +1073,8 @@ $(function () {
 		// click on simplify
 		$("#simplify-button").click(function () {
 			getMinimize();
+			generateTruthTable();
+			updateCost();
 		});
 
 		// click on export
@@ -1150,6 +1152,7 @@ $(function () {
 			setTimeout(function () {
 				generateTruthTable();
 				updateOutputs(canvas);
+				updateCost();
 			}, 500);
 		});
 	});
