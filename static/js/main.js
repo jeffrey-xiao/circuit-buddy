@@ -100,6 +100,7 @@ var canvas;
 var isDrawingFromInput = false;
 var selectableIndicator = [];
 
+confirm('Press backspace and mouse over elements to delete. Okay to continue');
 
 function getMinimize(){
 	var truthTable=generateTruthTable();
