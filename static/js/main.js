@@ -95,7 +95,9 @@ var isDrawingFromInput = false;
 
 
 function getMinimize(){
+	console.log("Check");
   var truthTable=generateTruthTable();
+
    $.ajax({
       type: "POST",
       url: "/kmap",
@@ -228,7 +230,6 @@ function isGate (type) {
 function propagateInputMovement (dx, dy, element, depth, prevX, prevY) {
 	if (depth == 2 || !element)
 		return;
-
 	for (var i = 0; i < element.inputs.length; i++) {
 		var input = objects[currTab][element.inputs[i]];
 		var nextPrevX = input.element.x2;
@@ -741,6 +742,7 @@ $(function () {
 		var key = e.keyCode ? e.keyCode : e.which;
 		if (key == 8)
 			isDeleting = true;
+		console.log(key);
 	}
 
 	window.onkeyup = function (e) {

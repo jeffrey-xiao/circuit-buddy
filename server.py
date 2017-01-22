@@ -12,13 +12,18 @@ def kmap():
 	data = request.get_json(force=True)
 	#print(data)
 	N=int(data["inputs"])
-	print(N)
-	qm = QM(['1','2', '3', '4', '5', '6']);
+	print(data)
+	arrInputs=[]
+	for i in range(0, N):
+		arrInputs.append(str(i))
+	print arrInputs
+	qm = QM(arrInputs);
 	hold=[]
 	for i in range (len(data["test"])):
 		print data["test"][i][N]
 		if(int(data["test"][i][N])==1):
 			hold.append(i)
+	print hold
 	minimized=qm.get_function(qm.solve(hold,[])[1])
 	return jsonify(minimized)
 
