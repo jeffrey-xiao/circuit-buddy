@@ -72,8 +72,8 @@ button {
   background: #282a2e;
   display: inline-block;
   vertical-align: top;
-  height: calc(100% - 150px);
-  max-height: calc(100% - 150px); }
+  height: calc(100% - 160px);
+  max-height: calc(100% - 160px); }
   #truth-table #truth-table-content {
     height: inherit;
     overflow-y: scroll; }
@@ -86,7 +86,7 @@ button {
   position: relative;
   z-index: 220;
   color: #c5c8c6;
-  width: 33.3%;
+  width: 25%;
   display: block;
   float: left;
   margin: 0 0 1em 0;
@@ -104,7 +104,24 @@ body {
   color: #c5c8c6;
   background: #101112; }
 
+#info-wrapper {
+  width: 100%;
+  position: relative; }
+
 #current-hovered-element {
+  width: calc(50% - 35px);
+  display: inline-block;
+  float: left;
+  margin: 0 15px 15px 15px;
+  padding: 15px;
+  font-family: 'Overpass Mono', monospace;
+  box-sizing: border-box;
+  background: #282a2e; }
+
+#circuit-cost {
+  width: calc(50% - 35px);
+  float: left;
+  display: inline-block;
   margin: 0 15px 15px 15px;
   padding: 15px;
   font-family: 'Overpass Mono', monospace;

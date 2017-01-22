@@ -7,12 +7,13 @@ var TYPES = {
 	NOR_GATE: 5,
 	XOR_GATE: 6,
 	NXOR_GATE: 7,
-	HORIZONTAL_LINE: 8,
-	VERTICAL_LINE: 9
+	NOT_GATE: 8,
+	HORIZONTAL_LINE: 9,
+	VERTICAL_LINE: 10
 }
 
 var TYPE_NAMES = ["Input Gate", "Output Gate", "And Gate", "Nand Gate", "Or Gate", 
-				  "Nor Gate", "Xor Gate", "Nxor Gate", "Horizontal Line", "Vertical Line"];
+				  "Nor Gate", "Xor Gate", "Nxor Gate", "Not Gate", "Horizontal Line", "Vertical Line"];
 
 var STATES = {
 	INPUT_ON: "img/input_gate_on.png",
@@ -24,7 +25,7 @@ var STATES = {
 var opts = {
 	height: Math.round((window.innerHeight - 145) / 50.0) * 50,
 	width: Math.round((window.outerWidth- 332) / 50.0) * 50,
-	gridSize: 50//(window.outerWidth-330)/17
+	gridSize: 50
 };
 
 var gates = [
@@ -67,6 +68,11 @@ var gates = [
 		url: 'img/nxor_gate.png',
 		id: TYPES.NXOR_GATE,
 		type: TYPES.NXOR_GATE
+	},
+	{
+		url: 'img/not_gate.png',
+		id: TYPES.NOT_GATE,
+		type: TYPES.NOT_GATE
 	}
 ];
 
@@ -230,8 +236,22 @@ function getOutputId (id) {
 			return String.fromCharCode(65 + i);
 }
 
+function updateCost () {
+	var ret = 0;
+	for (var key in objects[currTab]) {
+		var element = objects[currTab][key];
+		if (element.type == TYPES.NOT_GATE) {
+			if (element.inputs.length == 0 || objects[currTab][element.inputs[0]].type != TYPES.OUTPUT_GATE)
+				ret += 1;
+		} else if (element.type != TYPES.INPUT_GATE && element.type != TYPES.OUTPUT_GATE && isGate(element.type)) {
+			ret += 1 + objects[currTab][key].inputs.length;
+		}
+	}
+	$('#circuit-cost').text("Cost: " + ret + ".");
+}
+
 function isGate (type) {
-	return type <= 7;
+	return type <= 8;
 }
 
 // only have to adjust elements two deep
@@ -337,6 +357,10 @@ function getOutput (currGate, inputMap) {
 		for (var i = 0; i < currGate.inputs.length; i++)
 			ret ^= getOutput(objects[currTab][currGate.inputs[i]], inputMap);
 		if (currGate.type == TYPES.NXOR_GATE) ret = !ret;
+	} else if (currGate.type == TYPES.NOT_GATE) {
+		var ret = 0;
+		if (currGate.inputs.length > 0)
+			ret = !getOutput(objects[currTab][currGate.inputs[0]], inputMap);
 	}
 	return ret;
 }
@@ -356,7 +380,7 @@ function updateOutputs (canvas) {
 }
 
 function removeObject (element, depth, canvas) {
-	if (depth == 4)
+	if (depth == 4 || !element)
 		return;
 	for (var i = 0; i < element.inputs.length; i++)
 		removeObject(objects[currTab][element.inputs[i]], depth + 1, canvas);
@@ -410,13 +434,14 @@ function init () {
 			if (isDeleting) {
 				removeObject(objects[currTab][id], 0, canvas);
 				updateJsonOutput();
+				updateCost();
 			} else {
 				if (objects[currTab][id].type == TYPES.INPUT_GATE)
-					$('#current-hovered-element').text("Hovered: Input Gate: " + getInputId(id));
+					$('#current-hovered-element').text("Hovered: Input Gate: " + getInputId(id) + ".");
 				else if (objects[currTab][id].type == TYPES.OUTPUT_GATE)
-					$('#current-hovered-element').text("Hovered: Output Gate: " + getOutputId(id));
+					$('#current-hovered-element').text("Hovered: Output Gate: " + getOutputId(id) + ".");
 				else
-					$('#current-hovered-element').text("Hovered: " + getGate(objects[currTab][id].type));
+					$('#current-hovered-element').text("Hovered: " + getGate(objects[currTab][id].type) + ".");
 			}
 		} else {
 			$('#current-hovered-element').text("Hovered: No element.");
@@ -443,6 +468,7 @@ function init () {
 					};
 					generateTruthTable();
 					updateJsonOutput();
+					updateCost();
 				}, {
 					id: currObjectId++,
 					top: currGate.id * opts.gridSize,
@@ -461,6 +487,7 @@ function init () {
 				});
 				updateOutputs(canvas);
 				updateJsonOutput();
+				updateCost();
 			}
 		}
 		
@@ -486,6 +513,7 @@ function init () {
 					generateTruthTable();
 					canvas.renderAll();
 					updateJsonOutput();
+					updateCost();
 				}
 				if (isGate(currGate.type) && currGate.element.left + 40 <= x && x <= currGate.element.left + 60 &&
 					currGate.element.top + 20 <= y && y <= currGate.element.top + 30) {
@@ -516,6 +544,7 @@ function init () {
 					generateTruthTable();
 					canvas.renderAll();
 					updateJsonOutput();
+					updateCost();
 				}
 			}
 
@@ -523,6 +552,7 @@ function init () {
 			objects[currTab][hline2.element.id] = hline2;
 			objects[currTab][vline.element.id] = vline;
 			updateJsonOutput();
+			updateCost();
 			if (!connected) {
 				for (var i = 0; i < hline1.inputs.length; i++)
 					if (objects[currTab][hline1.inputs[i]].outputs.length == 1 && objects[currTab][objects[currTab][hline1.inputs[i]].outputs[0]] == hline1)
@@ -568,6 +598,7 @@ function init () {
 		
 		canvas.renderAll();
 		updateJsonOutput();
+		updateCost();
 	});
 
 	canvas.on('mouse:move', function (options) {
