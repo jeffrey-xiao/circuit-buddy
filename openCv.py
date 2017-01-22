@@ -65,8 +65,8 @@ def cvFunction(image):
         0.5, (255, 255, 255), 2)
      
       # show the output image
-      cv2.imshow('threshold', shapeMask)
-      cv2.imshow("Image", img)
+      #cv2.imshow('threshold', shapeMask)
+      #cv2.imshow("Image", img)
       #cv2.waitKey(0)
   try:
     inputs = []

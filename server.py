@@ -1,14 +1,37 @@
 from flask import Flask, request, jsonify, send_from_directory, redirect, url_for
 from qm import QM
+from openCv import cvFunction
+from werkzeug import secure_filename
 import os
 
+UPLOAD_FOLDER = './uploads'
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
 
 app = Flask(__name__, static_url_path='/s')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/')
 def home():
     return redirect('/s/index.html')
+
+@app.route("/scan", methods=['POST'])
+def scan():
+	if 'file' not in request.files:
+		return '{"error": "Please add a file"}'
+	file = request.files['file']
+	if file.filename == '':
+		return '{"error": "Please select a file"}'
+	if file and allowed_file(file.filename):
+		filename = secure_filename(file.filename)
+		filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename);
+		file.save(filepath)
+		result = jsonify(cvFunction(filepath)) 
+		os.remove(filepath)
+		return result
 
 @app.route("/kmap", methods=['POST'])
 def kmap():
