@@ -144,7 +144,7 @@ function injectLatex (table, inputs) {
 	for (var i = 0; i < table[0].length; i++) {
 		if (i != 0)
 			ret += "&";
-		ret += i < inputs ? String.fromCharCode(65 + i) : String.fromCharCode(65 + i - inputs);
+		ret += i < inputs ? String.fromCharCode(65 + i) : String.fromCharCode(88 + i - inputs);
 	}
 	ret += "\\\\\\hline ";
 	for (var i = 0; i < table.length; i++) {
@@ -632,8 +632,8 @@ function init () {
 			canvas.remove(selectableIndicator.pop());
 		for (var key in objects[currTab]) {
 			var obj = objects[currTab][key].element;
-			var connectedInput = obj.left - 15 <= x && x <= obj.left && obj.top + 15 <= y && y <= obj.top + 35;
-			var connectedOutput = obj.left + 50 <= x && x <= obj.left + 65 && obj.top + 15 <= y && y <= obj.top + 35;
+			var connectedInput = obj.left - 15 <= x && x <= obj.left && obj.top + 5 <= y && y <= obj.top + 45;
+			var connectedOutput = obj.left + 50 <= x && x <= obj.left + 65 && obj.top <= y && y <= obj.top + 50;
 
 			if (connectedOutput && objects[currTab][key].type != TYPES.OUTPUT_GATE && isGate(objects[currTab][key].type)) {
 				var centerX = obj.left;
@@ -650,7 +650,7 @@ function init () {
 				canvas.add(currObject);
 			} else if (connectedInput && objects[currTab][key].type != TYPES.INPUT_GATE && isGate(objects[currTab][key].type)) {
 				var centerX = obj.left;
-				var centerY = obj.top + 25;
+				var centerY = y;
 				var currObject = new fabric.Circle({
 					radius: 5,
 					top: centerY - 3.5,
@@ -936,6 +936,10 @@ $(function () {
 			globalTabCounter = 1;
 			
 			$("#import-modal").css("display", "none");
+			setTimeout(function () {
+				generateTruthTable();
+				updateOutputs(canvas);
+			}, 500);
 		});
 	});
 });
