@@ -150,14 +150,14 @@ function wireObjects (objId1, objId2, tab) {
 		inputs: []
 	};
 
-	hline1.outputs.push(obj1.element.id);
+	hline1.outputs.push(objId1);
 	hline1.inputs.push(vline.element.id);
 
 	vline.outputs.push(hline1.element.id);
 	vline.inputs.push(hline2.element.id);
 
 	hline2.outputs.push(vline.element.id);
-	hline2.inputs.push(obj2.element.id);
+	hline2.inputs.push(objId2);
 
 	objects[tab][objId1].inputs.push(hline1.element.id);
 	objects[tab][objId2].outputs.push(hline2.element.id);
@@ -168,7 +168,7 @@ function wireObjects (objId1, objId2, tab) {
 }
 
 function getMinimize(){
-	var truthTable=generateTruthTable();
+	var truthTable=generateTruthTable();/*
    $.ajax({
    	  url: "/kmap",
    	  datatype: "json",
@@ -181,7 +181,8 @@ function getMinimize(){
       error:function(error){
         console.log(error);
       }
-    });
+    });*/
+   parseString("(1+2)");
 }
 
 function parseString (str) {
@@ -332,70 +333,7 @@ function linkObjects (map, id, tab) {
 	var inputs = map[id].inputs;
 	for (var i = 0; i < inputs.length; i++) {
 		var nextObjectId = map[inputs[i]].id;
-		
-		var x1 = objects[tab][objectId].left;
-		var x2 = objects[tab][nextObjectId].left + 50;
-		var y1 = objects[tab][objectId].top + 25;
-		var y2 = objects[tab][nextObjectId].top + 25;
-
-		var hlineElement1 = new fabric.Line([x1, y1, (x1 + x2) / 2.0, y1], {
-			stroke: '#81a2be',
-			selectable: false,
-			id: currObjectId++,
-			strokeWidth: 3
-		});
-
-		var vlineElement = new fabric.Line([(x1 + x2) / 2.0, y1, (x1 + x2) / 2.0, y2], {
-			stroke: '#81a2be',
-			selectable: false,
-			id: currObjectId++,
-			strokeWidth: 3
-		});
-
-		var hlineElement2 = new fabric.Line([x2, y2, (x1 + x2) / 2.0, y2], {
-			stroke: '#81a2be',
-			selectable: false,
-			id: currObjectId++,
-			strokeWidth: 3
-		});
-
-		var hline1 = {
-			element: hlineElement1,
-			type: TYPES.HORIZONTAL_LINE,
-			outputs: [],
-			inputs: []
-		};
-
-		var hline2 = {
-			element: hlineElement2,
-			type: TYPES.HORIZONTAL_LINE,
-			outputs: [],
-			inputs: []
-		};
-
-		var vline = {
-			element: vlineElement,
-			type: TYPES.VERTICAL_LINE,
-			outputs: [],
-			inputs: []
-		};
-
-		hline1.outputs.push(objectId);
-		hline1.inputs.push(vline.element.id);
-
-		vline.outputs.push(hline1.element.id);
-		vline.inputs.push(hline2.element.id);
-
-		hline2.outputs.push(vline.element.id);
-		hline2.inputs.push(nextObjectId);
-
-		objects[tab][objectId].inputs.push(hline1.element.id);
-		objects[tab][nextObjectId].outputs.push(hline2.element.id);
-
-		objects[tab][hline1.element.id] = hline1;
-		objects[tab][hline2.element.id] = hline2;
-		objects[tab][vline.element.id] = vline;
-
+		wireObjects(objectId, nextObjectId, tab);
 		linkObjects(map, inputs[i], tab);
 	}
 }
