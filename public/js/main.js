@@ -100,7 +100,7 @@ $.getScript("tabs_test.js", function(){
 
 function injectLatex (table, inputs) {
 	if (table.length == 0) {
-		$("#truth-table-content").text("");
+		$("#truth-table-content").text("\\begin{array}{}\\\\\\hline \\\\\\end{array}");
 		return;
 	}
 	var ret = "\\begin{array}{";
@@ -724,7 +724,7 @@ $(function () {
 			if (editableGates.length == 0) {
 				editableGates.push({});
 				$("#tabs").append("<div id='tab-0' class='active tab'><span>Tab "+globalTabCounter+"</span><button id='delete-tab-0'><i class=\"el el-remove\"></i></button></div>");		
-				globalTabCounter = 2;
+				globalTabCounter++;
 			}
 
 			if (id == editableGates.length)
