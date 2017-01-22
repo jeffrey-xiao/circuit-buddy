@@ -79,17 +79,6 @@ var gates = [
 var currObjectId = 11;
 var currTab = 0;
 
-/*******STRUCTURE*******\
-
-element: oImage,
-type: currGate.type,
-outputs: [],
-inputs: [],
-top: currGate.id * 50,
-left: 50,
-state: STATES.OFF
-
-\***********************/
 var objects = [{}];
 var creatingLine = false;
 var hline1, hline2, vline;
@@ -167,22 +156,21 @@ function wireObjects (objId1, objId2, tab) {
 	objects[tab][vline.element.id] = vline;
 }
 
-function getMinimize(){
-	var truthTable=generateTruthTable();/*
-   $.ajax({
-   	  url: "/kmap",
-   	  datatype: "json",
-   	  data: JSON.stringify(truthTable),
-      type: "POST",
-      success: function(response){
-        console.log(response);
-        parseString(response);
-      },
-      error:function(error){
-        console.log(error);
-      }
-    });*/
-   parseString("(1+2)");
+function getMinimize() {
+	var truthTable=generateTruthTable();
+   	$.ajax({
+   		url: "/kmap",
+   		datatype: "json",
+   		data: JSON.stringify(truthTable),
+      	type: "POST",
+      	success: function(response){
+        	console.log(response);
+        	parseString(response);
+      	},
+      	error:function(error){
+        	console.log(error);
+      	}
+	});
 }
 
 function parseString (str) {
