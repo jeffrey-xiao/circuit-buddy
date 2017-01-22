@@ -487,6 +487,9 @@ function init () {
 			var x = hline2.element.x2;
 			var y = hline2.element.y2;
 			var connected = false;
+			objects[currTab][hline1.element.id] = hline1;
+			objects[currTab][hline2.element.id] = hline2;
+			objects[currTab][vline.element.id] = vline;
 
 			for (var key in objects[currTab]) {
 				var currGate = objects[currTab][key];
@@ -538,9 +541,6 @@ function init () {
 				}
 			}
 
-			objects[currTab][hline1.element.id] = hline1;
-			objects[currTab][hline2.element.id] = hline2;
-			objects[currTab][vline.element.id] = vline;
 			updateJsonOutput();
 			updateCost();
 			if (!connected) {
@@ -718,7 +718,7 @@ function init () {
 							vline.outputs = [hline1.element.id];
 							hline2.outputs = [vline.element.id];
 
-							objects[currTab][key].inputs.push(hline1);
+							objects[currTab][key].inputs.push(hline1.element.id);
 							hline1.inputs.push(vline.element.id);
 							vline.inputs.push(hline2.element.id);
 						}
