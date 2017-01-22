@@ -197,6 +197,9 @@ div.active {
 #import-modal {
   display: none; }
 
+#camera-modal {
+  display: none; }
+
 .modal-textarea:focus {
   border-bottom: #4271ae; }
 

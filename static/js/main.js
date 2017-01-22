@@ -195,6 +195,7 @@ function parseString (str) {
 			left: 600,
 			state: STATES.OFF
 		};
+		addAllCanvasObjects(currTab);
 		wireObjects(oImage.id, map[outputGate].id, currTab);
 	}, {
 		id: currObjectId++,
@@ -207,9 +208,6 @@ function parseString (str) {
 		hasRotatingPoint: false
 	});
 
-	setTimeout(function () {
-		addAllCanvasObjects(currTab);
-	}, 2000);
 }
 
 function solve (str, map, tab) {
@@ -1080,7 +1078,35 @@ $(function () {
 			$("#export-modal").css("display", "block");
 		});
 		$("#export-exit-button").click(function () {
-			$("#export-modal").css("display", "none");
+			$("#camera-modal").css("display", "none");
+		});
+
+		$('#camera-button').click(function() {
+			$("#camera-modal").css("display", "block");
+		});
+		$("#camera-exit-button").click(function (e) {
+			e.preventDefault();	
+			$("#camera-modal").css("display", "none");
+		});
+		$('#camera-import-button').click(function(e) {
+			e.preventDefault();
+			var formData = new FormData();
+			formData.append('file', $('#camera-modal-textarea')[0].files[0]);
+			$.ajax({
+				type: 'POST',
+				url: '/scan',
+				data: formData,
+				contentType: false,
+				cache: false,
+				processData: false,
+				async: false,
+				success: function(data) {
+					$("#camera-modal").css("display", "none");
+					var control =$('#camera-modal-textarea');
+					control.replaceWith( control = control.clone( true ) );
+					parseString(data);
+				},
+			});
 		});
 
 		// click on import
