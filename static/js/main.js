@@ -159,6 +159,44 @@ function injectLatex (table, inputs) {
 	MathJax.Hub.Queue(["Typeset",MathJax.Hub,"truth-table"]);
 }
 
+
+function getOutput (currGate, inputMap) {
+	if (!currGate)
+		return 0;
+	if (currGate.type == TYPES.INPUT_GATE) {
+		if (inputMap)
+			return inputMap[currGate.element.id];
+		return currGate.state == STATES.INPUT_ON;
+	}
+	if (currGate.inputs.length == 0)
+		return 0;
+	if (currGate.type == TYPES.HORIZONTAL_LINE || currGate.type == TYPES.VERTICAL_LINE) {
+		var ret = getOutput(objects[currTab][currGate.inputs[0]], inputMap);
+		if (!inputMap)
+			currGate.element.setStroke(ret ? "#22A80C" : "#81a2be");
+	} else if (currGate.type == TYPES.AND_GATE || currGate.type == TYPES.NAND_GATE) {
+		var ret = 1;
+		for (var i = 0; i < currGate.inputs.length; i++)
+			ret &= getOutput(objects[currTab][currGate.inputs[i]], inputMap);
+		if (currGate.type == TYPES.NAND_GATE) ret = !ret;
+	} else if (currGate.type == TYPES.OR_GATE || currGate.type == TYPES.NOR_GATE) {
+		var ret = 0;
+		for (var i = 0; i < currGate.inputs.length; i++)
+			ret |= getOutput(objects[currTab][currGate.inputs[i]], inputMap);
+		if (currGate.type == TYPES.NOR_GATE) ret = !ret;
+	} else if (currGate.type == TYPES.XOR_GATE || currGate.type == TYPES.NXOR_GATE) {
+		var ret = 0;
+		for (var i = 0; i < currGate.inputs.length; i++)
+			ret ^= getOutput(objects[currTab][currGate.inputs[i]], inputMap);
+		if (currGate.type == TYPES.NXOR_GATE) ret = !ret;
+	} else if (currGate.type == TYPES.NOT_GATE) {
+		var ret = 0;
+		if (currGate.inputs.length > 0)
+			ret = !getOutput(objects[currTab][currGate.inputs[0]], inputMap);
+	}
+	return ret;
+}
+
 function generateTruthTable () {
 	var inputIds = [];
 	var outputNodes = [];
@@ -166,13 +204,12 @@ function generateTruthTable () {
 	for (var key in objects[currTab]) {
 		if (objects[currTab][key].type == TYPES.INPUT_GATE)
 			inputIds.push(objects[currTab][key].element.id);
-		else if (objects[currTab][key].type == TYPES.OUTPUT_GATE)
-			outputNodes.push(objects[currTab][key]);
+		else if (objects[currTab][key].type == TYPES.OUTPUT_GATE) {
+			outputNodes.push(objects[currTab][key].element.id);
+		}
 	}
 	inputIds.sort();
-	outputNodes.sort(function (a, b) {
-		return a.element.id - b.element.id;
-	});
+	outputNodes.sort();
 
 	var inputMap = {};
 
@@ -184,14 +221,14 @@ function generateTruthTable () {
 			inputMap[inputIds[j]] = (i & 1 << j) > 0 ? 1 : 0;
 			ret[i][j] = (i & 1 << j) > 0 ? 1 : 0;
 		}
+
 		for (var j = 0; j < outputNodes.length; j++) {
-			if (outputNodes[j].inputs.length == 0)
+			if (objects[currTab][outputNodes[j]].inputs.length == 0)
 				ret[i][inputIds.length + j] = 0;
-			else
-				ret[i][inputIds.length + j] = getOutput(objects[currTab][outputNodes[j].inputs[0]], inputMap);
+			else 
+				ret[i][inputIds.length + j] = getOutput(objects[currTab][objects[currTab][outputNodes[j]].inputs[0]], inputMap);
 		}
 	}
-
 	injectLatex(ret, inputIds.length);
 	return ret;	
 }
@@ -318,43 +355,6 @@ function propagateOutputMovement (dx, dy, element, depth, prevX, prevY) {
 		}
 		propagateOutputMovement(dx, dy, output, depth + 1, nextPrevX, nextPrevY);
 	}
-}
-
-function getOutput (currGate, inputMap) {
-	if (!currGate)
-		return 0;
-	if (currGate.type == TYPES.INPUT_GATE) {
-		if (inputMap)
-			return inputMap[currGate.element.id];
-		return currGate.state == STATES.INPUT_ON;
-	}
-	if (currGate.inputs.length == 0)
-		return 0;
-	if (currGate.type == TYPES.HORIZONTAL_LINE || currGate.type == TYPES.VERTICAL_LINE) {
-		var ret = getOutput(objects[currTab][currGate.inputs[0]], inputMap);
-		if (!inputMap)
-			currGate.element.setStroke(ret ? "#22A80C" : "#81a2be");
-	} else if (currGate.type == TYPES.AND_GATE || currGate.type == TYPES.NAND_GATE) {
-		var ret = 1;
-		for (var i = 0; i < currGate.inputs.length; i++)
-			ret &= getOutput(objects[currTab][currGate.inputs[i]], inputMap);
-		if (currGate.type == TYPES.NAND_GATE) ret = !ret;
-	} else if (currGate.type == TYPES.OR_GATE || currGate.type == TYPES.NOR_GATE) {
-		var ret = 0;
-		for (var i = 0; i < currGate.inputs.length; i++)
-			ret |= getOutput(objects[currTab][currGate.inputs[i]], inputMap);
-		if (currGate.type == TYPES.NOR_GATE) ret = !ret;
-	} else if (currGate.type == TYPES.XOR_GATE || currGate.type == TYPES.NXOR_GATE) {
-		var ret = 0;
-		for (var i = 0; i < currGate.inputs.length; i++)
-			ret ^= getOutput(objects[currTab][currGate.inputs[i]], inputMap);
-		if (currGate.type == TYPES.NXOR_GATE) ret = !ret;
-	} else if (currGate.type == TYPES.NOT_GATE) {
-		var ret = 0;
-		if (currGate.inputs.length > 0)
-			ret = !getOutput(objects[currTab][currGate.inputs[0]], inputMap);
-	}
-	return ret;
 }
 
 function updateOutputs (canvas) {
@@ -502,7 +502,6 @@ function init () {
 					connected = true;
 
 					updateOutputs(canvas);
-					generateTruthTable();
 					canvas.renderAll();
 					updateJsonOutput();
 					updateCost();
@@ -533,7 +532,6 @@ function init () {
 					connected = true;
 					
 					updateOutputs(canvas);
-					generateTruthTable();
 					canvas.renderAll();
 					updateJsonOutput();
 					updateCost();
@@ -565,6 +563,7 @@ function init () {
 			hline1 = null;
 			hline2 = null;
 			vline = null;
+			generateTruthTable();
 		}
 		
 		creatingLine = false;
@@ -773,7 +772,6 @@ $(function () {
 		var key = e.keyCode ? e.keyCode : e.which;
 		if (key == 8)
 			isDeleting = true;
-		console.log(key);
 	}
 
 	window.onkeyup = function (e) {
@@ -824,6 +822,7 @@ $(function () {
 			addAllCanvasObjects(id);
 			currTab = id;
 			generateTruthTable();
+			updateCost();
 		});
 
 		// click on export
