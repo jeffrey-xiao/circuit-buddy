@@ -718,6 +718,23 @@ function removeAllObjects (tab) {
 	}
 }
 
+var globalTabCounter = 2;
+
+function addTab () {
+	var len = $("div[id^='tab-']").length;
+	
+	$("div[id^='tab-']").each(function () {
+		$(this).removeClass("active");
+	});
+
+	$("#tabs").append("<div id='tab-" + len + "' class='active tab'><span>Tab " + globalTabCounter + "</span><button id='delete-tab-" + len + "'><i class=\"el el-remove\"></i></button></div>");
+	
+	removeAllCanvasObjects(currTab);
+	currTab = len;
+	objects.push({});
+	globalTabCounter++;
+}
+
 $(function () {
 
 	window.onkeydown = function (e) {
@@ -734,22 +751,8 @@ $(function () {
 
 	$(document).ready(function () {
 		init();
-		var globalTabCounter = 2;
 		// adding a tab
-		$("#add-tab").click(function () {
-			var len = $("div[id^='tab-']").length;
-			
-			$("div[id^='tab-']").each(function () {
-				$(this).removeClass("active");
-			});
-
-			$("#tabs").append("<div id='tab-" + len + "' class='active tab'><span>Tab " + globalTabCounter + "</span><button id='delete-tab-" + len + "'><i class=\"el el-remove\"></i></button></div>");
-			
-			removeAllCanvasObjects(currTab);
-			currTab = len;
-			objects.push({});
-			globalTabCounter++;
-		});
+		$("#add-tab").click(addTab);
 
 		// removing the current tab
 		$("body").on('click', "button[id^='delete-tab']", function () {
