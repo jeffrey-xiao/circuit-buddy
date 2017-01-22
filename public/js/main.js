@@ -748,5 +748,10 @@ $(function () {
 			addAllCanvasObjects(id);
 			currTab = id;
 		});
+
+		// click on export
+		$("#export-button").click(function () {
+			$("#export-dialogue").css("display", "block");
+		});
 	});
 });
