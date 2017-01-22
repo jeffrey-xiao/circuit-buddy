@@ -185,7 +185,7 @@ function generateTruthTable () {
 	}
 
 	injectLatex(ret, inputIds.length);
-	return ret;
+	return ret;	
 }
 
 function getGate (type) {
@@ -519,9 +519,7 @@ function init () {
 					if (objects[currTab][hline1.inputs[i]].outputs.length == 1 && objects[currTab][objects[currTab][hline1.inputs[i]].outputs[0]] == hline1)
 						objects[currTab][hline1.inputs[i]].outputs = [];
 				if (hline1.outputs.length == 1) {
-					console.log(objects);
-					console.log(hline1.outputs[0]);
-					objects[currTab][hline1.outputs[0]].inputs = objects[currTab][hline1.outputs[0]]	.inputs.filter(function (el) {
+					objects[currTab][hline1.outputs[0]].inputs = objects[currTab][hline1.outputs[0]].inputs.filter(function (el) {
 						return objects[currTab][el].element.id != hline1.element.id;
 					});
 				}
@@ -781,7 +779,6 @@ $(function () {
 
 		// switching tabs
 		$("body").on('click', "div[id^='tab-']", function () {
-			console.log("SWITCHING");
 			var id = parseInt($(this).attr('id').split("-")[1]);
 			$("div.tab.active").each(function () {
 				$(this).removeClass("active");
@@ -837,7 +834,6 @@ $(function () {
 							id: key,
 							strokeWidth: 3
 						});
-						console.log("ADDED LINE");
 						canvas.add(objects[tab][key].element);
 					}
 					currObjectId = Math.max(currObjectId, key + 1);
