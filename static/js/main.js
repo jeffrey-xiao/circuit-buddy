@@ -100,6 +100,76 @@ var canvas;
 var isDrawingFromInput = false;
 var selectableIndicator = [];
 
+<<<<<<< HEAD
+confirm('Press backspace and mouse over elements to delete. Okay to continue');
+=======
+function wireObjects (objId1, objId2, tab) {
+	var obj1 = objects[tab][objId1];
+	var obj2 = objects[tab][objId2];
+	var x1 = obj1.left;
+	var x2 = obj2.left + 50;
+	var y1 = obj1.top + 25;
+	var y2 = obj2.top + 25;
+
+	var hlineElement1 = new fabric.Line([x1, y1, (x1 + x2) / 2.0, y1], {
+		stroke: '#81a2be',
+		selectable: false,
+		id: currObjectId++,
+		strokeWidth: 3
+	});
+
+	var vlineElement = new fabric.Line([(x1 + x2) / 2.0, y1, (x1 + x2) / 2.0, y2], {
+		stroke: '#81a2be',
+		selectable: false,
+		id: currObjectId++,
+		strokeWidth: 3
+	});
+
+	var hlineElement2 = new fabric.Line([x2, y2, (x1 + x2) / 2.0, y2], {
+		stroke: '#81a2be',
+		selectable: false,
+		id: currObjectId++,
+		strokeWidth: 3
+	});
+
+	var hline1 = {
+		element: hlineElement1,
+		type: TYPES.HORIZONTAL_LINE,
+		outputs: [],
+		inputs: []
+	};
+
+	var hline2 = {
+		element: hlineElement2,
+		type: TYPES.HORIZONTAL_LINE,
+		outputs: [],
+		inputs: []
+	};
+
+	var vline = {
+		element: vlineElement,
+		type: TYPES.VERTICAL_LINE,
+		outputs: [],
+		inputs: []
+	};
+
+	hline1.outputs.push(obj1.element.id);
+	hline1.inputs.push(vline.element.id);
+
+	vline.outputs.push(hline1.element.id);
+	vline.inputs.push(hline2.element.id);
+
+	hline2.outputs.push(vline.element.id);
+	hline2.inputs.push(obj2.element.id);
+
+	objects[tab][objId1].inputs.push(hline1.element.id);
+	objects[tab][objId2].outputs.push(hline2.element.id);
+
+	objects[tab][hline1.element.id] = hline1;
+	objects[tab][hline2.element.id] = hline2;
+	objects[tab][vline.element.id] = vline;
+}
+>>>>>>> Magic
 
 function getMinimize(){
 	var truthTable=generateTruthTable();
@@ -117,54 +187,107 @@ function getMinimize(){
       }
     });
 }
-function parseString(str){
-	var N=0;
-	//generate blocks 1->N from 100, 50+i*100 inputs
-	var curDepth=1;
-	list=[];
-	//console.log("create output at " + (700)+ " "+200);
-	/*
-	var outputGate = solve(str, map);
-	var vis = new Set();*/
 
+function parseString (str) {
+	addTab();
 	var map = {}	
-	objects.push({});
-	bfs(str, 0, list, 700, 200, map);
-	console.log(map);
+	var depths = [];
+	
+	for (var i = 0; i < 100; i++)
+		depths.push(0);
+	
+	var outputGate = solve(str, map, currTab);
+	createObjects(map, outputGate, depths, 0, currTab);
+	linkObjects(map, outputGate, currTab);
+
+	fabric.Image.fromURL(gates[TYPES.OUTPUT_GATE].url, function (oImage) {
+		objects[currTab][oImage.id] = {
+			element: oImage,
+			type: TYPES.OUTPUT_GATE,
+			outputs: [],
+			inputs: [],
+			top: 50,
+			left: 600,
+			state: STATES.OFF
+		};
+		wireObjects(oImage.id, map[outputGate].id, currTab);
+	}, {
+		id: currObjectId++,
+		top: 50,
+		left: 600,
+		height: 50,
+		width: 50,
+		hasBorders: false,
+		hasControls: false,
+		hasRotatingPoint: false
+	});
+
+	setTimeout(function () {
+		addAllCanvasObjects(currTab);
+	}, 2000);
 }
 
-function solve (str, map) {
+function solve (str, map, tab) {
 	var currGate;
 	var stack = [];
 	var gateId = 100;
-	console.log(str);
 	for (var i = 0; i < str.length; i++) {
 		if (str[i] == '(')
 			stack.push(str[i]);
 		else if (str[i] == ')') {
 			var currId = gateId++;
 			map[currId] = {
-				type: null,
+				id: currObjectId,
 				inputs: []
 			};
+			objects[tab][currObjectId] = {
+				element: null,
+				type: null,
+				outputs: [],
+				inputs: [],
+				top: null,
+				left: null,
+				width: opts.gridSize,
+				height: opts.gridSize,
+				state: STATES.INPUT_OFF
+			};
+
+			currObjectId++;
+
 			while (stack[stack.length - 1] != '(') {
 				if (stack[stack.length - 1] == '*' || stack[stack.length - 1] == '+') {
 					currGate = stack[stack.length - 1];
 				} else {
 					var input = parseInt(stack[stack.length - 1]);
-					if (input < 100)
+					if (input < 100 && !map[input]) {
 						map[input] = {
-							type: TYPES.INPUT_GATE,
+							id: currObjectId,
 							inputs: []
+						};
+
+						objects[tab][currObjectId] = {
+							element: null,
+							type: TYPES.INPUT_GATE,
+							outputs: [],
+							inputs: [],
+							top: null,
+							left: null,
+							width: opts.gridSize,
+							height: opts.gridSize,
+							state: STATES.INPUT_OFF
 						}
+
+						currObjectId++;
+					}
 					map[currId].inputs.push(input);
 				}
 				stack.pop();
 			}
-			if (currGate == '*')
-				map[currId].type = TYPES.AND_GATE;
-			else
-				map[currId].type = TYPES.OR_GATE;
+			if (currGate == '*') {
+				objects[tab][map[currId].id].type = TYPES.AND_GATE;
+			} else {
+				objects[tab][map[currId].id].type = TYPES.OR_GATE;
+			}
 			stack.pop();
 			stack.push(currId);
 		} else {
@@ -172,90 +295,115 @@ function solve (str, map) {
 		}
 	}
 	return gateId - 1;
-	console.log(map);
 }
 
-function createObjects (map, id, vis) {
-	var element = map[id];
-}
+function createObjects (map, id, depths, depth, tab) {
+	var inputs = map[id].inputs;
+	var objectId = map[id].id;
 
-
-function bfs(str, depth, list, wireX, wireY, map){
-	var nextDepth=depth;
-	nextDepth++;
-
-	console.log("depth: "+depth+" nextDepth: "+nextDepth)
-	if(list.length<=depth){
-		list.push(0);
-	}
-	var nextWireX=600-100*depth;
-	var nextWireY=list[depth]*100+100;
-	if(str.length==1) {
-		if (!map[parseInt(str[0])]) {
-			map[parseInt(str[0])] = {
-				depth: depth,
-				nextWireX: nextWireX,
-				nextWireY: nextWireY,
-				connectWireX: [],
-				connectWireY: []
-			};
-		} else {
-			if (depth > map[parseInt(str[0])].depth) {
-				map[parseInt(str[0])].nextWireX = nextWireX;
-				map[parseInt(str[0])].nextWireY = nextWireY;
-			}
-		}
-
-		map[parseInt(str[0])].connectWireX.push(nextWireX);
-		map[parseInt(str[0])].connectWireY.push(nextWireY);
-
-		//create input at depth
-		//create ADD/OR/OUTPUT at curr depth and position, x=600-100*curDepth, y=list[depth]*100+100, list[depth]+=1;
-		//link wire from cur position to wirex, wirey
-		list[depth]+=1;
+	if (objects[tab][objectId].element)
 		return;
-	}
-	var temp=str.substring(1, str.length-1);
-	var prev=0;
-	var add=-1;
-	var curDepth=0;
-	for(var i=0; i<temp.length; i++){
-		if(temp[i]=='('){
-			curDepth+=1;
-		}else if(str[i]==')'){
-			curDepth-=1;
-		}
-		if(curDepth==0 && temp[i]=='*'){
-			
-			if(add==-1){
 
-				console.log("create and at " + nextWireX+ " "+nextWireY+ " create a wire connecting ("+ nextWireX+","+nextWireY+") to ("+wireX+","+wireY+")");
-				list[depth]++;				
-			}
-			add=1;
-			bfs(temp.substring(prev, i), nextDepth, list, nextWireX, nextWireY, map);
-			prev=i+1;
-		}
-		if(curDepth==0 && temp[i]=='+'){
-			
-			if(add==-1){
-				console.log("create or at " + nextWireX+ " "+nextWireY+ " create a wire connecting ("+ nextWireX+","+nextWireY+") to ("+wireX+","+wireY+")");
-				list[depth]++;				
-			}
-			add=0;
-			bfs(temp.substring(prev, i), nextDepth, list, nextWireX, nextWireY, map);
-			prev=i+1;
-		}
+	var left = 500 - depth * 100;
+	var top = 0 + depths[depth] * 50;
+
+	objects[tab][objectId].top = top;
+	objects[tab][objectId].left = left;
+	depths[depth]++;
+	objects[tab][objectId].element = new Object();
+
+	fabric.Image.fromURL(gates[objects[tab][objectId].type].url, function (oImage) {
+		objects[tab][oImage.id].element = oImage;
+	}, {
+		id: objectId,
+		top: top,
+		left: left,
+		height: 50,
+		width: 50,
+		hasBorders: false,
+		hasControls: false,
+		hasRotatingPoint: false
+	});
+
+	depths[depth]++;
+
+	for (var i = 0; i < inputs.length; i++)
+		createObjects(map, inputs[i], depths, depth + 1, tab);
+}
+
+function linkObjects (map, id, tab) {
+	var objectId = map[id].id;
+	var inputs = map[id].inputs;
+	for (var i = 0; i < inputs.length; i++) {
+		var nextObjectId = map[inputs[i]].id;
+		
+		var x1 = objects[tab][objectId].left;
+		var x2 = objects[tab][nextObjectId].left + 50;
+		var y1 = objects[tab][objectId].top + 25;
+		var y2 = objects[tab][nextObjectId].top + 25;
+
+		var hlineElement1 = new fabric.Line([x1, y1, (x1 + x2) / 2.0, y1], {
+			stroke: '#81a2be',
+			selectable: false,
+			id: currObjectId++,
+			strokeWidth: 3
+		});
+
+		var vlineElement = new fabric.Line([(x1 + x2) / 2.0, y1, (x1 + x2) / 2.0, y2], {
+			stroke: '#81a2be',
+			selectable: false,
+			id: currObjectId++,
+			strokeWidth: 3
+		});
+
+		var hlineElement2 = new fabric.Line([x2, y2, (x1 + x2) / 2.0, y2], {
+			stroke: '#81a2be',
+			selectable: false,
+			id: currObjectId++,
+			strokeWidth: 3
+		});
+
+		var hline1 = {
+			element: hlineElement1,
+			type: TYPES.HORIZONTAL_LINE,
+			outputs: [],
+			inputs: []
+		};
+
+		var hline2 = {
+			element: hlineElement2,
+			type: TYPES.HORIZONTAL_LINE,
+			outputs: [],
+			inputs: []
+		};
+
+		var vline = {
+			element: vlineElement,
+			type: TYPES.VERTICAL_LINE,
+			outputs: [],
+			inputs: []
+		};
+
+		hline1.outputs.push(objectId);
+		hline1.inputs.push(vline.element.id);
+
+		vline.outputs.push(hline1.element.id);
+		vline.inputs.push(hline2.element.id);
+
+		hline2.outputs.push(vline.element.id);
+		hline2.inputs.push(nextObjectId);
+
+		objects[tab][objectId].inputs.push(hline1.element.id);
+		objects[tab][nextObjectId].outputs.push(hline2.element.id);
+
+		objects[tab][hline1.element.id] = hline1;
+		objects[tab][hline2.element.id] = hline2;
+		objects[tab][vline.element.id] = vline;
+
+		linkObjects(map, inputs[i], tab);
 	}
-	bfs(temp.substring(prev, temp.length), nextDepth, list, nextWireX, nextWireY, map);
-	//create wire from nextWireX, nextWireY to wireX, wireY
-	//create ADD/OR/OUTPUT at curr depth and position, x=600-100*curDepth, y=list[depth]*100+100, list[depth]+=1;
 }
-function tester(){
-	var truthTable=generateTruthTable();
-  var hey=JSON.stringify(truthTable);
-  console.log(hey);
-}
+
 function updateJsonOutput () {
 	for (var i = 0; i < objects.length; i++) {
 		for (var key in objects[i]) {
@@ -948,12 +1096,8 @@ $(function () {
 		var key = e.keyCode ? e.keyCode : e.which;
 		if (key == 8)
 			isDeleting = true;
-<<<<<<< HEAD
-		console.log(key);
 		if(key==77)
 			getMinimize();
-=======
->>>>>>> 611180890750a24557597725679a49f2c4223801
 	}
 
 	window.onkeyup = function (e) {
