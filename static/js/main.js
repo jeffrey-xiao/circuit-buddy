@@ -110,7 +110,6 @@ function getMinimize(){
       success: function(response){
         console.log(response);
         parseString(response);
-        console.log("check");
       },
       error:function(error){
         console.log(error);
@@ -118,8 +117,138 @@ function getMinimize(){
     });
 }
 function parseString(str){
-	var tokens=str.split(" ");
-	console.log(tokens);
+	var N=0;
+	//generate blocks 1->N from 100, 50+i*100 inputs
+	var curDepth=1;
+	list=[];
+	//console.log("create output at " + (700)+ " "+200);
+	/*
+	var outputGate = solve(str, map);
+	var vis = new Set();*/
+
+	var map = {}	
+	objects.push({});
+	bfs(str, 0, list, 700, 200, map);
+	console.log(map);
+}
+
+function solve (str, map) {
+	var currGate;
+	var stack = [];
+	var gateId = 100;
+	console.log(str);
+	for (var i = 0; i < str.length; i++) {
+		if (str[i] == '(')
+			stack.push(str[i]);
+		else if (str[i] == ')') {
+			var currId = gateId++;
+			map[currId] = {
+				type: null,
+				inputs: []
+			};
+			while (stack[stack.length - 1] != '(') {
+				if (stack[stack.length - 1] == '*' || stack[stack.length - 1] == '+') {
+					currGate = stack[stack.length - 1];
+				} else {
+					var input = parseInt(stack[stack.length - 1]);
+					if (input < 100)
+						map[input] = {
+							type: TYPES.INPUT_GATE,
+							inputs: []
+						}
+					map[currId].inputs.push(input);
+				}
+				stack.pop();
+			}
+			if (currGate == '*')
+				map[currId].type = TYPES.AND_GATE;
+			else
+				map[currId].type = TYPES.OR_GATE;
+			stack.pop();
+			stack.push(currId);
+		} else {
+			stack.push(str[i]);
+		}
+	}
+	return gateId - 1;
+	console.log(map);
+}
+
+function createObjects (map, id, vis) {
+	var element = map[id];
+}
+
+
+function bfs(str, depth, list, wireX, wireY, map){
+	var nextDepth=depth;
+	nextDepth++;
+
+	console.log("depth: "+depth+" nextDepth: "+nextDepth)
+	if(list.length<=depth){
+		list.push(0);
+	}
+	var nextWireX=600-100*depth;
+	var nextWireY=list[depth]*100+100;
+	if(str.length==1) {
+		if (!map[parseInt(str[0])]) {
+			map[parseInt(str[0])] = {
+				depth: depth,
+				nextWireX: nextWireX,
+				nextWireY: nextWireY,
+				connectWireX: [],
+				connectWireY: []
+			};
+		} else {
+			if (depth > map[parseInt(str[0])].depth) {
+				map[parseInt(str[0])].nextWireX = nextWireX;
+				map[parseInt(str[0])].nextWireY = nextWireY;
+			}
+		}
+
+		map[parseInt(str[0])].connectWireX.push(nextWireX);
+		map[parseInt(str[0])].connectWireY.push(nextWireY);
+
+		//create input at depth
+		//create ADD/OR/OUTPUT at curr depth and position, x=600-100*curDepth, y=list[depth]*100+100, list[depth]+=1;
+		//link wire from cur position to wirex, wirey
+		list[depth]+=1;
+		return;
+	}
+	var temp=str.substring(1, str.length-1);
+	var prev=0;
+	var add=-1;
+	var curDepth=0;
+	for(var i=0; i<temp.length; i++){
+		if(temp[i]=='('){
+			curDepth+=1;
+		}else if(str[i]==')'){
+			curDepth-=1;
+		}
+		if(curDepth==0 && temp[i]=='*'){
+			
+			if(add==-1){
+
+				console.log("create and at " + nextWireX+ " "+nextWireY+ " create a wire connecting ("+ nextWireX+","+nextWireY+") to ("+wireX+","+wireY+")");
+				list[depth]++;				
+			}
+			add=1;
+			bfs(temp.substring(prev, i), nextDepth, list, nextWireX, nextWireY, map);
+			prev=i+1;
+		}
+		if(curDepth==0 && temp[i]=='+'){
+			
+			if(add==-1){
+				console.log("create or at " + nextWireX+ " "+nextWireY+ " create a wire connecting ("+ nextWireX+","+nextWireY+") to ("+wireX+","+wireY+")");
+				list[depth]++;				
+			}
+			add=0;
+			bfs(temp.substring(prev, i), nextDepth, list, nextWireX, nextWireY, map);
+			prev=i+1;
+		}
+	}
+	bfs(temp.substring(prev, temp.length), nextDepth, list, nextWireX, nextWireY, map);
+	//create wire from nextWireX, nextWireY to wireX, wireY
+	//create ADD/OR/OUTPUT at curr depth and position, x=600-100*curDepth, y=list[depth]*100+100, list[depth]+=1;
 }
 function tester(){
 	var truthTable=generateTruthTable();
