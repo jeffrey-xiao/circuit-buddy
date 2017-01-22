@@ -95,23 +95,31 @@ var isDrawingFromInput = false;
 
 
 function getMinimize(){
-	console.log("Check");
-  var truthTable=generateTruthTable();
-
+	var truthTable=generateTruthTable();
    $.ajax({
+   	  url: "/kmap",
+   	  datatype: "json",
+   	  data: JSON.stringify(truthTable),
       type: "POST",
-      url: "/kmap",
-      dataType: 'json',
-      data: JSON.stringify(truthTable),
       success: function(response){
         console.log(response);
+        parseString(response);
+        console.log("check");
       },
       error:function(error){
         console.log(error);
       }
     });
 }
-
+function parseString(str){
+	var tokens=str.split(" ");
+	console.log(tokens);
+}
+function tester(){
+	var truthTable=generateTruthTable();
+  var hey=JSON.stringify(truthTable);
+  console.log(hey);
+}
 function updateJsonOutput () {
 	for (var i = 0; i < objects.length; i++) {
 		for (var key in objects[i]) {
@@ -743,6 +751,8 @@ $(function () {
 		if (key == 8)
 			isDeleting = true;
 		console.log(key);
+		if(key==77)
+			getMinimize();
 	}
 
 	window.onkeyup = function (e) {

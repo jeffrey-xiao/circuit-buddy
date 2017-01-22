@@ -256,9 +256,9 @@ class QM:
         if minterm[0] & 1<<j:
           and_terms.append(self.variables[j])
         elif not minterm[1] & 1<<j:
-          and_terms.append('(NOT %s)' % self.variables[j])
-      or_terms.append(parentheses(' AND ', and_terms))
-    return parentheses(' OR ', or_terms)
+          and_terms.append('(!%s)' % self.variables[j])
+      or_terms.append(parentheses('*', and_terms))
+    return parentheses('+', or_terms)
 
 def bitcount(i):
   """ Count set bits of the input. """
