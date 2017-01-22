@@ -1,45 +1,108 @@
 html {
-	width: 100%;
-	padding:0;
-	margin:0;
-	font-family: 'Overpass Mono', monospace;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  font-family: 'Overpass Mono', monospace; }
+
+#tabs-bar {
+  position: relative;
+  background: #282a2e; }
+
+#tabs {
+  display: inline-block; vertical-align:top;}
+#tabs-bar .tab:hover{
+  background:#373b41;
 }
+#tabs-bar .tab:active{
+	background:#4271ae;
+}
+#tabs .tab{
+  float:left;
+}
+button{
+	outline:0;
+}
+#tabs-bar .tab {
+	cursor:default;
+   vertical-align:top;
+  padding: 0.8em 1em;
+  font-size: 1em;
+  background: #282a2e;
+  border-style: none;
+  border-right:1px solid #373b41;
+  border-bottom:2px solid #282a2e;
+  color: #c5c8c6;
+  line-height:1em;
+  display: inline-block; }
+#tabs-bar .tab.active{
+	border-bottom:2px solid #4271ae;
+}
+#tabs-bar .tab button {
+  padding:0.8em;
+  margin:-0.8em 0 -0.8em 0.8em;
+  color: #c5c8c6;
+  background: transparent;
+  display:inline-block;
+  position:relative;
+  z-index:2;
+  border-style: none; }
+  #tabs-bar .tab button:hover{
+    color:#c82829;
+  }
 
 .canvas-container {
-	background:#282a2e;
-	margin:15px;
-	vertical-align:top;
-	display: inline-block;
-}
+  background: #282a2e;
+  border-style:none;
+  margin: 15px;
+  vertical-align: top;
+  display: inline-block; }
 
 #truth-table {
-	margin-top:15px;
-	padding: 10px;
-	box-sizing:border-box;
-	text-align:center;
-	width: 285px;
-	background:#282a2e;
-	display: inline-block;
-	vertical-align:top;
-} 
-body {
-	padding:0;
-	margin:0;
-	color:#c5c8c6;
+  margin-top: 15px;
+  padding: 10px;
+  box-sizing: border-box;
+  text-align: center;
+  width: 285px;
+  background: #282a2e;
+  display: inline-block;
+  vertical-align: top; }
+.truth-button{
 	background:#101112;
-}
-#current-hovered-element {
-	margin:0 15px 15px 15px;
-	padding:15px;
-	font-family:'Overpass Mono', monospace;
+	padding:1em;
 	box-sizing:border-box;
-	background:#282a2e;
+	border-style:none;
+	position:relative;
+	z-index:220;
+	color:#c5c8c6;
+	width:33.3%;
+	display:block;
+	float:left;
+	margin:0 0 1em 0;
+	outline:0;
 }
+.truth-button:hover{
+	background:#373b41;
+}
+.truth-button:active{ 
+	background:#4271ae;
+}
+body {
+  padding: 0;
+  margin: 0;
+  color: #c5c8c6;
+  background: #101112; }
+
+#current-hovered-element {
+  margin: 0 15px 15px 15px;
+  padding: 15px;
+  font-family: 'Overpass Mono', monospace;
+  box-sizing: border-box;
+  background: #282a2e; }
 
 #tabs div {
-	background-color: white;
-}
+  background-color: white; }
 
 div.active {
-	background-color: black;
-}
+  background-color: black; }
+
+/*# sourceMappingURL=main.css.map */

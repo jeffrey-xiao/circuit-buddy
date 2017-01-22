@@ -22,8 +22,8 @@ var STATES = {
 }
 
 var opts = {
-	height: Math.round((window.innerHeight - 100) / 50.0) * 50,
-	width: Math.round((window.outerWidth- 330) / 50.0) * 50,
+	height: Math.round((window.innerHeight - 145) / 50.0) * 50,
+	width: Math.round((window.outerWidth- 332) / 50.0) * 50,
 	gridSize: 50//(window.outerWidth-330)/17
 };
 
@@ -687,6 +687,7 @@ $(function () {
 
 	$(document).ready(function () {
 		init();
+		var globalTabCounter = 2;
 		// adding a tab
 		$("#add-tab").click(function () {
 			var len = $("div[id^='tab-']").length;
@@ -695,11 +696,12 @@ $(function () {
 				$(this).removeClass("active");
 			});
 
-			$("#tabs").append("<div id='tab-" + len + "' class='active'><span>" + (len + 1) + "</span><button id='delete-tab-" + len + "'>x</button></div>");
+			$("#tabs").append("<div id='tab-" + len + "' class='active tab'><span>Tab " + globalTabCounter + "</span><button id='delete-tab-" + len + "'><i class=\"el el-remove\"></i></button></div>");
 			
 			removeAllCanvasObjects(currTab);
 			currTab = len;
 			editableGates.push({});
+			globalTabCounter++;
 		});
 
 		// removing the current tab
@@ -708,16 +710,16 @@ $(function () {
 			removeAllObjects(id);
 			editableGates.splice(id, 1);
 
-			$("#tabs").children().last().remove();	
+			$(this).parent().remove();
+			for(var i = id; i < editableGates.length; i++){
+				$('#tabs .tab').eq(i).attr('id', 'tab-'+i).find('button').attr('id', 'delete-tab-'+i);
+			}
 
 			if (editableGates.length == 0) {
 				editableGates.push({});
-				$("#tabs").append("<div id='tab-0' class='active'><span>1</span><button id='delete-tab-0'>x</button></div>");
+				$("#tabs").append("<div id='tab-0' class='active tab'><span>Tab "+globalTabCounter+"</span><button id='delete-tab-0'><i class=\"el el-remove\"></i></button></div>");		
+				globalTabCounter = 2;
 			}
-
-			$("div[id^='tab-']").each(function () {
-				$(this).removeClass("active");
-			});
 
 			if (id == editableGates.length)
 				id--;
@@ -732,7 +734,7 @@ $(function () {
 		$("body").on('click', "div[id^='tab-']", function () {
 			console.log("SWITCHING");
 			var id = parseInt($(this).attr('id').split("-")[1]);
-			$("div[id^='tab-']").each(function () {
+			$("div.tab.active").each(function () {
 				$(this).removeClass("active");
 			});
 			$("div[id='tab-" + id + "']").addClass("active");
