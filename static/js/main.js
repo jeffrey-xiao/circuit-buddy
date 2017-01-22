@@ -98,6 +98,7 @@ var mouseDownTime;
 var isDeleting = false;
 var canvas;
 var isDrawingFromInput = false;
+var selectableIndicator;
 
 
 function getMinimize(){
@@ -620,6 +621,43 @@ function init () {
 			});
 
 			canvas.renderAll();
+		}
+		var pointer = canvas.getPointer(options.e);
+		var x = pointer.x;
+		var y = pointer.y;
+
+		if (selectableIndicator)
+			canvas.remove(selectableIndicator)
+		for (var key in objects[currTab]) {
+			var obj = objects[currTab][key].element;
+			var connectedInput = obj.left - 20 <= x && x <= obj.left + 20 && obj.top - 20 <= y && y <= obj.top + 20 + obj.height;
+			var connectedOutput = obj.left + 30 <= x && x <= obj.left + 80 && obj.top <= y && y <= obj.top + 50;
+
+			if (connectedOutput && objects[currTab][key].type != TYPES.OUTPUT_GATE && isGate(objects[currTab][key].type)) {
+				var centerX = obj.left;
+				var centerY = obj.top + 25;
+				selectableIndicator = new fabric.Circle({
+					radius: 5,
+					top: centerY - 3.5,
+					left: centerX + 48,
+					fill: "#81a2be",
+					opacity: 0.8,
+					selectable: false
+				});
+				canvas.add(selectableIndicator);
+			} else if (connectedInput && objects[currTab][key].type != TYPES.INPUT_GATE && isGate(objects[currTab][key].type)) {
+				var centerX = obj.left;
+				var centerY = obj.top + 25;
+				selectableIndicator = new fabric.Circle({
+					radius: 5,
+					top: centerY - 3.5,
+					left: centerX - 6,
+					fill: "#81a2be",
+					opacity: 0.8,
+					selectable: false
+				});
+				canvas.add(selectableIndicator);
+			}			
 		}
 	});
 
