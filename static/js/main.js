@@ -98,6 +98,7 @@ var mouseDownTime;
 var isDeleting = false;
 var canvas;
 var isDrawingFromInput = false;
+var selectableIndicator = [];
 
 
 function getMinimize(){
@@ -280,7 +281,7 @@ function injectLatex (table, inputs) {
 	for (var i = 0; i < table[0].length; i++) {
 		if (i != 0)
 			ret += "&";
-		ret += i < inputs ? String.fromCharCode(65 + i) : String.fromCharCode(65 + i - inputs);
+		ret += i < inputs ? String.fromCharCode(65 + i) : String.fromCharCode(88 + i - inputs);
 	}
 	ret += "\\\\\\hline ";
 	for (var i = 0; i < table.length; i++) {
@@ -296,6 +297,44 @@ function injectLatex (table, inputs) {
 	MathJax.Hub.Queue(["Typeset",MathJax.Hub,"truth-table"]);
 }
 
+
+function getOutput (currGate, inputMap) {
+	if (!currGate)
+		return 0;
+	if (currGate.type == TYPES.INPUT_GATE) {
+		if (inputMap)
+			return inputMap[currGate.element.id];
+		return currGate.state == STATES.INPUT_ON;
+	}
+	if (currGate.inputs.length == 0)
+		return 0;
+	if (currGate.type == TYPES.HORIZONTAL_LINE || currGate.type == TYPES.VERTICAL_LINE) {
+		var ret = getOutput(objects[currTab][currGate.inputs[0]], inputMap);
+		if (!inputMap)
+			currGate.element.setStroke(ret ? "#22A80C" : "#81a2be");
+	} else if (currGate.type == TYPES.AND_GATE || currGate.type == TYPES.NAND_GATE) {
+		var ret = 1;
+		for (var i = 0; i < currGate.inputs.length; i++)
+			ret &= getOutput(objects[currTab][currGate.inputs[i]], inputMap);
+		if (currGate.type == TYPES.NAND_GATE) ret = !ret;
+	} else if (currGate.type == TYPES.OR_GATE || currGate.type == TYPES.NOR_GATE) {
+		var ret = 0;
+		for (var i = 0; i < currGate.inputs.length; i++)
+			ret |= getOutput(objects[currTab][currGate.inputs[i]], inputMap);
+		if (currGate.type == TYPES.NOR_GATE) ret = !ret;
+	} else if (currGate.type == TYPES.XOR_GATE || currGate.type == TYPES.NXOR_GATE) {
+		var ret = 0;
+		for (var i = 0; i < currGate.inputs.length; i++)
+			ret ^= getOutput(objects[currTab][currGate.inputs[i]], inputMap);
+		if (currGate.type == TYPES.NXOR_GATE) ret = !ret;
+	} else if (currGate.type == TYPES.NOT_GATE) {
+		var ret = 0;
+		if (currGate.inputs.length > 0)
+			ret = !getOutput(objects[currTab][currGate.inputs[0]], inputMap);
+	}
+	return ret;
+}
+
 function generateTruthTable () {
 	var inputIds = [];
 	var outputNodes = [];
@@ -303,13 +342,12 @@ function generateTruthTable () {
 	for (var key in objects[currTab]) {
 		if (objects[currTab][key].type == TYPES.INPUT_GATE)
 			inputIds.push(objects[currTab][key].element.id);
-		else if (objects[currTab][key].type == TYPES.OUTPUT_GATE)
-			outputNodes.push(objects[currTab][key]);
+		else if (objects[currTab][key].type == TYPES.OUTPUT_GATE) {
+			outputNodes.push(objects[currTab][key].element.id);
+		}
 	}
 	inputIds.sort();
-	outputNodes.sort(function (a, b) {
-		return a.element.id - b.element.id;
-	});
+	outputNodes.sort();
 
 	var inputMap = {};
 
@@ -321,14 +359,14 @@ function generateTruthTable () {
 			inputMap[inputIds[j]] = (i & 1 << j) > 0 ? 1 : 0;
 			ret[i][j] = (i & 1 << j) > 0 ? 1 : 0;
 		}
+
 		for (var j = 0; j < outputNodes.length; j++) {
-			if (outputNodes[j].inputs.length == 0)
+			if (objects[currTab][outputNodes[j]].inputs.length == 0)
 				ret[i][inputIds.length + j] = 0;
-			else
-				ret[i][inputIds.length + j] = getOutput(objects[currTab][outputNodes[j].inputs[0]], inputMap);
+			else 
+				ret[i][inputIds.length + j] = getOutput(objects[currTab][objects[currTab][outputNodes[j]].inputs[0]], inputMap);
 		}
 	}
-
 	injectLatex(ret, inputIds.length);
 	return ret;	
 }
@@ -457,43 +495,6 @@ function propagateOutputMovement (dx, dy, element, depth, prevX, prevY) {
 	}
 }
 
-function getOutput (currGate, inputMap) {
-	if (!currGate)
-		return 0;
-	if (currGate.type == TYPES.INPUT_GATE) {
-		if (inputMap)
-			return inputMap[currGate.element.id];
-		return currGate.state == STATES.INPUT_ON;
-	}
-	if (currGate.inputs.length == 0)
-		return 0;
-	if (currGate.type == TYPES.HORIZONTAL_LINE || currGate.type == TYPES.VERTICAL_LINE) {
-		var ret = getOutput(objects[currTab][currGate.inputs[0]], inputMap);
-		if (!inputMap)
-			currGate.element.setStroke(ret ? "#22A80C" : "#81a2be");
-	} else if (currGate.type == TYPES.AND_GATE || currGate.type == TYPES.NAND_GATE) {
-		var ret = 1;
-		for (var i = 0; i < currGate.inputs.length; i++)
-			ret &= getOutput(objects[currTab][currGate.inputs[i]], inputMap);
-		if (currGate.type == TYPES.NAND_GATE) ret = !ret;
-	} else if (currGate.type == TYPES.OR_GATE || currGate.type == TYPES.NOR_GATE) {
-		var ret = 0;
-		for (var i = 0; i < currGate.inputs.length; i++)
-			ret |= getOutput(objects[currTab][currGate.inputs[i]], inputMap);
-		if (currGate.type == TYPES.NOR_GATE) ret = !ret;
-	} else if (currGate.type == TYPES.XOR_GATE || currGate.type == TYPES.NXOR_GATE) {
-		var ret = 0;
-		for (var i = 0; i < currGate.inputs.length; i++)
-			ret ^= getOutput(objects[currTab][currGate.inputs[i]], inputMap);
-		if (currGate.type == TYPES.NXOR_GATE) ret = !ret;
-	} else if (currGate.type == TYPES.NOT_GATE) {
-		var ret = 0;
-		if (currGate.inputs.length > 0)
-			ret = !getOutput(objects[currTab][currGate.inputs[0]], inputMap);
-	}
-	return ret;
-}
-
 function updateOutputs (canvas) {
 	for (var key in objects[currTab]) {
 		var currGate = objects[currTab][key];
@@ -526,6 +527,8 @@ function init () {
 	canvas.setWidth(opts.width);
 	canvas.setHeight(opts.height);
 	canvas.selection = false;
+	canvas.hoverCursor = 'default';
+	canvas.moveCursor = 'default';
 
 	// initialize grid
 	for (var i = 1; i < opts.width / opts.gridSize; i++) {
@@ -624,6 +627,9 @@ function init () {
 			var x = hline2.element.x2;
 			var y = hline2.element.y2;
 			var connected = false;
+			objects[currTab][hline1.element.id] = hline1;
+			objects[currTab][hline2.element.id] = hline2;
+			objects[currTab][vline.element.id] = vline;
 
 			for (var key in objects[currTab]) {
 				var currGate = objects[currTab][key];
@@ -639,7 +645,6 @@ function init () {
 					connected = true;
 
 					updateOutputs(canvas);
-					generateTruthTable();
 					canvas.renderAll();
 					updateJsonOutput();
 					updateCost();
@@ -670,16 +675,12 @@ function init () {
 					connected = true;
 					
 					updateOutputs(canvas);
-					generateTruthTable();
 					canvas.renderAll();
 					updateJsonOutput();
 					updateCost();
 				}
 			}
 
-			objects[currTab][hline1.element.id] = hline1;
-			objects[currTab][hline2.element.id] = hline2;
-			objects[currTab][vline.element.id] = vline;
 			updateJsonOutput();
 			updateCost();
 			if (!connected) {
@@ -702,6 +703,7 @@ function init () {
 			hline1 = null;
 			hline2 = null;
 			vline = null;
+			generateTruthTable();
 		}
 		
 		creatingLine = false;
@@ -758,6 +760,45 @@ function init () {
 			});
 
 			canvas.renderAll();
+		}
+		var pointer = canvas.getPointer(options.e);
+		var x = pointer.x;
+		var y = pointer.y;
+
+		while (selectableIndicator.length > 0)
+			canvas.remove(selectableIndicator.pop());
+		for (var key in objects[currTab]) {
+			var obj = objects[currTab][key].element;
+			var connectedInput = obj.left - 15 <= x && x <= obj.left && obj.top + 5 <= y && y <= obj.top + 45;
+			var connectedOutput = obj.left + 50 <= x && x <= obj.left + 65 && obj.top <= y && y <= obj.top + 50;
+
+			if (connectedOutput && objects[currTab][key].type != TYPES.OUTPUT_GATE && isGate(objects[currTab][key].type)) {
+				var centerX = obj.left;
+				var centerY = obj.top + 25;
+				var currObject = new fabric.Circle({
+					radius: 5,
+					top: centerY - 3.5,
+					left: centerX + 48,
+					fill: "#81a2be",
+					opacity: 0.8,
+					selectable: false
+				});
+				selectableIndicator.push(currObject);
+				canvas.add(currObject);
+			} else if (connectedInput && objects[currTab][key].type != TYPES.INPUT_GATE && isGate(objects[currTab][key].type)) {
+				var centerX = obj.left;
+				var centerY = y;
+				var currObject = new fabric.Circle({
+					radius: 5,
+					top: centerY - 3.5,
+					left: centerX - 6,
+					fill: "#81a2be",
+					opacity: 0.8,
+					selectable: false
+				});
+				selectableIndicator.push(currObject);
+				canvas.add(currObject);
+			}			
 		}
 	});
 
@@ -856,7 +897,7 @@ function init () {
 							vline.outputs = [hline1.element.id];
 							hline2.outputs = [vline.element.id];
 
-							objects[currTab][key].inputs.push(hline1);
+							objects[currTab][key].inputs.push(hline1.element.id);
 							hline1.inputs.push(vline.element.id);
 							vline.inputs.push(hline2.element.id);
 						}
@@ -891,10 +932,7 @@ var globalTabCounter = 2;
 
 function addTab () {
 	var len = $("div[id^='tab-']").length;
-	
-	$("div[id^='tab-']").each(function () {
-		$(this).removeClass("active");
-	});
+	$("#tabs .tab.active").removeClass("active");
 
 	$("#tabs").append("<div id='tab-" + len + "' class='active tab'><span>Tab " + globalTabCounter + "</span><button id='delete-tab-" + len + "'><i class=\"el el-remove\"></i></button></div>");
 	
@@ -910,9 +948,12 @@ $(function () {
 		var key = e.keyCode ? e.keyCode : e.which;
 		if (key == 8)
 			isDeleting = true;
+<<<<<<< HEAD
 		console.log(key);
 		if(key==77)
 			getMinimize();
+=======
+>>>>>>> 611180890750a24557597725679a49f2c4223801
 	}
 
 	window.onkeyup = function (e) {
@@ -927,7 +968,7 @@ $(function () {
 		$("#add-tab").click(addTab);
 
 		// removing the current tab
-		$("body").on('click', "button[id^='delete-tab']", function () {
+		$("body").on('click', "button[id^='delete-tab']", function (e) {
 			var id = parseInt($(this).attr('id').split("-")[2]);
 			removeAllObjects(id);
 			objects.splice(id, 1);
@@ -945,24 +986,25 @@ $(function () {
 
 			if (id == objects.length)
 				id--;
-
-			$("button[id='tab-" + id + "']").addClass("active");
+			
+			$("div[id='tab-" + id + "']").addClass("active");
 
 			currTab = id;
 			addAllCanvasObjects(currTab);
 		});
 
 		// switching tabs
-		$("body").on('click', "div[id^='tab-']", function () {
+		$("body").on('click', "div[id^='tab-']", function (e) {
+			if ($(e.target).is('button')) return;
+			if ($(e.target).is('i')) return;
 			var id = parseInt($(this).attr('id').split("-")[1]);
-			$("div.tab.active").each(function () {
-				$(this).removeClass("active");
-			});
+			$("#tabs .tab.active").removeClass("active");
 			$("div[id='tab-" + id + "']").addClass("active");
 			removeAllCanvasObjects(currTab);
 			addAllCanvasObjects(id);
 			currTab = id;
 			generateTruthTable();
+			updateCost();
 		});
 
 		// click on export
@@ -978,6 +1020,9 @@ $(function () {
 			$("#import-modal").css("display", "block");
 		});
 		$("#import-exit-button").click(function () {
+			$("#import-modal").css("display", "none");
+		});
+		$("#import-import-button").click(function () {
 			removeAllCanvasObjects(currTab);
 			delete objects;
 			currTab = 0;
@@ -1034,6 +1079,10 @@ $(function () {
 			globalTabCounter = 1;
 			
 			$("#import-modal").css("display", "none");
+			setTimeout(function () {
+				generateTruthTable();
+				updateOutputs(canvas);
+			}, 500);
 		});
 	});
 });

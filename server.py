@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, redirect, url_for
 from qm import QM
 import os
 
@@ -6,6 +6,9 @@ import os
 app = Flask(__name__, static_url_path='/s')
 
 
+@app.route('/')
+def home():
+    return redirect('/s/index.html')
 
 @app.route("/kmap", methods=['POST'])
 def kmap():
@@ -36,4 +39,4 @@ def kmap():
 
 
 if __name__ == "__main__":
-     app.run()
+    app.run(debug=True, port = int(os.environ.get('PORT', 5000)))
