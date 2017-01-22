@@ -482,7 +482,7 @@ function getOutputId (id) {
 
 	for (var i = 0; i < ids.length; i++)
 		if (ids[i] == id) 
-			return String.fromCharCode(65 + i);
+			return String.fromCharCode(88 + i);
 }
 
 function updateCost () {
@@ -1025,7 +1025,6 @@ function addTab () {
 }
 
 $(function () {
-
 	window.onkeydown = function (e) {
 		var key = e.keyCode ? e.keyCode : e.which;
 		if (key == 8)
