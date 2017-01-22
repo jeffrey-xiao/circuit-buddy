@@ -115,5 +115,64 @@ body {
 
 div.active {
   background-color: black; }
-
+.modal{
+	top:0px;
+	left:0px;
+	width:100%;
+	height:100%;
+	background:rgba(0,0,0,0.5);
+	position:fixed;
+	z-index:300;
+}
+.modal-inner{
+	top:50%;
+	left:50%;
+	width:600px;
+	background:#282a2e;
+	text-align:right;
+	position:absolute;
+	margin-top:-150px;
+	margin-left:-300px;
+}
+.modal-title{
+	margin:-1.5em 0 0 0;
+	padding:0;
+	text-align:left;
+}
+.modal-button{
+	font-size:18px;
+	padding:10px 20px;
+	margin:0 0 0 5px;
+	background:#282a2e;
+	border-style:none;
+	font-family: 'Overpass Mono', monospace;
+	color:#c5c8c6;
+	vertical-align:top;
+	margin:-7px 0 0 0;
+	box-sizing:border-box;
+	display:inline-block;
+}
+.modal-button:hover{
+	background:#373b41;
+}
+.modal-button:active{
+	background:#4271ae;
+}
+.modal-textarea{
+	text-align:left;
+	width:100%;
+	height:250px;
+	padding:1em;
+	box-sizing:border-box;
+	margin:0; 
+	background:#efefef;
+	border-style:none;
+	font-family: courier new, monospace;
+	font-size:1em;
+	overflow-y: auto;
+	outline:0;
+}
+.modal-textarea:focus{
+	border-bottom:#4271ae;
+}
 /*# sourceMappingURL=main.css.map */
