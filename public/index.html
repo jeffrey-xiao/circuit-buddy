@@ -7,10 +7,20 @@
         <script src="js/fabric.min.js" type="text/javascript"></script>
         <script src="js/main.js" type="text/javascript"></script><link href="https://fonts.googleapis.com/css?family=Overpass+Mono" rel="stylesheet" />
         <script src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></script>
+        <link rel="stylesheet" href="http://code.rifix.net/elusiveicons/2.0.0/css/elusive-icons.min.css" />
     </head>
     <body>
+        <div id="tabs-bar">
+            <div id="tabs">
+                <div id="tab-0" class="active tab"><span>Tab 1</span><button id="delete-tab-0"><i class="el el-remove"></i></button></div>
+            </div><!--
+            --><button id="add-tab" class="tab"><i class="el el-plus"></i></button>
+        </div>
         <canvas id="editor"></canvas><!--
         --><div id="truth-table">
+            <button class="truth-button"><i class="el el-download-alt"></i></button><!--
+            --><button class="truth-button"><i class="el el-eject"></i></button><!--
+            --><button class="truth-button"><i class="el el-cogs"></i></button><br/>
             Truth Table
             <div id="truth-table-content"></div>
         </div>
