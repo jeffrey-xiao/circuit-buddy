@@ -100,9 +100,6 @@ var canvas;
 var isDrawingFromInput = false;
 var selectableIndicator = [];
 
-<<<<<<< HEAD
-confirm('Press backspace and mouse over elements to delete. Okay to continue');
-=======
 function wireObjects (objId1, objId2, tab) {
 	var obj1 = objects[tab][objId1];
 	var obj2 = objects[tab][objId2];
@@ -169,7 +166,6 @@ function wireObjects (objId1, objId2, tab) {
 	objects[tab][hline2.element.id] = hline2;
 	objects[tab][vline.element.id] = vline;
 }
->>>>>>> Magic
 
 function getMinimize(){
 	var truthTable=generateTruthTable();
