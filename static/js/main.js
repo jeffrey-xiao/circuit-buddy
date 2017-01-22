@@ -22,8 +22,8 @@ var STATES = {
 }
 
 var opts = {
-	height: Math.round((window.innerHeight - 145) / 50.0) * 50,
-	width: Math.round((window.outerWidth- 332) / 50.0) * 50,
+	height: Math.round((window.innerHeight - 100) / 50.0) * 50,
+	width: Math.round((window.outerWidth- 330) / 50.0) * 50,
 	gridSize: 50//(window.outerWidth-330)/17
 };
 
@@ -75,9 +75,10 @@ var currTab = 0;
 
 /*******STRUCTURE*******\
 
+
 element: oImage,
 type: currGate.type,
-output: null,
+outputs: [],
 inputs: [],
 top: currGate.id * 50,
 left: 50,
@@ -92,15 +93,9 @@ var mouseDownTime;
 var isDeleting = false;
 var canvas;
 
-$.getScript("tabs_test.js", function(){
-
-   alert("Script loaded but not necessarily executed.");
-
-});
-
 function injectLatex (table, inputs) {
 	if (table.length == 0) {
-		$("#truth-table-content").text("\\begin{array}{}\\\\\\hline \\\\\\end{array}");
+		$("#truth-table-content").text("");
 		return;
 	}
 	var ret = "\\begin{array}{";
@@ -125,7 +120,21 @@ function injectLatex (table, inputs) {
 	$("#truth-table-content").text(ret);
 	MathJax.Hub.Queue(["Typeset",MathJax.Hub,"truth-table"]);
 }
-
+function getMinimize(){
+	var truthTable=generateTruthTable();
+	 $.ajax({
+      type: "POST",
+      url: "/kmap",
+      dataType: 'json',
+      data: JSON.stringify(truthTable),
+      success: function(response){
+      	console.log(response);
+      },
+      error:function(error){
+      	console.log(error);
+      }
+    });
+}
 function generateTruthTable () {
 	var inputIds = [];
 	var outputNodes = [];
@@ -160,6 +169,7 @@ function generateTruthTable () {
 	}
 
 	injectLatex(ret, inputIds.length);
+	return ret;
 }
 
 function getGate (type) {
@@ -683,6 +693,8 @@ $(function () {
 		var key = e.keyCode ? e.keyCode : e.which;
 		if (key == 8)
 			isDeleting = true;
+		if (key == 81)
+			getMinimize();
 	}
 
 	window.onkeyup = function (e) {
@@ -693,7 +705,6 @@ $(function () {
 
 	$(document).ready(function () {
 		init();
-		var globalTabCounter = 2;
 		// adding a tab
 		$("#add-tab").click(function () {
 			var len = $("div[id^='tab-']").length;
@@ -702,12 +713,11 @@ $(function () {
 				$(this).removeClass("active");
 			});
 
-			$("#tabs").append("<div id='tab-" + len + "' class='active tab'><span>Tab " + globalTabCounter + "</span><button id='delete-tab-" + len + "'><i class=\"el el-remove\"></i></button></div>");
+			$("#tabs").append("<div id='tab-" + len + "' class='active'><span>" + (len + 1) + "</span><button id='delete-tab-" + len + "'>x</button></div>");
 			
 			removeAllCanvasObjects(currTab);
 			currTab = len;
 			editableGates.push({});
-			globalTabCounter++;
 		});
 
 		// removing the current tab
@@ -716,16 +726,16 @@ $(function () {
 			removeAllObjects(id);
 			editableGates.splice(id, 1);
 
-			$(this).parent().remove();
-			for(var i = id; i < editableGates.length; i++){
-				$('#tabs .tab').eq(i).attr('id', 'tab-'+i).find('button').attr('id', 'delete-tab-'+i);
-			}
+			$("#tabs").children().last().remove();	
 
 			if (editableGates.length == 0) {
 				editableGates.push({});
-				$("#tabs").append("<div id='tab-0' class='active tab'><span>Tab "+globalTabCounter+"</span><button id='delete-tab-0'><i class=\"el el-remove\"></i></button></div>");		
-				globalTabCounter++;
+				$("#tabs").append("<div id='tab-0' class='active'><span>1</span><button id='delete-tab-0'>x</button></div>");
 			}
+
+			$("div[id^='tab-']").each(function () {
+				$(this).removeClass("active");
+			});
 
 			if (id == editableGates.length)
 				id--;
@@ -740,7 +750,7 @@ $(function () {
 		$("body").on('click', "div[id^='tab-']", function () {
 			console.log("SWITCHING");
 			var id = parseInt($(this).attr('id').split("-")[1]);
-			$("div.tab.active").each(function () {
+			$("div[id^='tab-']").each(function () {
 				$(this).removeClass("active");
 			});
 			$("div[id='tab-" + id + "']").addClass("active");
@@ -750,3 +760,4 @@ $(function () {
 		});
 	});
 });
+

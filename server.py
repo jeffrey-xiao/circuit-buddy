@@ -1,10 +1,11 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from qm import QM
-app = Flask(__name__)
+import os
 
-@app.route("/")
-def hello():
-    return "Hello World!"
+
+app = Flask(__name__, static_url_path='/s')
+
+
 
 @app.route("/kmap", methods=['POST'])
 def kmap():
@@ -12,15 +13,15 @@ def kmap():
 	#print(data)
 	N=int(data["inputs"])
 	print(N)
-	qm = QM(['A','B', 'C']);
+	qm = QM(['1','2', '3', '4', '5', '6']);
 	hold=[]
 	for i in range (len(data["test"])):
 		print data["test"][i][N]
 		if(int(data["test"][i][N])==1):
 			hold.append(i)
-	print hold
-	print( qm.get_function(qm.solve(hold,[])[1]))
-	return jsonify(data)
+	minimized=qm.get_function(qm.solve(hold,[])[1])
+	return jsonify(minimized)
+
 
 if __name__ == "__main__":
     app.run()
