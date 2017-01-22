@@ -209,7 +209,9 @@ function parseString (str) {
 
 	setTimeout(function () {
 		addAllCanvasObjects(currTab);
-	}, 2000);
+		generateTruthTable();
+		updateCost();
+	}, 1000);
 }
 
 function solve (str, map, tab) {
@@ -1073,8 +1075,6 @@ $(function () {
 		// click on simplify
 		$("#simplify-button").click(function () {
 			getMinimize();
-			generateTruthTable();
-			updateCost();
 		});
 
 		// click on export
