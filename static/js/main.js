@@ -787,6 +787,7 @@ $(function () {
 			removeAllCanvasObjects(currTab);
 			addAllCanvasObjects(id);
 			currTab = id;
+			generateTruthTable();
 		});
 
 		// click on export
@@ -811,8 +812,10 @@ $(function () {
 					var tab = i;
 					var element = objects[tab][key].element;
 					if (element.type == "image") {
-						fabric.Image.fromURL(element.src, function (oImage) {
+						var src = objects[tab][key].type == TYPES.INPUT_GATE ? STATES.INPUT_OFF : element.src;
+						fabric.Image.fromURL(src, function (oImage) {
 							objects[oImage.tab][oImage.id].element = oImage;
+							objects[oImage.tab][oImage.id].state = STATES.INPUT_OFF;
 							if (oImage.tab == currTab) {
 								canvas.add(oImage);
 							}
@@ -834,7 +837,8 @@ $(function () {
 							id: key,
 							strokeWidth: 3
 						});
-						canvas.add(objects[tab][key].element);
+						if (tab == currTab)
+							canvas.add(objects[tab][key].element);
 					}
 					currObjectId = Math.max(currObjectId, key + 1);
 				}
