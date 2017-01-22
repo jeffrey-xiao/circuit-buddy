@@ -6,6 +6,9 @@ import os
 app = Flask(__name__, static_url_path='/s')
 
 
+@app.route('/')
+def hello():
+    return redirect(url_for('s/index.html'))
 
 @app.route("/kmap", methods=['POST'])
 def kmap():
