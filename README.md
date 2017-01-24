@@ -1,4 +1,4 @@
-# Circuit-Analysis
+# Circuit Buddy
 ## Overview
 A simple digital circuits toolbox that has an intuitive UI. Designed for students studying digital circuits. Built by Jeffrey Xiao,
 Kevin Pei, Nick Bo, and Daniel Tong. Circuit Buddy was a top 30 finalist at PennApps XV Ad Astra.
