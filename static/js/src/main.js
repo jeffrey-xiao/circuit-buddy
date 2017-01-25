@@ -1,4 +1,4 @@
-var currObjectId = OPTS.initialObjectId;
+var currObjectId = Constants.OPTS.initialObjectId;
 var currTab = 0;
 
 var objects = [{}];
@@ -8,16 +8,16 @@ var initialX, initialY;
 var mouseDownTime;
 var isDeleting = false;
 var canvas;
-var isDrawingFromInput = false;
+var isDrawingFromInput = false, isDrawingFromOutput = false;
 var selectableIndicator = [];
 
 function wireObjects (objId1, objId2, tab) {
 	var obj1 = objects[tab][objId1];
 	var obj2 = objects[tab][objId2];
 	var x1 = obj1.left;
-	var x2 = obj2.left + OPTS.gridSize;
-	var y1 = obj1.top + OPTS.gridSize / 2;
-	var y2 = obj2.top + OPTS.gridSize / 2;
+	var x2 = obj2.left + Constants.OPTS.gridSize;
+	var y1 = obj1.top + Constants.OPTS.gridSize / 2;
+	var y2 = obj2.top + Constants.OPTS.gridSize / 2;
 
 	var hlineElement1 = new fabric.Line([x1, y1, (x1 + x2) / 2.0, y1], {
 		stroke: '#81a2be',
@@ -43,21 +43,23 @@ function wireObjects (objId1, objId2, tab) {
 
 	var hline1 = {
 		element: hlineElement1,
-		type: TYPES.HORIZONTAL_LINE,
+		type: Constants.TYPES.HORIZONTAL_LINE,
 		outputs: [],
 		inputs: []
 	};
 
 	var hline2 = {
 		element: hlineElement2,
-		type: TYPES.HORIZONTAL_LINE,
+		type: Constants.TYPES.HORIZONTAL_LINE,
 		outputs: [],
 		inputs: []
 	};
 
 	var vline = {
 		element: vlineElement,
-		type: TYPES.VERTICAL_LINE,
+		type: Constants.TYPES.VERTICAL_LINE,
+		y1: y1,
+		y2: y2,
 		outputs: [],
 		inputs: []
 	};
@@ -108,15 +110,15 @@ function parseString (str) {
 	createObjects(map, outputGate, depths, 0, currTab);
 	linkObjects(map, outputGate, currTab);
 
-	fabric.Image.fromURL(GATES[TYPES.OUTPUT_GATE].url, function (oImage) {
+	fabric.Image.fromURL(Constants.GATES[Constants.TYPES.OUTPUT_GATE].url, function (oImage) {
 		objects[currTab][oImage.id] = {
 			element: oImage,
-			type: TYPES.OUTPUT_GATE,
+			type: Constants.TYPES.OUTPUT_GATE,
 			outputs: [],
 			inputs: [],
 			top: 50,
 			left: 600,
-			state: STATES.OFF
+			state: Constants.STATES.OFF
 		};
 		wireObjects(oImage.id, map[outputGate].id, currTab);
 		addAllCanvasObjects(currTab);
@@ -157,9 +159,9 @@ function solve (str, map, tab) {
 				inputs: [],
 				top: null,
 				left: null,
-				width: OPTS.gridSize,
-				height: OPTS.gridSize,
-				state: STATES.INPUT_OFF
+				width: Constants.OPTS.gridSize,
+				height: Constants.OPTS.gridSize,
+				state: Constants.STATES.INPUT_OFF
 			};
 
 			currObjectId++;
@@ -177,14 +179,14 @@ function solve (str, map, tab) {
 
 						objects[tab][currObjectId] = {
 							element: null,
-							type: TYPES.INPUT_GATE,
+							type: Constants.TYPES.INPUT_GATE,
 							outputs: [],
 							inputs: [],
 							top: null,
 							left: null,
-							width: OPTS.gridSize,
-							height: OPTS.gridSize,
-							state: STATES.INPUT_OFF
+							width: Constants.OPTS.gridSize,
+							height: Constants.OPTS.gridSize,
+							state: Constants.STATES.INPUT_OFF
 						}
 
 						currObjectId++;
@@ -195,9 +197,9 @@ function solve (str, map, tab) {
 			}
 
 			if (currGate == '*')
-				objects[tab][map[currId].id].type = TYPES.AND_GATE;
+				objects[tab][map[currId].id].type = Constants.TYPES.AND_GATE;
 			else
-				objects[tab][map[currId].id].type = TYPES.OR_GATE;
+				objects[tab][map[currId].id].type = Constants.TYPES.OR_GATE;
 			
 			stack.pop();
 			stack.push(currId);
@@ -223,7 +225,7 @@ function createObjects (map, id, depths, depth, tab) {
 	depths[depth]++;
 	objects[tab][objectId].element = new Object();
 
-	fabric.Image.fromURL(GATES[objects[tab][objectId].type].url, function (oImage) {
+	fabric.Image.fromURL(Constants.GATES[objects[tab][objectId].type].url, function (oImage) {
 		objects[tab][oImage.id].element = oImage;
 	}, {
 		id: objectId,
@@ -297,33 +299,33 @@ function injectLatex (table, inputs) {
 function getOutput (currGate, inputMap) {
 	if (!currGate)
 		return 0;
-	if (currGate.type == TYPES.INPUT_GATE) {
+	if (currGate.type == Constants.TYPES.INPUT_GATE) {
 		if (inputMap)
 			return inputMap[currGate.element.id];
-		return currGate.state == STATES.INPUT_ON;
+		return currGate.state == Constants.STATES.INPUT_ON;
 	}
 	if (currGate.inputs.length == 0)
 		return 0;
-	if (currGate.type == TYPES.HORIZONTAL_LINE || currGate.type == TYPES.VERTICAL_LINE) {
+	if (currGate.type == Constants.TYPES.HORIZONTAL_LINE || currGate.type == Constants.TYPES.VERTICAL_LINE) {
 		var ret = getOutput(objects[currTab][currGate.inputs[0]], inputMap);
 		if (!inputMap)
 			currGate.element.setStroke(ret ? "#22A80C" : "#81a2be");
-	} else if (currGate.type == TYPES.AND_GATE || currGate.type == TYPES.NAND_GATE) {
+	} else if (currGate.type == Constants.TYPES.AND_GATE || currGate.type == Constants.TYPES.NAND_GATE) {
 		var ret = 1;
 		for (var i = 0; i < currGate.inputs.length; i++)
 			ret &= getOutput(objects[currTab][currGate.inputs[i]], inputMap);
-		if (currGate.type == TYPES.NAND_GATE) ret = !ret;
-	} else if (currGate.type == TYPES.OR_GATE || currGate.type == TYPES.NOR_GATE) {
+		if (currGate.type == Constants.TYPES.NAND_GATE) ret = !ret;
+	} else if (currGate.type == Constants.TYPES.OR_GATE || currGate.type == Constants.TYPES.NOR_GATE) {
 		var ret = 0;
 		for (var i = 0; i < currGate.inputs.length; i++)
 			ret |= getOutput(objects[currTab][currGate.inputs[i]], inputMap);
-		if (currGate.type == TYPES.NOR_GATE) ret = !ret;
-	} else if (currGate.type == TYPES.XOR_GATE || currGate.type == TYPES.NXOR_GATE) {
+		if (currGate.type == Constants.TYPES.NOR_GATE) ret = !ret;
+	} else if (currGate.type == Constants.TYPES.XOR_GATE || currGate.type == Constants.TYPES.NXOR_GATE) {
 		var ret = 0;
 		for (var i = 0; i < currGate.inputs.length; i++)
 			ret ^= getOutput(objects[currTab][currGate.inputs[i]], inputMap);
-		if (currGate.type == TYPES.NXOR_GATE) ret = !ret;
-	} else if (currGate.type == TYPES.NOT_GATE) {
+		if (currGate.type == Constants.TYPES.NXOR_GATE) ret = !ret;
+	} else if (currGate.type == Constants.TYPES.NOT_GATE) {
 		var ret = 0;
 		if (currGate.inputs.length > 0)
 			ret = !getOutput(objects[currTab][currGate.inputs[0]], inputMap);
@@ -336,9 +338,9 @@ function generateTruthTable () {
 	var outputNodes = [];
 
 	for (var key in objects[currTab]) {
-		if (objects[currTab][key].type == TYPES.INPUT_GATE)
+		if (objects[currTab][key].type == Constants.TYPES.INPUT_GATE)
 			inputIds.push(objects[currTab][key].element.id);
-		else if (objects[currTab][key].type == TYPES.OUTPUT_GATE) {
+		else if (objects[currTab][key].type == Constants.TYPES.OUTPUT_GATE) {
 			outputNodes.push(objects[currTab][key].element.id);
 		}
 	}
@@ -368,14 +370,14 @@ function generateTruthTable () {
 }
 
 function getGate (type) {
-	return TYPE_NAMES[type];
+	return Constants.TYPE_NAMES[type];
 }
 
 function getInputId (id) {
 	var ids = [];
 	
 	for (var key in objects[currTab]) {
-		if (objects[currTab][key].type == TYPES.INPUT_GATE)
+		if (objects[currTab][key].type == Constants.TYPES.INPUT_GATE)
 			ids.push(objects[currTab][key].element.id);
 	}
 	ids.sort();
@@ -389,7 +391,7 @@ function getOutputId (id) {
 	var ids = [];
 	
 	for (var key in objects[currTab]) {
-		if (objects[currTab][key].type == TYPES.OUTPUT_GATE)
+		if (objects[currTab][key].type == Constants.TYPES.OUTPUT_GATE)
 			ids.push(objects[currTab][key].element.id);
 	}
 	ids.sort();
@@ -403,10 +405,10 @@ function updateCost () {
 	var ret = 0;
 	for (var key in objects[currTab]) {
 		var element = objects[currTab][key];
-		if (element.type == TYPES.NOT_GATE) {
-			if (element.inputs.length == 0 || objects[currTab][element.inputs[0]].type != TYPES.OUTPUT_GATE)
+		if (element.type == Constants.TYPES.NOT_GATE) {
+			if (element.inputs.length == 0 || objects[currTab][element.inputs[0]].type != Constants.TYPES.OUTPUT_GATE)
 				ret += 1;
-		} else if (element.type != TYPES.INPUT_GATE && element.type != TYPES.OUTPUT_GATE && isGate(element.type)) {
+		} else if (element.type != Constants.TYPES.INPUT_GATE && element.type != Constants.TYPES.OUTPUT_GATE && isGate(element.type)) {
 			ret += 1 + objects[currTab][key].inputs.length;
 		}
 	}
@@ -424,7 +426,7 @@ function propagateInputMovement (dx, dy, element, depth, prevX, prevY) {
 		var input = objects[currTab][element.inputs[i]];
 		var nextPrevX = input.element.x2;
 		var nextPrevY = input.element.y2;
-		if (input.type == TYPES.HORIZONTAL_LINE) {
+		if (input.type == Constants.TYPES.HORIZONTAL_LINE) {
 			if (Math.abs(input.element.x2 - prevX) < 1e-6) {
 				input.element.set({
 					y1: input.element.y1 + dy,
@@ -441,7 +443,7 @@ function propagateInputMovement (dx, dy, element, depth, prevX, prevY) {
 				input.element.setCoords();
 			}
 		}
-		else if (input.type == TYPES.VERTICAL_LINE) {
+		else if (input.type == Constants.TYPES.VERTICAL_LINE) {
 			if (Math.abs(input.element.y2 - prevY) < 1e-6) {
 				input.element.set({
 					y2: input.element.y2 + dy
@@ -467,7 +469,7 @@ function propagateOutputMovement (dx, dy, element, depth, prevX, prevY) {
 		var output = objects[currTab][element.outputs[i]];
 		var nextPrevX = output.element.x2;
 		var nextPrevY = output.element.y2;
-		if (output.type == TYPES.HORIZONTAL_LINE) {
+		if (output.type == Constants.TYPES.HORIZONTAL_LINE) {
 			if (Math.abs(output.element.x2 - prevX) < 1e-6) {
 				output.element.set({
 					y1: output.element.y1 + dy,
@@ -483,7 +485,7 @@ function propagateOutputMovement (dx, dy, element, depth, prevX, prevY) {
 				});
 				output.element.setCoords();
 			}
-		} else if (output.type == TYPES.VERTICAL_LINE) {
+		} else if (output.type == Constants.TYPES.VERTICAL_LINE) {
 			if (Math.abs(output.element.y2 - prevY) < 1e-6) {
 				output.element.set({
 					y2: output.element.y2 + dy
@@ -505,10 +507,10 @@ function propagateOutputMovement (dx, dy, element, depth, prevX, prevY) {
 function updateOutputs (canvas) {
 	for (var key in objects[currTab]) {
 		var currGate = objects[currTab][key];
-		if (currGate.type == TYPES.OUTPUT_GATE) {
-			var currState = STATES.OUTPUT_OFF;
+		if (currGate.type == Constants.TYPES.OUTPUT_GATE) {
+			var currState = Constants.STATES.OUTPUT_OFF;
 			if (currGate.inputs.length > 0)
-				currState = getOutput(objects[currTab][currGate.inputs[0]], null) == 1 ? STATES.OUTPUT_ON : STATES.OUTPUT_OFF;
+				currState = getOutput(objects[currTab][currGate.inputs[0]], null) == 1 ? Constants.STATES.OUTPUT_ON : Constants.STATES.OUTPUT_OFF;
 			currGate.element.setSrc(currState, function () {
 				canvas.renderAll();
 			});
@@ -531,39 +533,39 @@ function removeObject (element, depth, canvas) {
 function init () {
 	// initialize the canvas
 	canvas = new fabric.Canvas('editor');
-	canvas.setWidth(OPTS.width);
-	canvas.setHeight(OPTS.height);
+	canvas.setWidth(Constants.OPTS.width);
+	canvas.setHeight(Constants.OPTS.height);
 	canvas.selection = false;
 	canvas.hoverCursor = 'default';
 	canvas.moveCursor = 'default';
 
 	// initialize grid
-	for (var i = 1; i < OPTS.width / OPTS.gridSize; i++) {
-		canvas.add(new fabric.Line([i * OPTS.gridSize, 0, i * OPTS.gridSize, OPTS.height], {
+	for (var i = 1; i < Constants.OPTS.width / Constants.OPTS.gridSize; i++) {
+		canvas.add(new fabric.Line([i * Constants.OPTS.gridSize, 0, i * Constants.OPTS.gridSize, Constants.OPTS.height], {
 			stroke: '#373b41',
 			selectable: false 
 		}));
 	}
 
-	for (var i = 1; i < OPTS.height / OPTS.gridSize; i++) {
-		canvas.add(new fabric.Line([OPTS.gridSize, i * OPTS.gridSize, OPTS.width, i * OPTS.gridSize], {
+	for (var i = 1; i < Constants.OPTS.height / Constants.OPTS.gridSize; i++) {
+		canvas.add(new fabric.Line([Constants.OPTS.gridSize, i * Constants.OPTS.gridSize, Constants.OPTS.width, i * Constants.OPTS.gridSize], {
 			stroke: '#373b41',
 			selectable: false
 		}))
 	}
 
 	// initialize 'toolbox'
-	for (var i = 0; i < GATES.length; i++) {
-		var currGate = GATES[i];
+	for (var i = 0; i < Constants.GATES.length; i++) {
+		var currGate = Constants.GATES[i];
 		fabric.Image.fromURL(currGate.url, function (oImage) {
 			canvas.add(oImage);
 		}, {
 			id: currGate.id,
 			selectable: false,
 			isToolbox: true,
-			top: i * OPTS.gridSize,
-			height: OPTS.gridSize,
-			width: OPTS.gridSize
+			top: i * Constants.OPTS.gridSize,
+			height: Constants.OPTS.gridSize,
+			width: Constants.OPTS.gridSize
 		});
 	}
 
@@ -575,9 +577,9 @@ function init () {
 				updateJsonOutput();
 				updateCost();
 			} else if (objects[currTab][id]) {
-				if (objects[currTab][id].type == TYPES.INPUT_GATE)
+				if (objects[currTab][id].type == Constants.TYPES.INPUT_GATE)
 					$('#current-hovered-element').text("Hovered: Input Gate: " + getInputId(id) + ".");
-				else if (objects[currTab][id].type == TYPES.OUTPUT_GATE)
+				else if (objects[currTab][id].type == Constants.TYPES.OUTPUT_GATE)
 					$('#current-hovered-element').text("Hovered: Output Gate: " + getOutputId(id) + ".");
 				else
 					$('#current-hovered-element').text("Hovered: " + getGate(objects[currTab][id].type) + ".");
@@ -591,7 +593,7 @@ function init () {
 		// handling clicks
 		if (new Date().getTime() - mouseDownTime < 100) {
 			if (options.target && options.target.isToolbox) {
-				var currGate = GATES[options.target.id];
+				var currGate = Constants.GATES[options.target.id];
 				fabric.Image.fromURL(currGate.url, function (oImage) {
 					canvas.add(oImage);
 					objects[currTab][oImage.id] = {
@@ -599,28 +601,28 @@ function init () {
 						type: currGate.type,
 						outputs: [],
 						inputs: [],
-						top: currGate.id * OPTS.gridSize,
-						left: OPTS.gridSize,
-						width: OPTS.gridSize,
-						height: OPTS.gridSize,
-						state: STATES.INPUT_OFF
+						top: currGate.id * Constants.OPTS.gridSize,
+						left: Constants.OPTS.gridSize,
+						width: Constants.OPTS.gridSize,
+						height: Constants.OPTS.gridSize,
+						state: Constants.STATES.INPUT_OFF
 					};
 					generateTruthTable();
 					updateJsonOutput();
 					updateCost();
 				}, {
 					id: currObjectId++,
-					top: currGate.id * OPTS.gridSize,
-					left: OPTS.gridSize,
-					height: OPTS.gridSize,
-					width: OPTS.gridSize,
+					top: currGate.id * Constants.OPTS.gridSize,
+					left: Constants.OPTS.gridSize,
+					height: Constants.OPTS.gridSize,
+					width: Constants.OPTS.gridSize,
 					hasBorders: false,
 					hasControls: false,
 					hasRotatingPoint: false
 				});
-			} else if (options.target && objects[currTab][options.target.id] && objects[currTab][options.target.id].type == TYPES.INPUT_GATE) {
+			} else if (options.target && objects[currTab][options.target.id] && objects[currTab][options.target.id].type == Constants.TYPES.INPUT_GATE) {
 				var currGate = objects[currTab][options.target.id];	
-				currGate.state = currGate.state == STATES.INPUT_ON ? STATES.INPUT_OFF : STATES.INPUT_ON;
+				currGate.state = currGate.state == Constants.STATES.INPUT_ON ? Constants.STATES.INPUT_OFF : Constants.STATES.INPUT_ON;
 				currGate.element.setSrc(currGate.state, function () {
 					canvas.renderAll();
 				});
@@ -642,7 +644,9 @@ function init () {
 				var currGate = objects[currTab][key];
 				if (isGate(currGate.type) && currGate.element.left - 10 <= x && x <= currGate.element.left + 10 &&
 					currGate.element.top <= y && y <= currGate.element.top + 50) {
-					if (currGate.type == TYPES.INPUT_GATE)
+					if (currGate.type == Constants.TYPES.INPUT_GATE)
+						continue;
+					if (isDrawingFromOutput)
 						continue;
 					hline2.outputs.push(currGate.element.id);
 					currGate.inputs.push(hline2.element.id);
@@ -661,7 +665,7 @@ function init () {
 				}
 				if (isGate(currGate.type) && currGate.element.left + 40 <= x && x <= currGate.element.left + 60 &&
 					currGate.element.top + 20 <= y && y <= currGate.element.top + 30) {
-					if (currGate.type == TYPES.OUTPUT_GATE)
+					if (currGate.type == Constants.TYPES.OUTPUT_GATE)
 						continue;
 					if (isDrawingFromInput)
 						continue;
@@ -725,14 +729,15 @@ function init () {
 		
 		creatingLine = false;
 		isDrawingFromInput = false;
+		isDrawingFromOutput = false;
 	});
 
 	canvas.on('object:moving', function (options) {
 		if (isGate(objects[currTab][options.target.id].type)) {
 			var startX = objects[currTab][options.target.id].left;
 			var startY = objects[currTab][options.target.id].top;
-			var finalX = Math.round(options.target.left / OPTS.gridSize) * OPTS.gridSize;
-			var finalY = Math.round(options.target.top / OPTS.gridSize) * OPTS.gridSize;
+			var finalX = Math.round(options.target.left / Constants.OPTS.gridSize) * Constants.OPTS.gridSize;
+			var finalY = Math.round(options.target.top / Constants.OPTS.gridSize) * Constants.OPTS.gridSize;
 
 			options.target.set({
 				left: finalX,
@@ -753,7 +758,27 @@ function init () {
 		} else {
 			var y1 = objects[currTab][options.target.id].y1;
 			var y2 = objects[currTab][options.target.id].y2;
+
+			var element = objects[currTab][options.target.id];
+			var inputElement = objects[currTab][objects[currTab][element.inputs[0]].element.id];
+			var outputElement = objects[currTab][objects[currTab][element.outputs[0]].element.id];
+
 			console.log("DRAGGING");
+			console.log(inputElement.element.x1 + " " + outputElement.element.x1 + " " + options.target.x1);
+			console.log(inputElement.element.x2 + " " + outputElement.element.x2 + " " + options.target.x2);
+
+			if (Math.abs(inputElement.element.x1 - options.target.x1) < 1e-6)
+				inputElement.element.set({x1: options.target.left});
+			else 
+				inputElement.element.set({x2: options.target.left});
+
+			if (Math.abs(outputElement.element.x1 - options.target.x1) < 1e-6)
+				outputElement.element.set({x1: options.target.left});
+			else 
+				outputElement.element.set({x2: options.target.left});
+			
+
+
 			options.target.set({
 				y1: y1,
 				y2: y2,
@@ -763,17 +788,6 @@ function init () {
 
 			options.target.setCoords();
 
-			var element = objects[currTab][options.target.id];
-
-			var inputElement = objects[currTab][objects[currTab][element.inputs[0]].element.id];
-			var outputElement = objects[currTab][objects[currTab][element.outputs[0]].element.id];
-
-			inputElement.element.set({
-				x2: options.target.x1
-			});
-			outputElement.element.set({
-				x1: options.target.x1
-			});
 
 			inputElement.element.setCoords();
 			outputElement.element.setCoords();
@@ -830,7 +844,7 @@ function init () {
 			var connectedInput = obj.left - 15 <= x && x <= obj.left && obj.top + 5 <= y && y <= obj.top + 45;
 			var connectedOutput = obj.left + 50 <= x && x <= obj.left + 65 && obj.top <= y && y <= obj.top + 50;
 
-			if (connectedOutput && objects[currTab][key].type != TYPES.OUTPUT_GATE && isGate(objects[currTab][key].type)) {
+			if (connectedOutput && objects[currTab][key].type != Constants.TYPES.OUTPUT_GATE && isGate(objects[currTab][key].type)) {
 				var centerX = obj.left;
 				var centerY = obj.top + 25;
 				var currObject = new fabric.Circle({
@@ -843,7 +857,7 @@ function init () {
 				});
 				selectableIndicator.push(currObject);
 				canvas.add(currObject);
-			} else if (connectedInput && objects[currTab][key].type != TYPES.INPUT_GATE && isGate(objects[currTab][key].type)) {
+			} else if (connectedInput && objects[currTab][key].type != Constants.TYPES.INPUT_GATE && isGate(objects[currTab][key].type)) {
 				var centerX = obj.left;
 				var centerY = y;
 				var currObject = new fabric.Circle({
@@ -876,12 +890,14 @@ function init () {
 					var connectedOutput = obj.left + 50 <= x && x <= obj.left + 60 && obj.top + 20 <= y && y <= obj.top + 30;
 
 					if (connectedInput || connectedOutput) {
-						if (connectedOutput && objects[currTab][key].type == TYPES.OUTPUT_GATE)
+						if (connectedOutput && objects[currTab][key].type == Constants.TYPES.OUTPUT_GATE)
 							continue;
-						if (connectedInput && objects[currTab][key].type == TYPES.INPUT_GATE)
+						if (connectedInput && objects[currTab][key].type == Constants.TYPES.INPUT_GATE)
 							continue;
-						if (connectedOutput && objects[currTab][key].type == TYPES.INPUT_GATE)
+						if (connectedOutput && objects[currTab][key].type == Constants.TYPES.INPUT_GATE)
 							isDrawingFromInput = true;
+						if (connectedInput && objects[currTab][key].type == Constants.TYPES.OUTPUT_GATE)
+							isDrawingFromOutput = true;
 						creatingLine = true;
 
 						initialX = obj.left;
@@ -916,21 +932,21 @@ function init () {
 
 						hline1 = {
 							element: hlineElement1,
-							type: TYPES.HORIZONTAL_LINE,
+							type: Constants.TYPES.HORIZONTAL_LINE,
 							outputs: [],
 							inputs: []
 						}; 
 
 						hline2 = {
 							element: hlineElement2,
-							type: TYPES.HORIZONTAL_LINE,
+							type: Constants.TYPES.HORIZONTAL_LINE,
 							outputs: [],
 							inputs: []
 						}
 
 						vline = {
 							element: vlineElement,
-							type: TYPES.VERTICAL_LINE,
+							type: Constants.TYPES.VERTICAL_LINE,
 							y1: initialY,
 							y2: initialY,
 							outputs: [],
@@ -1117,10 +1133,10 @@ $(function () {
 					var tab = i;
 					var element = objects[tab][key].element;
 					if (element.type == "image") {
-						var src = objects[tab][key].type == TYPES.INPUT_GATE ? STATES.INPUT_OFF : element.src;
+						var src = objects[tab][key].type == Constants.TYPES.INPUT_GATE ? Constants.STATES.INPUT_OFF : element.src;
 						fabric.Image.fromURL(src, function (oImage) {
 							objects[oImage.tab][oImage.id].element = oImage;
-							objects[oImage.tab][oImage.id].state = STATES.INPUT_OFF;
+							objects[oImage.tab][oImage.id].state = Constants.STATES.INPUT_OFF;
 							if (oImage.tab == currTab) {
 								canvas.add(oImage);
 							}
@@ -1135,7 +1151,7 @@ $(function () {
 							hasControls: false,
 							hasRotatingPoint: false
 						});
-					} else if (objects[tab][key].type == TYPES.HORIZONTAL_LINE) {
+					} else if (objects[tab][key].type == Constants.TYPES.HORIZONTAL_LINE) {
 						objects[tab][key].element = new fabric.Line([objects[tab][key].x1, objects[tab][key].y1, objects[tab][key].x2, objects[tab][key].y2], {
 							stroke: '#81a2be',
 							selectable: false,
@@ -1144,7 +1160,7 @@ $(function () {
 						});
 						if (tab == currTab)
 							canvas.add(objects[tab][key].element);
-					} else if (objects[tab][key].type == TYPES.VERTICAL_LINE) {
+					} else if (objects[tab][key].type == Constants.TYPES.VERTICAL_LINE) {
 						objects[tab][key].element = new fabric.Line([objects[tab][key].x1, objects[tab][key].y1, objects[tab][key].x2, objects[tab][key].y2], {
 							stroke: '#81a2be',
 							selectable: true,
