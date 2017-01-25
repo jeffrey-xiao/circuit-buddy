@@ -1,82 +1,4 @@
-var TYPES = {
-	INPUT_GATE: 0,
-	OUTPUT_GATE: 1,
-	AND_GATE: 2,
-	NAND_GATE: 3,
-	OR_GATE: 4,
-	NOR_GATE: 5,
-	XOR_GATE: 6,
-	NXOR_GATE: 7,
-	NOT_GATE: 8,
-	HORIZONTAL_LINE: 9,
-	VERTICAL_LINE: 10
-}
-
-var TYPE_NAMES = ["Input Gate", "Output Gate", "And Gate", "Nand Gate", "Or Gate", 
-				  "Nor Gate", "Xor Gate", "Nxor Gate", "Not Gate", "Horizontal Line", "Vertical Line"];
-
-var STATES = {
-	INPUT_ON: "img/input_gate_on.png",
-	INPUT_OFF: "img/input_gate_off.png",
-	OUTPUT_ON: "img/output_gate_on.png",
-	OUTPUT_OFF: "img/output_gate_off.png"
-}
-
-var opts = {
-	height: Math.round((window.innerHeight - 145) / 50.0) * 50,
-	width: Math.round((window.outerWidth- 332) / 50.0) * 50,
-	gridSize: 50
-};
-
-var gates = [
-	{
-		url: STATES.INPUT_OFF,
-		id: TYPES.INPUT_GATE,
-		type: TYPES.INPUT_GATE
-	},
-	{
-		url: STATES.OUTPUT_OFF,
-		id: TYPES.OUTPUT_GATE,
-		type: TYPES.OUTPUT_GATE
-	},
-	{
-		url: 'img/and_gate.png',
-		id: TYPES.AND_GATE,
-		type: TYPES.AND_GATE
-	},
-	{
-		url: 'img/nand_gate.png',
-		id: TYPES.NAND_GATE,
-		type: TYPES.NAND_GATE
-	},
-	{
-		url: 'img/or_gate.png',
-		id: TYPES.OR_GATE,
-		type: TYPES.OR_GATE
-	},
-	{
-		url: 'img/nor_gate.png',
-		id: TYPES.NOR_GATE,
-		type: TYPES.NOR_GATE
-	},
-	{
-		url: 'img/xor_gate.png',
-		id: TYPES.XOR_GATE,
-		type: TYPES.XOR_GATE
-	},
-	{
-		url: 'img/nxor_gate.png',
-		id: TYPES.NXOR_GATE,
-		type: TYPES.NXOR_GATE
-	},
-	{
-		url: 'img/not_gate.png',
-		id: TYPES.NOT_GATE,
-		type: TYPES.NOT_GATE
-	}
-];
-
-var currObjectId = 11;
+var currObjectId = OPTS.initialObjectId;
 var currTab = 0;
 
 var objects = [{}];
@@ -93,9 +15,9 @@ function wireObjects (objId1, objId2, tab) {
 	var obj1 = objects[tab][objId1];
 	var obj2 = objects[tab][objId2];
 	var x1 = obj1.left;
-	var x2 = obj2.left + 50;
-	var y1 = obj1.top + 25;
-	var y2 = obj2.top + 25;
+	var x2 = obj2.left + OPTS.gridSize;
+	var y1 = obj1.top + OPTS.gridSize / 2;
+	var y2 = obj2.top + OPTS.gridSize / 2;
 
 	var hlineElement1 = new fabric.Line([x1, y1, (x1 + x2) / 2.0, y1], {
 		stroke: '#81a2be',
@@ -106,7 +28,8 @@ function wireObjects (objId1, objId2, tab) {
 
 	var vlineElement = new fabric.Line([(x1 + x2) / 2.0, y1, (x1 + x2) / 2.0, y2], {
 		stroke: '#81a2be',
-		selectable: false,
+		selectable: true,
+		hasControls: false,
 		id: currObjectId++,
 		strokeWidth: 3
 	});
@@ -185,7 +108,7 @@ function parseString (str) {
 	createObjects(map, outputGate, depths, 0, currTab);
 	linkObjects(map, outputGate, currTab);
 
-	fabric.Image.fromURL(gates[TYPES.OUTPUT_GATE].url, function (oImage) {
+	fabric.Image.fromURL(GATES[TYPES.OUTPUT_GATE].url, function (oImage) {
 		objects[currTab][oImage.id] = {
 			element: oImage,
 			type: TYPES.OUTPUT_GATE,
@@ -221,10 +144,12 @@ function solve (str, map, tab) {
 			stack.push(str[i]);
 		else if (str[i] == ')') {
 			var currId = gateId++;
+			
 			map[currId] = {
 				id: currObjectId,
 				inputs: []
 			};
+
 			objects[tab][currObjectId] = {
 				element: null,
 				type: null,
@@ -232,8 +157,8 @@ function solve (str, map, tab) {
 				inputs: [],
 				top: null,
 				left: null,
-				width: opts.gridSize,
-				height: opts.gridSize,
+				width: OPTS.gridSize,
+				height: OPTS.gridSize,
 				state: STATES.INPUT_OFF
 			};
 
@@ -257,8 +182,8 @@ function solve (str, map, tab) {
 							inputs: [],
 							top: null,
 							left: null,
-							width: opts.gridSize,
-							height: opts.gridSize,
+							width: OPTS.gridSize,
+							height: OPTS.gridSize,
 							state: STATES.INPUT_OFF
 						}
 
@@ -268,11 +193,12 @@ function solve (str, map, tab) {
 				}
 				stack.pop();
 			}
-			if (currGate == '*') {
+
+			if (currGate == '*')
 				objects[tab][map[currId].id].type = TYPES.AND_GATE;
-			} else {
+			else
 				objects[tab][map[currId].id].type = TYPES.OR_GATE;
-			}
+			
 			stack.pop();
 			stack.push(currId);
 		} else {
@@ -297,7 +223,7 @@ function createObjects (map, id, depths, depth, tab) {
 	depths[depth]++;
 	objects[tab][objectId].element = new Object();
 
-	fabric.Image.fromURL(gates[objects[tab][objectId].type].url, function (oImage) {
+	fabric.Image.fromURL(GATES[objects[tab][objectId].type].url, function (oImage) {
 		objects[tab][oImage.id].element = oImage;
 	}, {
 		id: objectId,
@@ -491,7 +417,6 @@ function isGate (type) {
 	return type <= 8;
 }
 
-// only have to adjust elements two deep
 function propagateInputMovement (dx, dy, element, depth, prevX, prevY) {
 	if (depth == 2 || !element)
 		return;
@@ -506,12 +431,14 @@ function propagateInputMovement (dx, dy, element, depth, prevX, prevY) {
 					y2: input.element.y2 + dy,
 					x2: input.element.x2 + dx
 				});
+				input.element.setCoords();
 			} else {
 				input.element.set({
 					y1: input.element.y1 + dy,
 					y2: input.element.y2 + dy,
 					x1: input.element.x1 + dx
 				});
+				input.element.setCoords();
 			}
 		}
 		else if (input.type == TYPES.VERTICAL_LINE) {
@@ -519,10 +446,14 @@ function propagateInputMovement (dx, dy, element, depth, prevX, prevY) {
 				input.element.set({
 					y2: input.element.y2 + dy
 				});
+				input.element.setCoords();
 			} else {
 				input.element.set({
 					y1: input.element.y1 + dy
 				});
+				input.y1 = input.element.y1;
+				input.y2 = input.element.y2;
+				input.element.setCoords();
 			}
 		}
 		propagateInputMovement(dx, dy, input, depth + 1, nextPrevX, nextPrevY);
@@ -543,22 +474,28 @@ function propagateOutputMovement (dx, dy, element, depth, prevX, prevY) {
 					y2: output.element.y2 + dy,
 					x2: output.element.x2 + dx
 				});
+				output.element.setCoords();
 			} else {
 				output.element.set({
 					y1: output.element.y1 + dy,
 					y2: output.element.y2 + dy,
 					x1: output.element.x1 + dx
 				});
+				output.element.setCoords();
 			}
 		} else if (output.type == TYPES.VERTICAL_LINE) {
 			if (Math.abs(output.element.y2 - prevY) < 1e-6) {
 				output.element.set({
 					y2: output.element.y2 + dy
 				});
+				output.element.setCoords();
 			} else {
 				output.element.set({
 					y1: output.element.y1 + dy
 				});
+				output.y1 = output.element.y1;
+				output.y2 = output.element.y2;
+				output.element.setCoords();
 			}
 		}
 		propagateOutputMovement(dx, dy, output, depth + 1, nextPrevX, nextPrevY);
@@ -594,39 +531,39 @@ function removeObject (element, depth, canvas) {
 function init () {
 	// initialize the canvas
 	canvas = new fabric.Canvas('editor');
-	canvas.setWidth(opts.width);
-	canvas.setHeight(opts.height);
+	canvas.setWidth(OPTS.width);
+	canvas.setHeight(OPTS.height);
 	canvas.selection = false;
 	canvas.hoverCursor = 'default';
 	canvas.moveCursor = 'default';
 
 	// initialize grid
-	for (var i = 1; i < opts.width / opts.gridSize; i++) {
-		canvas.add(new fabric.Line([i * opts.gridSize, 0, i * opts.gridSize, opts.height], {
+	for (var i = 1; i < OPTS.width / OPTS.gridSize; i++) {
+		canvas.add(new fabric.Line([i * OPTS.gridSize, 0, i * OPTS.gridSize, OPTS.height], {
 			stroke: '#373b41',
 			selectable: false 
 		}));
 	}
 
-	for (var i = 1; i < opts.height / opts.gridSize; i++) {
-		canvas.add(new fabric.Line([opts.gridSize, i * opts.gridSize, opts.width, i * opts.gridSize], {
+	for (var i = 1; i < OPTS.height / OPTS.gridSize; i++) {
+		canvas.add(new fabric.Line([OPTS.gridSize, i * OPTS.gridSize, OPTS.width, i * OPTS.gridSize], {
 			stroke: '#373b41',
 			selectable: false
 		}))
 	}
 
 	// initialize 'toolbox'
-	for (var i = 0; i < gates.length; i++) {
-		var currGate = gates[i];
+	for (var i = 0; i < GATES.length; i++) {
+		var currGate = GATES[i];
 		fabric.Image.fromURL(currGate.url, function (oImage) {
 			canvas.add(oImage);
 		}, {
 			id: currGate.id,
 			selectable: false,
 			isToolbox: true,
-			top: i * opts.gridSize,
-			height: opts.gridSize,
-			width: opts.gridSize
+			top: i * OPTS.gridSize,
+			height: OPTS.gridSize,
+			width: OPTS.gridSize
 		});
 	}
 
@@ -637,7 +574,7 @@ function init () {
 				removeObject(objects[currTab][id], 0, canvas);
 				updateJsonOutput();
 				updateCost();
-			} else {
+			} else if (objects[currTab][id]) {
 				if (objects[currTab][id].type == TYPES.INPUT_GATE)
 					$('#current-hovered-element').text("Hovered: Input Gate: " + getInputId(id) + ".");
 				else if (objects[currTab][id].type == TYPES.OUTPUT_GATE)
@@ -654,7 +591,7 @@ function init () {
 		// handling clicks
 		if (new Date().getTime() - mouseDownTime < 100) {
 			if (options.target && options.target.isToolbox) {
-				var currGate = gates[options.target.id];
+				var currGate = GATES[options.target.id];
 				fabric.Image.fromURL(currGate.url, function (oImage) {
 					canvas.add(oImage);
 					objects[currTab][oImage.id] = {
@@ -662,10 +599,10 @@ function init () {
 						type: currGate.type,
 						outputs: [],
 						inputs: [],
-						top: currGate.id * opts.gridSize,
-						left: opts.gridSize,
-						width: opts.gridSize,
-						height: opts.gridSize,
+						top: currGate.id * OPTS.gridSize,
+						left: OPTS.gridSize,
+						width: OPTS.gridSize,
+						height: OPTS.gridSize,
 						state: STATES.INPUT_OFF
 					};
 					generateTruthTable();
@@ -673,10 +610,10 @@ function init () {
 					updateCost();
 				}, {
 					id: currObjectId++,
-					top: currGate.id * opts.gridSize,
-					left: opts.gridSize,
-					height: opts.gridSize,
-					width: opts.gridSize,
+					top: currGate.id * OPTS.gridSize,
+					left: OPTS.gridSize,
+					height: OPTS.gridSize,
+					width: OPTS.gridSize,
 					hasBorders: false,
 					hasControls: false,
 					hasRotatingPoint: false
@@ -709,9 +646,12 @@ function init () {
 						continue;
 					hline2.outputs.push(currGate.element.id);
 					currGate.inputs.push(hline2.element.id);
+
 					hline2.element.set({
 						x2: currGate.element.left
 					});
+					hline2.element.setCoords();
+
 					connected = true;
 
 					updateOutputs(canvas);
@@ -727,21 +667,28 @@ function init () {
 						continue;
 					hline2.inputs.push(currGate.element.id);
 					if (hline2.outputs.length == 1) {
-						if (Math.abs(objects[currTab][hline2.outputs[0]].element.y1 - hline2.element.y2) < 1e-6)
+						if (Math.abs(objects[currTab][hline2.outputs[0]].element.y1 - hline2.element.y2) < 1e-6) {
 							objects[currTab][hline2.outputs[0]].element.set({
 								y1: currGate.element.top + 25
 							});
-						if (Math.abs(objects[currTab][hline2.outputs[0]].element.y2 - hline2.element.y2) < 1e-6)
+							objects[currTab][hline2.outputs[0]].element.setCoords();
+						}
+						if (Math.abs(objects[currTab][hline2.outputs[0]].element.y2 - hline2.element.y2) < 1e-6) {
 							objects[currTab][hline2.outputs[0]].element.set({
 								y2: currGate.element.top + 25
 							});
+							objects[currTab][hline2.outputs[0]].element.setCoords();
+						}
 					}
 					currGate.outputs.push(hline2.element.id);
+
 					hline2.element.set({
 						x2: currGate.element.left + 50,
 						y1: currGate.element.top + 25,
 						y2: currGate.element.top + 25
 					});
+					hline2.element.setCoords();
+
 					connected = true;
 					
 					updateOutputs(canvas);
@@ -781,25 +728,57 @@ function init () {
 	});
 
 	canvas.on('object:moving', function (options) {
-		var startX = objects[currTab][options.target.id].left;
-		var startY = objects[currTab][options.target.id].top;
-		var finalX = Math.round(options.target.left / opts.gridSize) * opts.gridSize;
-		var finalY = Math.round(options.target.top / opts.gridSize) * opts.gridSize;
+		if (isGate(objects[currTab][options.target.id].type)) {
+			var startX = objects[currTab][options.target.id].left;
+			var startY = objects[currTab][options.target.id].top;
+			var finalX = Math.round(options.target.left / OPTS.gridSize) * OPTS.gridSize;
+			var finalY = Math.round(options.target.top / OPTS.gridSize) * OPTS.gridSize;
 
-		options.target.set({
-			left: finalX,
-			top: finalY
-		});
+			options.target.set({
+				left: finalX,
+				top: finalY
+			});
 
-		objects[currTab][options.target.id].left = finalX;
-		objects[currTab][options.target.id].top = finalY;
+			options.target.setCoords();
 
-		propagateInputMovement(finalX - startX, finalY - startY, objects[currTab][options.target.id], 0, startX, startY);
-		propagateOutputMovement(finalX - startX, finalY - startY, objects[currTab][options.target.id], 0, startX + 50, startY);
-		
-		canvas.renderAll();
-		updateJsonOutput();
-		updateCost();
+			objects[currTab][options.target.id].left = finalX;
+			objects[currTab][options.target.id].top = finalY;
+
+			propagateInputMovement(finalX - startX, finalY - startY, objects[currTab][options.target.id], 0, startX, startY);
+			propagateOutputMovement(finalX - startX, finalY - startY, objects[currTab][options.target.id], 0, startX + 50, startY);
+			
+			canvas.renderAll();
+			updateJsonOutput();
+			updateCost();
+		} else {
+			var y1 = objects[currTab][options.target.id].y1;
+			var y2 = objects[currTab][options.target.id].y2;
+			console.log("DRAGGING");
+			options.target.set({
+				y1: y1,
+				y2: y2,
+				x1: options.target.left,
+				x2: options.target.left
+			});
+
+			options.target.setCoords();
+
+			var element = objects[currTab][options.target.id];
+
+			var inputElement = objects[currTab][objects[currTab][element.inputs[0]].element.id];
+			var outputElement = objects[currTab][objects[currTab][element.outputs[0]].element.id];
+
+			inputElement.element.set({
+				x2: options.target.x1
+			});
+			outputElement.element.set({
+				x1: options.target.x1
+			});
+
+			inputElement.element.setCoords();
+			outputElement.element.setCoords();
+			canvas.renderAll();
+		}
 	});
 
 	canvas.on('mouse:move', function (options) {
@@ -829,14 +808,23 @@ function init () {
 				y2: finalY
 			});
 
+			vline.y1 = vline.element.y1;
+			vline.y2 = vline.element.y2;
+
+			hline1.element.setCoords();
+			hline2.element.setCoords();
+			vline.element.setCoords();
+
 			canvas.renderAll();
 		}
+
 		var pointer = canvas.getPointer(options.e);
 		var x = pointer.x;
 		var y = pointer.y;
 
 		while (selectableIndicator.length > 0)
 			canvas.remove(selectableIndicator.pop());
+
 		for (var key in objects[currTab]) {
 			var obj = objects[currTab][key].element;
 			var connectedInput = obj.left - 15 <= x && x <= obj.left && obj.top + 5 <= y && y <= obj.top + 45;
@@ -878,7 +866,6 @@ function init () {
 			for (var key in objects[currTab]) {
 				var obj = objects[currTab][key].element;
 
-				// adding to left of editable object
 				var pointer = canvas.getPointer(options.e);
 				var x = pointer.x;
 				var y = pointer.y;
@@ -907,22 +894,23 @@ function init () {
 
 						var hlineElement1 = new fabric.Line([initialX, initialY, initialX, initialY], {
 							stroke: '#81a2be',
-							selectable: false,
 							id: currObjectId++,
+							selectable: false,
 							strokeWidth: 3
 						});
 
 						var hlineElement2 = new fabric.Line([initialX, initialY, initialX, initialY], {
 							stroke: '#81a2be',
-							selectable: false,
 							id: currObjectId++,
+							selectable: false,
 							strokeWidth: 3
 						});
 
 						var vlineElement = new fabric.Line([initialX, initialY, initialX, initialY], {
 							stroke: '#81a2be',
-							selectable: false,
 							id: currObjectId++,
+							selectable: true,
+							hasControls: false,
 							strokeWidth: 3
 						});
 
@@ -943,10 +931,11 @@ function init () {
 						vline = {
 							element: vlineElement,
 							type: TYPES.VERTICAL_LINE,
+							y1: initialY,
+							y2: initialY,
 							outputs: [],
 							inputs: []
 						}; 
-
 
 						canvas.add(hlineElement1);
 						canvas.add(hlineElement2);
@@ -1146,10 +1135,22 @@ $(function () {
 							hasControls: false,
 							hasRotatingPoint: false
 						});
-					} else if (element.type == "line") {
+					} else if (objects[tab][key].type == TYPES.HORIZONTAL_LINE) {
 						objects[tab][key].element = new fabric.Line([objects[tab][key].x1, objects[tab][key].y1, objects[tab][key].x2, objects[tab][key].y2], {
 							stroke: '#81a2be',
 							selectable: false,
+							id: key,
+							strokeWidth: 3
+						});
+						if (tab == currTab)
+							canvas.add(objects[tab][key].element);
+					} else if (objects[tab][key].type == TYPES.VERTICAL_LINE) {
+						objects[tab][key].element = new fabric.Line([objects[tab][key].x1, objects[tab][key].y1, objects[tab][key].x2, objects[tab][key].y2], {
+							stroke: '#81a2be',
+							selectable: true,
+							hasControls: false,
+							y1: objects[tab][key].y1,
+							y2: objects[tab][key].y2,
 							id: key,
 							strokeWidth: 3
 						});
