@@ -1,18 +1,25 @@
+// public mains
 var currObjectId = Constants.OPTS.initialObjectId;
 var currTab = 0;
-
 var canvas;
 var objects = [{}];
+
+
+// private CanvasEvents
 var hline1, hline2, vline;
 var initialX, initialY;
 var mouseDownTime;
 var creatingLine = false;
 var isDeleting = false;
 var isDrawingFromInput = false, isDrawingFromOutput = false;
+
+// private CanvasEvents
 var selectableIndicator = [];
 
+// private UI
 var globalTabCounter = 2;
 
+// Main
 function wireObjects (objId1, objId2, tab) {
 	var obj1 = objects[tab][objId1];
 	var obj2 = objects[tab][objId2];
@@ -86,6 +93,7 @@ function wireObjects (objId1, objId2, tab) {
 	objects[tab][vline.element.id] = vline;
 }
 
+// Api
 function getMinimize() {
 	var truthTable=generateTruthTable();
    	$.ajax({
@@ -103,6 +111,7 @@ function getMinimize() {
 	});
 }
 
+// private Api
 function parseString (str) {
 	addTab();
 	var map = {}	
@@ -143,6 +152,7 @@ function parseString (str) {
 
 }
 
+// private Api
 function solve (str, map, tab) {
 	var currGateType, prevInputId;
 	var stack = [];
@@ -245,6 +255,7 @@ function solve (str, map, tab) {
 	return gateIdCounter - 1;
 }
 
+// private Api
 function setMaxDepth (map, id, depth) {
 	if (!map[id].depth)
 		map[id].depth = 0;
@@ -253,6 +264,7 @@ function setMaxDepth (map, id, depth) {
 		setMaxDepth(map, map[id].inputs[i], depth + 1);
 }
 
+// private Api
 function createObjects (map, id, depths, depth, tab) {
 	var inputs = map[id].inputs;
 	var objectId = map[id].id;
@@ -288,6 +300,7 @@ function createObjects (map, id, depths, depth, tab) {
 
 }
 
+// API
 function linkObjects (map, id, tab) {
 	if (map[id].vis)
 		return;
@@ -302,6 +315,7 @@ function linkObjects (map, id, tab) {
 	map[id].vis = true;
 }
 
+// Ui
 function updateJsonOutput () {
 	for (var i = 0; i < objects.length; i++) {
 		for (var key in objects[i]) {
@@ -315,6 +329,7 @@ function updateJsonOutput () {
 	$("#export-modal-textarea").val(JSON.stringify(objects));
 }
 
+// private for Main
 function injectLatex (table, inputs) {
 	if (table.length == 0) {
 		$("#truth-table-content").text("\\begin{array}{}\\\\\\hline \\\\\\end{array}");
@@ -343,7 +358,7 @@ function injectLatex (table, inputs) {
 	MathJax.Hub.Queue(["Typeset",MathJax.Hub,"truth-table"]);
 }
 
-
+// Main
 function getOutput (currGate, inputMap) {
 	if (!currGate)
 		return 0;
@@ -381,6 +396,7 @@ function getOutput (currGate, inputMap) {
 	return ret;
 }
 
+// Main
 function generateTruthTable () {
 	var inputIds = [];
 	var outputNodes = [];
@@ -417,10 +433,12 @@ function generateTruthTable () {
 	return ret;	
 }
 
+// Main
 function getGate (type) {
 	return Constants.TYPE_NAMES[type];
 }
 
+// Main
 function getInputId (id) {
 	var ids = [];
 	
@@ -435,6 +453,7 @@ function getInputId (id) {
 			return String.fromCharCode(65 + i);
 }
 
+// Main
 function getOutputId (id) {
 	var ids = [];
 	
@@ -449,6 +468,7 @@ function getOutputId (id) {
 			return String.fromCharCode(88 + i);
 }
 
+// Main
 function updateCost () {
 	var ret = 0;
 	for (var key in objects[currTab]) {
@@ -463,10 +483,12 @@ function updateCost () {
 	$('#circuit-cost').text("Cost: " + ret + ".");
 }
 
+// Main
 function isGate (type) {
 	return type <= 8;
 }
 
+// private function for CanvasEvents
 function propagateInputMovement (dx, dy, element, depth, prevX, prevY) {
 	if (depth == 2 || !element)
 		return;
@@ -510,6 +532,7 @@ function propagateInputMovement (dx, dy, element, depth, prevX, prevY) {
 	}
 }
 
+// private function for CanvasEvents
 function propagateOutputMovement (dx, dy, element, depth, prevX, prevY) {
 	if (depth == 2 || !element)
 		return;
@@ -552,6 +575,8 @@ function propagateOutputMovement (dx, dy, element, depth, prevX, prevY) {
 	}
 }
 
+
+// Main
 function updateOutputs (canvas) {
 	for (var key in objects[currTab]) {
 		var currGate = objects[currTab][key];
@@ -566,6 +591,7 @@ function updateOutputs (canvas) {
 	}
 }
 
+// private function for CanvasEvents
 function removeObject (element, depth, canvas) {
 	if (depth == 4 || !element || !element.element)
 		return;
@@ -816,10 +842,6 @@ function init () {
 			var element = objects[currTab][options.target.id];
 			var inputElement = objects[currTab][objects[currTab][element.inputs[0]].element.id];
 			var outputElement = objects[currTab][objects[currTab][element.outputs[0]].element.id];
-
-			console.log("DRAGGING");
-			console.log(inputElement.element.x1 + " " + outputElement.element.x1 + " " + options.target.x1);
-			console.log(inputElement.element.x2 + " " + outputElement.element.x2 + " " + options.target.x2);
 
 			if (Math.abs(inputElement.element.x1 - options.target.x1) < 1e-6)
 				inputElement.element.set({x1: options.target.left});
