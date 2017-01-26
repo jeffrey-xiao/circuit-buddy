@@ -2,7 +2,14 @@ module.exports = function (grunt) {
 	grunt.initConfig({
 		concat: {
 			dist: {
-				src: ['static/js/src/*.js'],
+				src: [
+					'static/js/src/constants.js',
+					'static/js/src/main.js', 
+					'static/js/src/canvas-events.js',
+					'static/js/src/api.js',
+					'static/js/src/ui.js',
+					'static/js/src/app.js'
+				],
 				dest: 'static/js/dest/concat.js'
 			}
 		},

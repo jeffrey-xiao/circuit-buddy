@@ -84,7 +84,7 @@ def cvFunction(image):
         inputs.append("(" + inputs.pop(0) + "*" + inputs.pop(0) + ")")
       elif i[0] == 'pentagon':
         inputs.append("(" + inputs.pop(0) + "+" + inputs.pop(0) + ")")
-
+    print(inputs);
     return(inputs[0])
   except:
     return("")
