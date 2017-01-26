@@ -1,22 +1,27 @@
 var currObjectId = Constants.OPTS.initialObjectId;
 var currTab = 0;
 
+var canvas;
 var objects = [{}];
-var creatingLine = false;
 var hline1, hline2, vline;
 var initialX, initialY;
 var mouseDownTime;
+var creatingLine = false;
 var isDeleting = false;
-var canvas;
 var isDrawingFromInput = false, isDrawingFromOutput = false;
 var selectableIndicator = [];
+
+var globalTabCounter = 2;
 
 function wireObjects (objId1, objId2, tab) {
 	var obj1 = objects[tab][objId1];
 	var obj2 = objects[tab][objId2];
 	var x1 = obj1.left;
 	var x2 = obj2.left + Constants.OPTS.gridSize;
+
 	var y1 = obj1.top + Constants.OPTS.gridSize / 2;
+	if (obj1.type != Constants.TYPES.OUTPUT_GATE)
+		y1 = obj1.top + 10 + Math.min(30, obj1.inputs.length * 5);
 	var y2 = obj2.top + Constants.OPTS.gridSize / 2;
 
 	var hlineElement1 = new fabric.Line([x1, y1, (x1 + x2) / 2.0, y1], {
@@ -107,6 +112,7 @@ function parseString (str) {
 		depths.push(0);
 	
 	var outputGate = solve(str, map, currTab);
+	setMaxDepth(map, outputGate, 0);
 	createObjects(map, outputGate, depths, 0, currTab);
 	linkObjects(map, outputGate, currTab);
 
@@ -138,16 +144,16 @@ function parseString (str) {
 }
 
 function solve (str, map, tab) {
-	var currGate;
+	var currGateType, prevInputId;
 	var stack = [];
-	var gateId = 100;
+	var gateIdCounter = 100;
 	for (var i = 0; i < str.length; i++) {
 		if (str[i] == '(')
 			stack.push(str[i]);
 		else if (str[i] == ')') {
-			var currId = gateId++;
+			var currGateId = gateIdCounter++;
 			
-			map[currId] = {
+			map[currGateId] = {
 				id: currObjectId,
 				inputs: []
 			};
@@ -168,18 +174,18 @@ function solve (str, map, tab) {
 
 			while (stack[stack.length - 1] != '(') {
 				if (stack[stack.length - 1] == '*' || stack[stack.length - 1] == '+') {
-					currGate = stack[stack.length - 1];
-				} else {
-					var input = parseInt(stack[stack.length - 1]);
-					if (input < 100 && !map[input]) {
-						map[input] = {
+					currGateType = stack[stack.length - 1];
+				} else if (stack[stack.length - 1] == '!') {
+					var negateId = prevInput + 1;
+					if (!map[negateId]) {
+						map[negateId] = {
 							id: currObjectId,
-							inputs: []
+							inputs: [prevInput]
 						};
 
 						objects[tab][currObjectId] = {
 							element: null,
-							type: Constants.TYPES.INPUT_GATE,
+							type: Constants.TYPES.NOT_GATE,
 							outputs: [],
 							inputs: [],
 							top: null,
@@ -187,36 +193,76 @@ function solve (str, map, tab) {
 							width: Constants.OPTS.gridSize,
 							height: Constants.OPTS.gridSize,
 							state: Constants.STATES.INPUT_OFF
-						}
+						};
 
 						currObjectId++;
 					}
-					map[currId].inputs.push(input);
+
+					map[currGateId].inputs.push(negateId);
+				} else {
+					var input = parseInt(stack[stack.length - 1]);
+					if (input < 100) {
+						input *= 2;
+						if (!map[input]) {
+							map[input] = {
+								id: currObjectId,
+								inputs: []
+							};
+
+							objects[tab][currObjectId] = {
+								element: null,
+								type: Constants.TYPES.INPUT_GATE,
+								outputs: [],
+								inputs: [],
+								top: null,
+								left: null,
+								width: Constants.OPTS.gridSize,
+								height: Constants.OPTS.gridSize,
+								state: Constants.STATES.INPUT_OFF
+							}
+
+							currObjectId++;
+						}
+					}
+					prevInput = input;
+					if (stack[stack.length - 2] != '!')
+						map[currGateId].inputs.push(input);
 				}
 				stack.pop();
 			}
 
-			if (currGate == '*')
-				objects[tab][map[currId].id].type = Constants.TYPES.AND_GATE;
+			if (currGateType == '*')
+				objects[tab][map[currGateId].id].type = Constants.TYPES.AND_GATE;
 			else
-				objects[tab][map[currId].id].type = Constants.TYPES.OR_GATE;
+				objects[tab][map[currGateId].id].type = Constants.TYPES.OR_GATE;
 			
 			stack.pop();
-			stack.push(currId);
+			stack.push(currGateId);
 		} else {
 			stack.push(str[i]);
 		}
 	}
-	return gateId - 1;
+	return gateIdCounter - 1;
+}
+
+function setMaxDepth (map, id, depth) {
+	if (!map[id].depth)
+		map[id].depth = 0;
+	map[id].depth = Math.max(map[id].depth, depth);
+	for (var i = 0; i < map[id].inputs.length; i++)
+		setMaxDepth(map, map[id].inputs[i], depth + 1);
 }
 
 function createObjects (map, id, depths, depth, tab) {
 	var inputs = map[id].inputs;
 	var objectId = map[id].id;
 
-	if (objects[tab][objectId].element)
-		return;
+	for (var i = 0; i < inputs.length; i++)
+		createObjects(map, inputs[i], depths, depth + 1, tab);
 
+	if (objects[tab][objectId].element || map[id].depth != depth)
+		return;
+	
 	var left = 500 - depth * 100;
 	var top = 0 + depths[depth] * 50;
 
@@ -240,18 +286,20 @@ function createObjects (map, id, depths, depth, tab) {
 
 	depths[depth]++;
 
-	for (var i = 0; i < inputs.length; i++)
-		createObjects(map, inputs[i], depths, depth + 1, tab);
 }
 
 function linkObjects (map, id, tab) {
+	if (map[id].vis)
+		return;
 	var objectId = map[id].id;
 	var inputs = map[id].inputs;
+
 	for (var i = 0; i < inputs.length; i++) {
 		var nextObjectId = map[inputs[i]].id;
 		wireObjects(objectId, nextObjectId, tab);
 		linkObjects(map, inputs[i], tab);
 	}
+	map[id].vis = true;
 }
 
 function updateJsonOutput () {
@@ -519,12 +567,18 @@ function updateOutputs (canvas) {
 }
 
 function removeObject (element, depth, canvas) {
-	if (depth == 4 || !element)
+	if (depth == 4 || !element || !element.element)
 		return;
-	for (var i = 0; i < element.inputs.length; i++)
+	for (var i = 0; i < element.inputs.length; i++) {
+		var index = objects[currTab][element.inputs[i]].outputs.indexOf(element.element.id);
+		objects[currTab][element.inputs[i]].outputs.splice(index);
 		removeObject(objects[currTab][element.inputs[i]], depth + 1, canvas);
-	for (var i = 0; i < element.outputs.length; i++)
+	}
+	for (var i = 0; i < element.outputs.length; i++) {
+		var index = objects[currTab][element.outputs[i]].inputs.indexOf(element.element.id);
+		objects[currTab][element.outputs[i]].inputs.splice(index);
 		removeObject(objects[currTab][element.outputs[i]], depth + 1, canvas);
+	}
 	canvas.remove(element.element);
 	delete objects[currTab][element.element.id];
 }
@@ -1002,8 +1056,6 @@ function removeAllObjects (tab) {
 		delete objects[tab][key];
 	}
 }
-
-var globalTabCounter = 2;
 
 function addTab () {
 	var len = $("div[id^='tab-']").length;

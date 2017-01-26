@@ -256,7 +256,7 @@ class QM:
         if minterm[0] & 1<<j:
           and_terms.append(self.variables[j])
         elif not minterm[1] & 1<<j:
-          and_terms.append('(!%s)' % self.variables[j])
+          and_terms.append('!%s' % self.variables[j])
       or_terms.append(parentheses('*', and_terms))
     return parentheses('+', or_terms)
 
