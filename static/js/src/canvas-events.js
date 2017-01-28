@@ -1,10 +1,8 @@
 var CanvasEvents = (function (Constants, Main) {
-	var hline1, hline2, vline;
+	var hline1, hline2, vline, startComponentId;
 	var initialX, initialY;
 	var mouseDownTime;
-	var creatingLine = false;
-	var isDeleting = false;
-	var isDrawingFromInput = false, isDrawingFromOutput = false;
+	var isDrawingFromInput = false, isDrawingFromOutput = false, creatingLine = false, isDeleting = false;
 	var selectableIndicator = [];
 
 	var propagateInputMovement = function (dx, dy, element, depth, prevX, prevY) {
@@ -242,6 +240,8 @@ var CanvasEvents = (function (Constants, Main) {
 							continue;
 						if (isDrawingFromOutput)
 							continue;
+						if (currGate.element.id = startComponentId)
+							continue;
 						hline2.outputs.push(currGate.element.id);
 						currGate.inputs.push(hline2.element.id);
 
@@ -261,6 +261,8 @@ var CanvasEvents = (function (Constants, Main) {
 						if (currGate.type == Constants.TYPES.OUTPUT_GATE)
 							continue;
 						if (isDrawingFromInput)
+							continue;
+						if (currGate.element.id == startComponentId)
 							continue;
 						hline2.inputs.push(currGate.element.id);
 						if (hline2.outputs.length == 1) {
@@ -315,7 +317,7 @@ var CanvasEvents = (function (Constants, Main) {
 				hline1 = null;
 				hline2 = null;
 				vline = null;
-				
+				startComponentId = null;				
 			}
 			
 			creatingLine = false;
@@ -482,6 +484,7 @@ var CanvasEvents = (function (Constants, Main) {
 							if (connectedInput && Main.objects[key].type == Constants.TYPES.OUTPUT_GATE)
 								isDrawingFromOutput = true;
 							creatingLine = true;
+							startComponentId = key;
 
 							initialX = obj.left;
 							initialY = y;
