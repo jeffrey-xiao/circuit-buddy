@@ -142,18 +142,17 @@ var Main = (function (Constants) {
 		return id >= Constants.OPTS.initialObjectId
 	};
 
-	ret.updateCost = function () {
+	ret.getCost = function (objects) {
 		var cost = 0;
-		for (var key in ret.objects) {
-			var element = ret.objects[key];
+		for (var key in objects) {
+			var element = objects[key];
 			if (element.type == Constants.TYPES.NOT_GATE) {
-				if (element.inputs.length == 0 || ret.objects[element.inputs[0]].type != Constants.TYPES.OUTPUT_GATE)
+				if (element.inputs.length == 0 || objects[element.inputs[0]].type != Constants.TYPES.OUTPUT_GATE)
 					cost += 1;
 			} else if (element.type != Constants.TYPES.INPUT_GATE && element.type != Constants.TYPES.OUTPUT_GATE && ret.isGate(element.type)) {
-				cost += 1 + ret.objects[key].inputs.length;
+				cost += 1 + objects[key].inputs.length;
 			}
 		}
-		$('#circuit-cost').text("Cost: " + cost + ".");
 		return cost;
 	};
 
@@ -334,8 +333,7 @@ var Main = (function (Constants) {
 		var table = tableObject.table;
 		var inputLength = tableObject.inputLength;
 		if (table.length == 0) {
-			$("#truth-table-content").text("\\begin{array}{}\\\\\\hline \\\\\\end{array}");
-			return;
+			return "\\begin{array}{}\\\\\\hline \\\\\\end{array}";
 		}
 		var rawLatex = "\\begin{array}{";
 		for (var i = 0; i < table[0].length; i++)
@@ -526,7 +524,7 @@ var CanvasEvents = (function (Constants, Main) {
 				var id = options.target.id;
 				if (isDeleting) {
 					removeObject(Main.objects[id], 0);
-					Main.updateCost();
+					
 				} else if (Main.objects[id]) {
 					if (Main.objects[id].type == Constants.TYPES.INPUT_GATE)
 						$('#current-hovered-element').text("Hovered: Input Gate: " + getInputId(id) + ".");
@@ -560,7 +558,7 @@ var CanvasEvents = (function (Constants, Main) {
 							state: Constants.STATES.INPUT_OFF
 						});
 						
-						Main.updateCost();
+						
 					}, {
 						id: Main.currObjectId++,
 						top: currGate.id * Constants.OPTS.gridSize,
@@ -585,7 +583,7 @@ var CanvasEvents = (function (Constants, Main) {
 					});
 
 					Main.updateOutputs();
-					Main.updateCost();
+					
 				}
 			}
 			
@@ -618,7 +616,7 @@ var CanvasEvents = (function (Constants, Main) {
 
 						Main.updateOutputs();
 						Main.canvas.renderAll();
-						Main.updateCost();
+						
 					}
 					if (Main.isGate(currGate.type) && currGate.element.left + 40 <= x && x <= currGate.element.left + 60 &&
 						currGate.element.top + 20 <= y && y <= currGate.element.top + 30) {
@@ -654,11 +652,11 @@ var CanvasEvents = (function (Constants, Main) {
 						
 						Main.updateOutputs();
 						Main.canvas.renderAll();
-						Main.updateCost();
+						
 					}
 				}
 
-				Main.updateCost();
+				
 				if (!connected) {
 					for (var i = 0; i < hline1.inputs.length; i++)
 						if (Main.objects[hline1.inputs[i]].outputs.length == 1 && Main.objects[Main.objects[hline1.inputs[i]].outputs[0]] == hline1)
@@ -708,7 +706,7 @@ var CanvasEvents = (function (Constants, Main) {
 				propagateOutputMovement(finalX - startX, finalY - startY, Main.objects[options.target.id], 0, startX + 50, startY);
 				
 				Main.canvas.renderAll();
-				Main.updateCost();
+				
 			} else {
 				var y1 = Main.objects[options.target.id].y1;
 				var y2 = Main.objects[options.target.id].y2;
@@ -1217,6 +1215,17 @@ var Ui = (function (Constants, Main, Api) {
 		return JSON.stringify(objectsList);
 	};
 
+	Vue.component('cost-info', {
+		template: "<div id='circuit-cost' v-html='html'></div>",
+		props: ["objects"],
+		computed: {
+			html: function () {
+				console.log(this.objects);
+				return "Cost: " + Main.getCost(this.objects);
+			}
+		}
+	});
+
 	Vue.component('truth-table-content', {
 		template: "<div id='truth-table-content' v-html='html'></div>",
 		props: ["objects"],
@@ -1369,7 +1378,7 @@ var Ui = (function (Constants, Main, Api) {
 					removeAllCanvasObjects();
 					Main.objects = ref.objectsList[index];
 					addAllCanvasObjects();
-					Main.updateCost();
+					
 				});
 				Events.$on('tabs:delete-tab', function (event, tabId) {
 					event.stopPropagation();
@@ -1461,7 +1470,7 @@ var Ui = (function (Constants, Main, Api) {
 
 					setTimeout(function () {
 						Main.updateOutputs();
-						Main.updateCost();
+						
 					});
 				});
 				Events.$on('simplify:clicked', function () {

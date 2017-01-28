@@ -17,6 +17,16 @@ var Ui = (function (Constants, Main, Api) {
 		return JSON.stringify(objectsList);
 	};
 
+	Vue.component('cost-info', {
+		template: "<div id='circuit-cost' v-html='html'></div>",
+		props: ["objects"],
+		computed: {
+			html: function () {
+				return "Cost: " + Main.getCost(this.objects);
+			}
+		}
+	});
+
 	Vue.component('truth-table-content', {
 		template: "<div id='truth-table-content' v-html='html'></div>",
 		props: ["objects"],
@@ -169,7 +179,7 @@ var Ui = (function (Constants, Main, Api) {
 					removeAllCanvasObjects();
 					Main.objects = ref.objectsList[index];
 					addAllCanvasObjects();
-					Main.updateCost();
+					
 				});
 				Events.$on('tabs:delete-tab', function (event, tabId) {
 					event.stopPropagation();
@@ -261,7 +271,7 @@ var Ui = (function (Constants, Main, Api) {
 
 					setTimeout(function () {
 						Main.updateOutputs();
-						Main.updateCost();
+						
 					});
 				});
 				Events.$on('simplify:clicked', function () {

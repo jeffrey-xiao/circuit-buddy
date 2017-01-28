@@ -162,7 +162,7 @@ var CanvasEvents = (function (Constants, Main) {
 				var id = options.target.id;
 				if (isDeleting) {
 					removeObject(Main.objects[id], 0);
-					Main.updateCost();
+					
 				} else if (Main.objects[id]) {
 					if (Main.objects[id].type == Constants.TYPES.INPUT_GATE)
 						$('#current-hovered-element').text("Hovered: Input Gate: " + getInputId(id) + ".");
@@ -196,7 +196,7 @@ var CanvasEvents = (function (Constants, Main) {
 							state: Constants.STATES.INPUT_OFF
 						});
 						
-						Main.updateCost();
+						
 					}, {
 						id: Main.currObjectId++,
 						top: currGate.id * Constants.OPTS.gridSize,
@@ -221,7 +221,7 @@ var CanvasEvents = (function (Constants, Main) {
 					});
 
 					Main.updateOutputs();
-					Main.updateCost();
+					
 				}
 			}
 			
@@ -254,7 +254,7 @@ var CanvasEvents = (function (Constants, Main) {
 
 						Main.updateOutputs();
 						Main.canvas.renderAll();
-						Main.updateCost();
+						
 					}
 					if (Main.isGate(currGate.type) && currGate.element.left + 40 <= x && x <= currGate.element.left + 60 &&
 						currGate.element.top + 20 <= y && y <= currGate.element.top + 30) {
@@ -290,11 +290,11 @@ var CanvasEvents = (function (Constants, Main) {
 						
 						Main.updateOutputs();
 						Main.canvas.renderAll();
-						Main.updateCost();
+						
 					}
 				}
 
-				Main.updateCost();
+				
 				if (!connected) {
 					for (var i = 0; i < hline1.inputs.length; i++)
 						if (Main.objects[hline1.inputs[i]].outputs.length == 1 && Main.objects[Main.objects[hline1.inputs[i]].outputs[0]] == hline1)
@@ -344,7 +344,7 @@ var CanvasEvents = (function (Constants, Main) {
 				propagateOutputMovement(finalX - startX, finalY - startY, Main.objects[options.target.id], 0, startX + 50, startY);
 				
 				Main.canvas.renderAll();
-				Main.updateCost();
+				
 			} else {
 				var y1 = Main.objects[options.target.id].y1;
 				var y2 = Main.objects[options.target.id].y2;

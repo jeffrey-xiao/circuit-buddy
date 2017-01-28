@@ -58,18 +58,17 @@ var Main = (function (Constants) {
 		return id >= Constants.OPTS.initialObjectId
 	};
 
-	ret.updateCost = function () {
+	ret.getCost = function (objects) {
 		var cost = 0;
-		for (var key in ret.objects) {
-			var element = ret.objects[key];
+		for (var key in objects) {
+			var element = objects[key];
 			if (element.type == Constants.TYPES.NOT_GATE) {
-				if (element.inputs.length == 0 || ret.objects[element.inputs[0]].type != Constants.TYPES.OUTPUT_GATE)
+				if (element.inputs.length == 0 || objects[element.inputs[0]].type != Constants.TYPES.OUTPUT_GATE)
 					cost += 1;
 			} else if (element.type != Constants.TYPES.INPUT_GATE && element.type != Constants.TYPES.OUTPUT_GATE && ret.isGate(element.type)) {
-				cost += 1 + ret.objects[key].inputs.length;
+				cost += 1 + objects[key].inputs.length;
 			}
 		}
-		$('#circuit-cost').text("Cost: " + cost + ".");
 		return cost;
 	};
 
@@ -250,8 +249,7 @@ var Main = (function (Constants) {
 		var table = tableObject.table;
 		var inputLength = tableObject.inputLength;
 		if (table.length == 0) {
-			$("#truth-table-content").text("\\begin{array}{}\\\\\\hline \\\\\\end{array}");
-			return;
+			return "\\begin{array}{}\\\\\\hline \\\\\\end{array}";
 		}
 		var rawLatex = "\\begin{array}{";
 		for (var i = 0; i < table[0].length; i++)

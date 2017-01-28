@@ -65,7 +65,7 @@
             
             <div id="info-wrapper">
                 <div id="current-hovered-element">Hovered: No element.</div>
-                <div id="circuit-cost">Cost: 0.</div>
+                <cost-info v-bind:objects="objectsList[activeTab]"></cost-info>
             </div>
 
             <modal v-bind:name="'export'" v-bind:title="'Export Content'" v-bind:objects-list="objectsList"></modal>
