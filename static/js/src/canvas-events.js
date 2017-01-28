@@ -240,7 +240,7 @@ var CanvasEvents = (function (Constants, Main) {
 							continue;
 						if (isDrawingFromOutput)
 							continue;
-						if (currGate.element.id = startComponentId)
+						if (currGate.element.id == startComponentId)
 							continue;
 						hline2.outputs.push(currGate.element.id);
 						currGate.inputs.push(hline2.element.id);
