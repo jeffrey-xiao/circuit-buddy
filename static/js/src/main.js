@@ -74,19 +74,6 @@ var Main = (function (Constants) {
 		}
 	};
 
-	ret.getJsonOutput = function (objectsList) {
-		for (var i = 0; i < objectsList.length; i++) {
-			for (var key in objectsList[i]) {
-				var element = objectsList[i][key].element;
-				objectsList[i][key].x1 = element.x1;
-				objectsList[i][key].x2 = element.x2;
-				objectsList[i][key].y1 = element.y1;
-				objectsList[i][key].y2 = element.y2;
-			}
-		}
-		return JSON.stringify(objectsList);
-	};
-
 	ret.getGate = function (type) {
 		return Constants.TYPE_NAMES[type];
 	};
@@ -243,6 +230,7 @@ var Main = (function (Constants) {
 	ret.generateTruthTable = function (objects) {
 		if (objects === undefined)
 			objects = ret.objects;
+
 		var inputIds = [];
 		var outputNodes = [];
 
@@ -253,6 +241,7 @@ var Main = (function (Constants) {
 				outputNodes.push(objects[key].element.id);
 			}
 		}
+
 		inputIds.sort();
 		outputNodes.sort();
 
@@ -274,9 +263,7 @@ var Main = (function (Constants) {
 					truthTable[i][inputIds.length + j] = ret.getOutput(objects[objects[outputNodes[j]].inputs[0]], inputMap, objects);
 			}
 		}
-		console.log(truthTable);
-		console.log(inputIds);
-		console.log(outputNodes);
+
 		injectLatex(truthTable, inputIds.length);
 		return truthTable;	
 	};

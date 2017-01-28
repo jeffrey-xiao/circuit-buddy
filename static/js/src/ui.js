@@ -4,6 +4,19 @@ var Ui = (function (Constants, Main, Api) {
 	var globalTabCounter = 2;
 	var globalTabIdCounter = 1;
 
+	var getJsonOutput = function (objectsList) {
+		for (var i = 0; i < objectsList.length; i++) {
+			for (var key in objectsList[i]) {
+				var element = objectsList[i][key].element;
+				objectsList[i][key].x1 = element.x1;
+				objectsList[i][key].x2 = element.x2;
+				objectsList[i][key].y1 = element.y1;
+				objectsList[i][key].y2 = element.y2;
+			}
+		}
+		return JSON.stringify(objectsList);
+	};
+
 	Vue.component('truth-button', {
 		template: "#truth-button-template",
 		props: ["name"],
@@ -68,7 +81,7 @@ var Ui = (function (Constants, Main, Api) {
 			var ref = this;
 			Events.$on(this.name+":clicked", function () {
 				if (ref.name == "export")
-					ref.textAreaContent = Main.getJsonOutput(ref.objectsList);
+					ref.textAreaContent = getJsonOutput(ref.objectsList);
 				ref.isVisible = true;
 			});
 		}
@@ -246,7 +259,6 @@ var Ui = (function (Constants, Main, Api) {
 						Main.updateCost();
 					});
 				});
-
 				Events.$on('simplify:clicked', function () {
 					var index = ref.tabs.findIndex(tab => tab.id == ref.activeTab);
 					ref.addTab()
