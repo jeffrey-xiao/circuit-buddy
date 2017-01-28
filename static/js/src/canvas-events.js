@@ -34,6 +34,8 @@ var CanvasEvents = (function (Constants, Main) {
 					input.element.set({
 						y2: input.element.y2 + dy
 					});
+					input.y1 = input.element.y1;
+					input.y2 = input.element.y2;
 					input.element.setCoords();
 				} else {
 					input.element.set({
@@ -76,6 +78,8 @@ var CanvasEvents = (function (Constants, Main) {
 					output.element.set({
 						y2: output.element.y2 + dy
 					});
+					output.y1 = output.element.y1;
+					output.y2 = output.element.y2;
 					output.element.setCoords();
 				} else {
 					output.element.set({
@@ -354,28 +358,34 @@ var CanvasEvents = (function (Constants, Main) {
 				var element = Main.objects[options.target.id];
 				var inputElement = Main.objects[Main.objects[element.inputs[0]].element.id];
 				var outputElement = Main.objects[Main.objects[element.outputs[0]].element.id];
+				
+				var xcoords = [inputElement.element.x1, inputElement.element.x2, outputElement.element.x1, outputElement.element.x2];
+				var jointX;
+				for (var i = 0; i < 3; i++)
+					if (xcoords[i] == xcoords[i + 1])
+						jointX = xcoords[i];
 
-				if (Math.abs(inputElement.element.x1 - options.target.x1) < 1e-6)
+				if (Math.abs(inputElement.element.x1 - jointX) < 1e-6)
 					inputElement.element.set({x1: options.target.left});
 				else 
 					inputElement.element.set({x2: options.target.left});
 
-				if (Math.abs(outputElement.element.x1 - options.target.x1) < 1e-6)
+				if (Math.abs(outputElement.element.x1 - jointX) < 1e-6)
 					outputElement.element.set({x1: options.target.left});
 				else 
 					outputElement.element.set({x2: options.target.left});
 
-				options.target.set({
+				element.element.set({
 					y1: y1,
 					y2: y2,
 					x1: options.target.left,
 					x2: options.target.left
 				});
 
-				options.target.setCoords();
-
 				inputElement.element.setCoords();
 				outputElement.element.setCoords();
+				element.element.setCoords();
+
 				Main.canvas.renderAll();
 			}
 		},

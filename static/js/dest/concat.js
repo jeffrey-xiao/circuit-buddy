@@ -147,7 +147,8 @@ var Main = (function (Constants) {
 		for (var key in objects) {
 			var element = objects[key];
 			if (element.type == Constants.TYPES.NOT_GATE) {
-				if (element.inputs.length == 0 || objects[element.inputs[0]].type != Constants.TYPES.OUTPUT_GATE)
+				// need to fix	
+				if (element.inputs.length == 0)
 					cost += 1;
 			} else if (element.type != Constants.TYPES.INPUT_GATE && element.type != Constants.TYPES.OUTPUT_GATE && ret.isGate(element.type)) {
 				cost += 1 + objects[key].inputs.length;
@@ -157,7 +158,7 @@ var Main = (function (Constants) {
 	};
 
 
-	ret.wireObjects = function (objId1, objId2, objects) {
+	ret.wireObjects = function (objId1, objId2, objects, outputInputLength) {
 		var obj1 = objects[objId1];
 		var obj2 = objects[objId2];
 
@@ -166,7 +167,7 @@ var Main = (function (Constants) {
 
 		var y1 = obj1.top + Constants.OPTS.gridSize / 2;
 		if (obj1.type != Constants.TYPES.OUTPUT_GATE)
-			y1 = obj1.top + 10 + Math.min(30, obj1.inputs.length * 5);
+			y1 = obj1.top + 5 + 40 / (outputInputLength + 1) * (obj1.inputs.length + 1);
 
 		var y2 = obj2.top + Constants.OPTS.gridSize / 2;
 
@@ -277,6 +278,7 @@ var Main = (function (Constants) {
 				var currState = Constants.STATES.OUTPUT_OFF;
 				if (currGate.inputs.length > 0)
 					currState = ret.getOutput(ret.objects[currGate.inputs[0]], null, ret.objects) == 1 ? Constants.STATES.OUTPUT_ON : Constants.STATES.OUTPUT_OFF;
+				console.log(currGate);
 				currGate.element.setSrc(currState, function () {
 					ret.canvas.renderAll();
 				});
@@ -396,6 +398,8 @@ var CanvasEvents = (function (Constants, Main) {
 					input.element.set({
 						y2: input.element.y2 + dy
 					});
+					input.y1 = input.element.y1;
+					input.y2 = input.element.y2;
 					input.element.setCoords();
 				} else {
 					input.element.set({
@@ -438,6 +442,8 @@ var CanvasEvents = (function (Constants, Main) {
 					output.element.set({
 						y2: output.element.y2 + dy
 					});
+					output.y1 = output.element.y1;
+					output.y2 = output.element.y2;
 					output.element.setCoords();
 				} else {
 					output.element.set({
@@ -716,28 +722,34 @@ var CanvasEvents = (function (Constants, Main) {
 				var element = Main.objects[options.target.id];
 				var inputElement = Main.objects[Main.objects[element.inputs[0]].element.id];
 				var outputElement = Main.objects[Main.objects[element.outputs[0]].element.id];
+				
+				var xcoords = [inputElement.element.x1, inputElement.element.x2, outputElement.element.x1, outputElement.element.x2];
+				var jointX;
+				for (var i = 0; i < 3; i++)
+					if (xcoords[i] == xcoords[i + 1])
+						jointX = xcoords[i];
 
-				if (Math.abs(inputElement.element.x1 - options.target.x1) < 1e-6)
+				if (Math.abs(inputElement.element.x1 - jointX) < 1e-6)
 					inputElement.element.set({x1: options.target.left});
 				else 
 					inputElement.element.set({x2: options.target.left});
 
-				if (Math.abs(outputElement.element.x1 - options.target.x1) < 1e-6)
+				if (Math.abs(outputElement.element.x1 - jointX) < 1e-6)
 					outputElement.element.set({x1: options.target.left});
 				else 
 					outputElement.element.set({x2: options.target.left});
 
-				options.target.set({
+				element.element.set({
 					y1: y1,
 					y2: y2,
 					x1: options.target.left,
 					x2: options.target.left
 				});
 
-				options.target.setCoords();
-
 				inputElement.element.setCoords();
 				outputElement.element.setCoords();
+				element.element.setCoords();
+
 				Main.canvas.renderAll();
 			}
 		},
@@ -1107,7 +1119,7 @@ var Api = (function (Constants, Main) {
 
 		for (var i = 0; i < inputs.length; i++) {
 			var nextObjectId = map[inputs[i]].id;
-			Main.wireObjects(objectId, nextObjectId, objects);
+			Main.wireObjects(objectId, nextObjectId, objects, inputs.length);
 			linkObjects(map, inputs[i], objects);
 		}
 		map[id].vis = true;
@@ -1141,7 +1153,7 @@ var Api = (function (Constants, Main) {
 				left: 600,
 				state: Constants.STATES.OFF
 			};
-			Main.wireObjects(oImage.id, map[outputGate].id, generatedObjects);
+			Main.wireObjects(oImage.id, map[outputGate].id, generatedObjects, 1);
 			callback(generatedObjects);
 		}, {
 			id: Main.currObjectId++,

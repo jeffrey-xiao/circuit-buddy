@@ -173,7 +173,7 @@ var Api = (function (Constants, Main) {
 
 		for (var i = 0; i < inputs.length; i++) {
 			var nextObjectId = map[inputs[i]].id;
-			Main.wireObjects(objectId, nextObjectId, objects);
+			Main.wireObjects(objectId, nextObjectId, objects, inputs.length);
 			linkObjects(map, inputs[i], objects);
 		}
 		map[id].vis = true;
@@ -207,7 +207,7 @@ var Api = (function (Constants, Main) {
 				left: 600,
 				state: Constants.STATES.OFF
 			};
-			Main.wireObjects(oImage.id, map[outputGate].id, generatedObjects);
+			Main.wireObjects(oImage.id, map[outputGate].id, generatedObjects, 1);
 			callback(generatedObjects);
 		}, {
 			id: Main.currObjectId++,

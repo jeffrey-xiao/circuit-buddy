@@ -63,7 +63,8 @@ var Main = (function (Constants) {
 		for (var key in objects) {
 			var element = objects[key];
 			if (element.type == Constants.TYPES.NOT_GATE) {
-				if (element.inputs.length == 0 || objects[element.inputs[0]].type != Constants.TYPES.OUTPUT_GATE)
+				// need to fix	
+				if (element.inputs.length == 0)
 					cost += 1;
 			} else if (element.type != Constants.TYPES.INPUT_GATE && element.type != Constants.TYPES.OUTPUT_GATE && ret.isGate(element.type)) {
 				cost += 1 + objects[key].inputs.length;
@@ -73,7 +74,7 @@ var Main = (function (Constants) {
 	};
 
 
-	ret.wireObjects = function (objId1, objId2, objects) {
+	ret.wireObjects = function (objId1, objId2, objects, outputInputLength) {
 		var obj1 = objects[objId1];
 		var obj2 = objects[objId2];
 
@@ -82,7 +83,7 @@ var Main = (function (Constants) {
 
 		var y1 = obj1.top + Constants.OPTS.gridSize / 2;
 		if (obj1.type != Constants.TYPES.OUTPUT_GATE)
-			y1 = obj1.top + 10 + Math.min(30, obj1.inputs.length * 5);
+			y1 = obj1.top + 5 + 40 / (outputInputLength + 1) * (obj1.inputs.length + 1);
 
 		var y2 = obj2.top + Constants.OPTS.gridSize / 2;
 
@@ -193,6 +194,7 @@ var Main = (function (Constants) {
 				var currState = Constants.STATES.OUTPUT_OFF;
 				if (currGate.inputs.length > 0)
 					currState = ret.getOutput(ret.objects[currGate.inputs[0]], null, ret.objects) == 1 ? Constants.STATES.OUTPUT_ON : Constants.STATES.OUTPUT_OFF;
+				console.log(currGate);
 				currGate.element.setSrc(currState, function () {
 					ret.canvas.renderAll();
 				});
