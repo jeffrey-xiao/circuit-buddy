@@ -11,7 +11,7 @@ var CanvasEvents = (function (Constants, Main) {
 		if (depth == 2 || !element)
 			return;
 		for (var i = 0; i < element.inputs.length; i++) {
-			var input = Main.objects[Main.currTab][element.inputs[i]];
+			var input = Main.objects[element.inputs[i]];
 			var nextPrevX = input.element.x2;
 			var nextPrevY = input.element.y2;
 			if (input.type == Constants.TYPES.HORIZONTAL_LINE) {
@@ -54,7 +54,7 @@ var CanvasEvents = (function (Constants, Main) {
 		if (depth == 2 || !element)
 			return;
 		for (var i = 0; i < element.outputs.length; i++) {
-			var output = Main.objects[Main.currTab][element.outputs[i]];
+			var output = Main.objects[element.outputs[i]];
 			var nextPrevX = output.element.x2;
 			var nextPrevY = output.element.y2;
 			if (output.type == Constants.TYPES.HORIZONTAL_LINE) {
@@ -95,9 +95,9 @@ var CanvasEvents = (function (Constants, Main) {
 	var getInputId = function (id) {
 		var ids = [];
 		
-		for (var key in Main.objects[Main.currTab])
-			if (Main.objects[Main.currTab][key].type == Constants.TYPES.INPUT_GATE)
-				ids.push(Main.objects[Main.currTab][key].element.id);
+		for (var key in Main.objects)
+			if (Main.objects[key].type == Constants.TYPES.INPUT_GATE)
+				ids.push(Main.objects[key].element.id);
 
 		ids.sort();
 
@@ -109,9 +109,9 @@ var CanvasEvents = (function (Constants, Main) {
 	var getOutputId = function (id) {
 		var ids = [];
 		
-		for (var key in Main.objects[Main.currTab])
-			if (Main.objects[Main.currTab][key].type == Constants.TYPES.OUTPUT_GATE)
-				ids.push(Main.objects[Main.currTab][key].element.id);
+		for (var key in Main.objects)
+			if (Main.objects[key].type == Constants.TYPES.OUTPUT_GATE)
+				ids.push(Main.objects[key].element.id);
 
 		ids.sort();
 
@@ -125,39 +125,51 @@ var CanvasEvents = (function (Constants, Main) {
 			return;
 
 		for (var i = 0; i < element.inputs.length; i++) {
-			var nextInputElement = Main.objects[Main.currTab][element.inputs[i]];
+			var nextInputElement = Main.objects[element.inputs[i]];
 			var index = nextInputElement.outputs.indexOf(element.element.id);
 			nextInputElement.outputs.splice(index);
 			removeObject(nextInputElement, depth + 1);
 		}
 
 		for (var i = 0; i < element.outputs.length; i++) {
-			var nextOutputElement = Main.objects[Main.currTab][element.outputs[i]];
+			var nextOutputElement = Main.objects[element.outputs[i]];
 			var index = nextOutputElement.inputs.indexOf(element.element.id);
 			nextOutputElement.inputs.splice(index);
 			removeObject(nextOutputElement, depth + 1);
 		}
 
 		Main.canvas.remove(element.element);
-		delete Main.objects[Main.currTab][element.element.id];
+		delete Main.objects[element.element.id];
 	};
 
 	return {
+		onKeyDown: function (e) {
+			var key = e.keyCode ? e.keyCode : e.which;
+			if (key == 8)
+				isDeleting = true;
+		},
+
+
+		onKeyUp: function (e) {
+			var key = e.keyCode ? e.keyCode : e.which;
+			if (key == 8)
+				isDeleting = false;
+		},
+
 		// displaying the name of the component when hovering over
 		onMouseOver: function (options) {
 			if (options.target && Main.isEditableObject(options.target.id)) {
 				var id = options.target.id;
 				if (isDeleting) {
-					removeObject(Main.objects[Main.currTab][id], 0);
-					Main.updateJsonOutput();
+					removeObject(Main.objects[id], 0);
 					Main.updateCost();
-				} else if (Main.objects[Main.currTab][id]) {
-					if (Main.objects[Main.currTab][id].type == Constants.TYPES.INPUT_GATE)
+				} else if (Main.objects[id]) {
+					if (Main.objects[id].type == Constants.TYPES.INPUT_GATE)
 						$('#current-hovered-element').text("Hovered: Input Gate: " + getInputId(id) + ".");
-					else if (Main.objects[Main.currTab][id].type == Constants.TYPES.OUTPUT_GATE)
+					else if (Main.objects[id].type == Constants.TYPES.OUTPUT_GATE)
 						$('#current-hovered-element').text("Hovered: Output Gate: " + getOutputId(id) + ".");
 					else
-						$('#current-hovered-element').text("Hovered: " + Main.getGate(Main.objects[Main.currTab][id].type) + ".");
+						$('#current-hovered-element').text("Hovered: " + Main.getGate(Main.objects[id].type) + ".");
 				}
 			} else {
 				$('#current-hovered-element').text("Hovered: No element.");
@@ -172,7 +184,7 @@ var CanvasEvents = (function (Constants, Main) {
 					var currGate = Constants.GATES[options.target.id];
 					fabric.Image.fromURL(currGate.url, function (oImage) {
 						Main.canvas.add(oImage);
-						Main.objects[Main.currTab][oImage.id] = {
+						Main.objects[oImage.id] = {
 							element: oImage,
 							type: currGate.type,
 							outputs: [],
@@ -184,7 +196,6 @@ var CanvasEvents = (function (Constants, Main) {
 							state: Constants.STATES.INPUT_OFF
 						};
 						Main.generateTruthTable();
-						Main.updateJsonOutput();
 						Main.updateCost();
 					}, {
 						id: Main.currObjectId++,
@@ -198,10 +209,10 @@ var CanvasEvents = (function (Constants, Main) {
 					});
 				} 
 				// changing input
-				else if (options.target && Main.objects[Main.currTab][options.target.id] && 
-						 Main.objects[Main.currTab][options.target.id].type == Constants.TYPES.INPUT_GATE) {
+				else if (options.target && Main.objects[options.target.id] && 
+						 Main.objects[options.target.id].type == Constants.TYPES.INPUT_GATE) {
 
-					var currGate = Main.objects[Main.currTab][options.target.id];	
+					var currGate = Main.objects[options.target.id];	
 					currGate.state = currGate.state == Constants.STATES.INPUT_ON ? Constants.STATES.INPUT_OFF : 
 																				   Constants.STATES.INPUT_ON;
 
@@ -209,7 +220,6 @@ var CanvasEvents = (function (Constants, Main) {
 						Main.canvas.renderAll();
 					});
 					Main.updateOutputs();
-					Main.updateJsonOutput();
 					Main.updateCost();
 				}
 			}
@@ -219,12 +229,12 @@ var CanvasEvents = (function (Constants, Main) {
 				var x = hline2.element.x2;
 				var y = hline2.element.y2;
 				var connected = false;
-				Main.objects[Main.currTab][hline1.element.id] = hline1;
-				Main.objects[Main.currTab][hline2.element.id] = hline2;
-				Main.objects[Main.currTab][vline.element.id] = vline;
+				Main.objects[hline1.element.id] = hline1;
+				Main.objects[hline2.element.id] = hline2;
+				Main.objects[vline.element.id] = vline;
 
-				for (var key in Main.objects[Main.currTab]) {
-					var currGate = Main.objects[Main.currTab][key];
+				for (var key in Main.objects) {
+					var currGate = Main.objects[key];
 					if (Main.isGate(currGate.type) && currGate.element.left - 10 <= x && x <= currGate.element.left + 10 &&
 						currGate.element.top <= y && y <= currGate.element.top + 50) {
 						if (currGate.type == Constants.TYPES.INPUT_GATE)
@@ -243,7 +253,6 @@ var CanvasEvents = (function (Constants, Main) {
 
 						Main.updateOutputs();
 						Main.canvas.renderAll();
-						Main.updateJsonOutput();
 						Main.updateCost();
 					}
 					if (Main.isGate(currGate.type) && currGate.element.left + 40 <= x && x <= currGate.element.left + 60 &&
@@ -254,17 +263,17 @@ var CanvasEvents = (function (Constants, Main) {
 							continue;
 						hline2.inputs.push(currGate.element.id);
 						if (hline2.outputs.length == 1) {
-							if (Math.abs(Main.objects[Main.currTab][hline2.outputs[0]].element.y1 - hline2.element.y2) < 1e-6) {
-								Main.objects[Main.currTab][hline2.outputs[0]].element.set({
+							if (Math.abs(Main.objects[hline2.outputs[0]].element.y1 - hline2.element.y2) < 1e-6) {
+								Main.objects[hline2.outputs[0]].element.set({
 									y1: currGate.element.top + 25
 								});
-								Main.objects[Main.currTab][hline2.outputs[0]].element.setCoords();
+								Main.objects[hline2.outputs[0]].element.setCoords();
 							}
-							if (Math.abs(Main.objects[Main.currTab][hline2.outputs[0]].element.y2 - hline2.element.y2) < 1e-6) {
-								Main.objects[Main.currTab][hline2.outputs[0]].element.set({
+							if (Math.abs(Main.objects[hline2.outputs[0]].element.y2 - hline2.element.y2) < 1e-6) {
+								Main.objects[hline2.outputs[0]].element.set({
 									y2: currGate.element.top + 25
 								});
-								Main.objects[Main.currTab][hline2.outputs[0]].element.setCoords();
+								Main.objects[hline2.outputs[0]].element.setCoords();
 							}
 						}
 						currGate.outputs.push(hline2.element.id);
@@ -278,30 +287,28 @@ var CanvasEvents = (function (Constants, Main) {
 
 						connected = true;
 						
-						updateOutputs();
+						Main.updateOutputs();
 						Main.canvas.renderAll();
-						Main.updateJsonOutput();
 						Main.updateCost();
 					}
 				}
 
-				Main.updateJsonOutput();
 				Main.updateCost();
 				if (!connected) {
 					for (var i = 0; i < hline1.inputs.length; i++)
-						if (Main.objects[Main.currTab][hline1.inputs[i]].outputs.length == 1 && Main.objects[Main.currTab][Main.objects[Main.currTab][hline1.inputs[i]].outputs[0]] == hline1)
-							Main.objects[Main.currTab][hline1.inputs[i]].outputs = [];
+						if (Main.objects[hline1.inputs[i]].outputs.length == 1 && Main.objects[Main.objects[hline1.inputs[i]].outputs[0]] == hline1)
+							Main.objects[hline1.inputs[i]].outputs = [];
 					if (hline1.outputs.length == 1) {
-						Main.objects[Main.currTab][hline1.outputs[0]].inputs = Main.objects[Main.currTab][hline1.outputs[0]].inputs.filter(function (el) {
-							return Main.objects[Main.currTab][el].element.id != hline1.element.id;
+						Main.objects[hline1.outputs[0]].inputs = Main.objects[hline1.outputs[0]].inputs.filter(function (el) {
+							return Main.objects[el].element.id != hline1.element.id;
 						});
 					}
 					Main.canvas.remove(hline1.element);
 					Main.canvas.remove(hline2.element);
 					Main.canvas.remove(vline.element);
-					delete Main.objects[Main.currTab][hline1.element.id];
-					delete Main.objects[Main.currTab][hline2.element.id];
-					delete Main.objects[Main.currTab][vline.element.id];
+					delete Main.objects[hline1.element.id];
+					delete Main.objects[hline2.element.id];
+					delete Main.objects[vline.element.id];
 				}
 
 				hline1 = null;
@@ -316,9 +323,9 @@ var CanvasEvents = (function (Constants, Main) {
 		},
 
 		onObjectMoving: function (options) {
-			if (Main.isGate(Main.objects[Main.currTab][options.target.id].type)) {
-				var startX = Main.objects[Main.currTab][options.target.id].left;
-				var startY = Main.objects[Main.currTab][options.target.id].top;
+			if (Main.isGate(Main.objects[options.target.id].type)) {
+				var startX = Main.objects[options.target.id].left;
+				var startY = Main.objects[options.target.id].top;
 				var finalX = Math.round(options.target.left / Constants.OPTS.gridSize) * Constants.OPTS.gridSize;
 				var finalY = Math.round(options.target.top / Constants.OPTS.gridSize) * Constants.OPTS.gridSize;
 
@@ -329,22 +336,21 @@ var CanvasEvents = (function (Constants, Main) {
 
 				options.target.setCoords();
 
-				Main.objects[Main.currTab][options.target.id].left = finalX;
-				Main.objects[Main.currTab][options.target.id].top = finalY;
+				Main.objects[options.target.id].left = finalX;
+				Main.objects[options.target.id].top = finalY;
 
-				propagateInputMovement(finalX - startX, finalY - startY, Main.objects[Main.currTab][options.target.id], 0, startX, startY);
-				propagateOutputMovement(finalX - startX, finalY - startY, Main.objects[Main.currTab][options.target.id], 0, startX + 50, startY);
+				propagateInputMovement(finalX - startX, finalY - startY, Main.objects[options.target.id], 0, startX, startY);
+				propagateOutputMovement(finalX - startX, finalY - startY, Main.objects[options.target.id], 0, startX + 50, startY);
 				
 				Main.canvas.renderAll();
-				Main.updateJsonOutput();
 				Main.updateCost();
 			} else {
-				var y1 = Main.objects[Main.currTab][options.target.id].y1;
-				var y2 = Main.objects[Main.currTab][options.target.id].y2;
+				var y1 = Main.objects[options.target.id].y1;
+				var y2 = Main.objects[options.target.id].y2;
 
-				var element = Main.objects[Main.currTab][options.target.id];
-				var inputElement = Main.objects[Main.currTab][Main.objects[Main.currTab][element.inputs[0]].element.id];
-				var outputElement = Main.objects[Main.currTab][Main.objects[Main.currTab][element.outputs[0]].element.id];
+				var element = Main.objects[options.target.id];
+				var inputElement = Main.objects[Main.objects[element.inputs[0]].element.id];
+				var outputElement = Main.objects[Main.objects[element.outputs[0]].element.id];
 
 				if (Math.abs(inputElement.element.x1 - options.target.x1) < 1e-6)
 					inputElement.element.set({x1: options.target.left});
@@ -416,12 +422,12 @@ var CanvasEvents = (function (Constants, Main) {
 			while (selectableIndicator.length > 0)
 				Main.canvas.remove(selectableIndicator.pop());
 
-			for (var key in Main.objects[Main.currTab]) {
-				var obj = Main.objects[Main.currTab][key].element;
+			for (var key in Main.objects) {
+				var obj = Main.objects[key].element;
 				var connectedInput = obj.left - 15 <= x && x <= obj.left && obj.top + 5 <= y && y <= obj.top + 45;
 				var connectedOutput = obj.left + 50 <= x && x <= obj.left + 65 && obj.top <= y && y <= obj.top + 50;
 
-				if (connectedOutput && Main.objects[Main.currTab][key].type != Constants.TYPES.OUTPUT_GATE && Main.isGate(Main.objects[Main.currTab][key].type)) {
+				if (connectedOutput && Main.objects[key].type != Constants.TYPES.OUTPUT_GATE && Main.isGate(Main.objects[key].type)) {
 					var centerX = obj.left;
 					var centerY = obj.top + 25;
 					var currObject = new fabric.Circle({
@@ -434,7 +440,7 @@ var CanvasEvents = (function (Constants, Main) {
 					});
 					selectableIndicator.push(currObject);
 					Main.canvas.add(currObject);
-				} else if (connectedInput && Main.objects[Main.currTab][key].type != Constants.TYPES.INPUT_GATE && Main.isGate(Main.objects[Main.currTab][key].type)) {
+				} else if (connectedInput && Main.objects[key].type != Constants.TYPES.INPUT_GATE && Main.isGate(Main.objects[key].type)) {
 					var centerX = obj.left;
 					var centerY = y;
 					var currObject = new fabric.Circle({
@@ -454,26 +460,26 @@ var CanvasEvents = (function (Constants, Main) {
 		onMouseDown: function (options) {
 			mouseDownTime = new Date().getTime();
 			if (!creatingLine) {
-				for (var key in Main.objects[Main.currTab]) {
-					var obj = Main.objects[Main.currTab][key].element;
+				for (var key in Main.objects) {
+					var obj = Main.objects[key].element;
 
 					var pointer = Main.canvas.getPointer(options.e);
 					var x = pointer.x;
 					var y = pointer.y;
 
 					
-					if (Main.isGate(Main.objects[Main.currTab][key].type)) {
+					if (Main.isGate(Main.objects[key].type)) {
 						var connectedInput = obj.left - 10 <= x && x <= obj.left && obj.top <= y && y <= obj.top + obj.height;
 						var connectedOutput = obj.left + 50 <= x && x <= obj.left + 60 && obj.top + 20 <= y && y <= obj.top + 30;
 
 						if (connectedInput || connectedOutput) {
-							if (connectedOutput && Main.objects[Main.currTab][key].type == Constants.TYPES.OUTPUT_GATE)
+							if (connectedOutput && Main.objects[key].type == Constants.TYPES.OUTPUT_GATE)
 								continue;
-							if (connectedInput && Main.objects[Main.currTab][key].type == Constants.TYPES.INPUT_GATE)
+							if (connectedInput && Main.objects[key].type == Constants.TYPES.INPUT_GATE)
 								continue;
-							if (connectedOutput && Main.objects[Main.currTab][key].type == Constants.TYPES.INPUT_GATE)
+							if (connectedOutput && Main.objects[key].type == Constants.TYPES.INPUT_GATE)
 								isDrawingFromInput = true;
-							if (connectedInput && Main.objects[Main.currTab][key].type == Constants.TYPES.OUTPUT_GATE)
+							if (connectedInput && Main.objects[key].type == Constants.TYPES.OUTPUT_GATE)
 								isDrawingFromOutput = true;
 							creatingLine = true;
 
@@ -535,7 +541,7 @@ var CanvasEvents = (function (Constants, Main) {
 							Main.canvas.add(vlineElement);
 
 							if (connectedOutput) {
-								hline1.inputs.push(Main.objects[Main.currTab][key].element.id);
+								hline1.inputs.push(Main.objects[key].element.id);
 								hline1.outputs = [vline.element.id];
 
 								vline.inputs.push(hline1.element.id);
@@ -543,13 +549,13 @@ var CanvasEvents = (function (Constants, Main) {
 
 								hline2.inputs.push(vline.element.id);
 
-								Main.objects[Main.currTab][key].outputs.push(hline1.element.id);
+								Main.objects[key].outputs.push(hline1.element.id);
 							} else {
-								hline1.outputs = [Main.objects[Main.currTab][key].element.id];
+								hline1.outputs = [Main.objects[key].element.id];
 								vline.outputs = [hline1.element.id];
 								hline2.outputs = [vline.element.id];
 
-								Main.objects[Main.currTab][key].inputs.push(hline1.element.id);
+								Main.objects[key].inputs.push(hline1.element.id);
 								hline1.inputs.push(vline.element.id);
 								vline.inputs.push(hline2.element.id);
 							}

@@ -1,7 +1,13 @@
 var Api = (function (Constants, Main) {
+	// initial gate id counter when building the circuit tree
 	var initialGateId = 100;
 
-	var buildCircuitTree = function (str, map, tab) {
+	// INPUTS:
+	//  - str 		string representation of circuit
+	//	- map 		map to be mutated to create the circuit tree
+	// OUTPUTS:
+	//  - objects   objects to be mutated to create the circuit elements 
+	var buildCircuitTree = function (str, map, objects) {
 		var currGateType, prevInputId;
 		var stack = [];
 		var gateIdCounter = initialGateId;
@@ -16,7 +22,7 @@ var Api = (function (Constants, Main) {
 					inputs: []
 				};
 
-				Main.objects[tab][Main.currObjectId] = {
+				objects[Main.currObjectId] = {
 					element: null,
 					type: null,
 					outputs: [],
@@ -41,7 +47,7 @@ var Api = (function (Constants, Main) {
 								inputs: [prevInput]
 							};
 
-							Main.objects[tab][Main.currObjectId] = {
+							objects[Main.currObjectId] = {
 								element: null,
 								type: Constants.TYPES.NOT_GATE,
 								outputs: [],
@@ -67,7 +73,7 @@ var Api = (function (Constants, Main) {
 									inputs: []
 								};
 
-								Main.objects[tab][Main.currObjectId] = {
+								objects[Main.currObjectId] = {
 									element: null,
 									type: Constants.TYPES.INPUT_GATE,
 									outputs: [],
@@ -90,9 +96,9 @@ var Api = (function (Constants, Main) {
 				}
 
 				if (currGateType == '*')
-					Main.objects[tab][map[currGateId].id].type = Constants.TYPES.AND_GATE;
+					objects[map[currGateId].id].type = Constants.TYPES.AND_GATE;
 				else
-					Main.objects[tab][map[currGateId].id].type = Constants.TYPES.OR_GATE;
+					objects[map[currGateId].id].type = Constants.TYPES.OR_GATE;
 				
 				stack.pop();
 				stack.push(currGateId);
@@ -103,6 +109,10 @@ var Api = (function (Constants, Main) {
 		return gateIdCounter - 1;
 	};
 
+	// INPUTS:
+	//  - map 		map representing circuit tree
+	//  - id 		current id of element corresponding to map
+	//  - depth 	current depth
 	var setMaxDepth = function (map, id, depth) {
 		if (!map[id].depth)
 			map[id].depth = 0;
@@ -111,26 +121,32 @@ var Api = (function (Constants, Main) {
 			setMaxDepth(map, map[id].inputs[i], depth + 1);
 	};
 
-	var createObjects = function (map, id, depths, depth, tab) {
+	// INPUTS:
+	//  - map 		map representing circuit tree
+	//  - id 		current id of element corresponding to map
+	//  - depths	array of elements at a certain depth
+	//  - depth 	current depth
+	//  - objects 	objects to be mutated to create the circuit elements
+	var createObjects = function (map, id, depths, depth, objects) {
 		var inputs = map[id].inputs;
 		var objectId = map[id].id;
 
 		for (var i = 0; i < inputs.length; i++)
-			createObjects(map, inputs[i], depths, depth + 1, tab);
+			createObjects(map, inputs[i], depths, depth + 1, objects);
 
-		if (Main.objects[tab][objectId].element || map[id].depth != depth)
+		if (objects[objectId].element || map[id].depth != depth)
 			return;
 		
 		var left = 500 - depth * 100;
 		var top = 0 + depths[depth] * 50;
 
-		Main.objects[tab][objectId].top = top;
-		Main.objects[tab][objectId].left = left;
+		objects[objectId].top = top;
+		objects[objectId].left = left;
 		depths[depth]++;
-		Main.objects[tab][objectId].element = new Object();
+		objects[objectId].element = new Object();
 
-		fabric.Image.fromURL(Constants.GATES[Main.objects[tab][objectId].type].url, function (oImage) {
-			Main.objects[tab][oImage.id].element = oImage;
+		fabric.Image.fromURL(Constants.GATES[objects[objectId].type].url, function (oImage) {
+			objects[oImage.id].element = oImage;
 		}, {
 			id: objectId,
 			top: top,
@@ -145,7 +161,11 @@ var Api = (function (Constants, Main) {
 		depths[depth]++;
 	};
 
-	var linkObjects = function (map, id, tab) {
+	// INPUTS
+	//  - map 		map representing the circuit tree
+	//  - id 		current id of element corresponding to map
+	//  - objects 	objects to be mutated to wire the circuit elements
+	var linkObjects = function (map, id, objects) {
 		if (map[id].vis)
 			return;
 		var objectId = map[id].id;
@@ -153,28 +173,32 @@ var Api = (function (Constants, Main) {
 
 		for (var i = 0; i < inputs.length; i++) {
 			var nextObjectId = map[inputs[i]].id;
-			Main.wireObjects(objectId, nextObjectId, tab);
-			linkObjects(map, inputs[i], tab);
+			Main.wireObjects(objectId, nextObjectId, objects);
+			linkObjects(map, inputs[i], objects);
 		}
 		map[id].vis = true;
 	};
 
 	var ret = {};
 
-	ret.parseString = function (str, tab) {	
+	// INPUTS
+	//  - str 		string representation of circuit
+	//  - callback	function to be called. The newly generated objects is passed as an argument.
+	ret.parseString = function (str, callback) {	
 		var map = {}	
+		var generatedObjects = {}
 		var depths = [];
 		
 		for (var i = 0; i < 100; i++)
 			depths.push(0);
 		
-		var outputGate = buildCircuitTree(str, map, tab);
+		var outputGate = buildCircuitTree(str, map, generatedObjects);
 		setMaxDepth(map, outputGate, 0);
-		createObjects(map, outputGate, depths, 0, tab);
-		linkObjects(map, outputGate, tab);
+		createObjects(map, outputGate, depths, 0, generatedObjects);
+		linkObjects(map, outputGate, generatedObjects);
 
 		fabric.Image.fromURL(Constants.GATES[Constants.TYPES.OUTPUT_GATE].url, function (oImage) {
-			Main.objects[tab][oImage.id] = {
+			generatedObjects[oImage.id] = {
 				element: oImage,
 				type: Constants.TYPES.OUTPUT_GATE,
 				outputs: [],
@@ -183,10 +207,8 @@ var Api = (function (Constants, Main) {
 				left: 600,
 				state: Constants.STATES.OFF
 			};
-			Main.wireObjects(oImage.id, map[outputGate].id, tab);
-			addAllCanvasObjects(tab);
-			Main.generateTruthTable();
-			Main.updateCost();
+			Main.wireObjects(oImage.id, map[outputGate].id, generatedObjects);
+			callback(generatedObjects);
 		}, {
 			id: Main.currObjectId++,
 			top: 50,
@@ -199,16 +221,16 @@ var Api = (function (Constants, Main) {
 		});
 	};
 
-	ret.getMinimize = function (tab) {
-		var truthTable = Main.generateTruthTable();
+	ret.getMinimize = function (objects, callback) {
+		var truthTable = Main.generateTruthTable(objects);
 	   	$.ajax({
 	   		url: "/kmap",
 	   		datatype: "json",
 	   		data: JSON.stringify(truthTable),
 	      	type: "POST",
-	      	success: function(response){
+	      	success: function(response) {
 	        	console.log(response);
-	        	ret.parseString(response, tab);
+	        	ret.parseString(response, callback);
 	      	},
 	      	error:function(error){
 	        	console.log(error);
@@ -216,7 +238,7 @@ var Api = (function (Constants, Main) {
 		});
 	};
 
-	ret.importPhoto = function (formData, tab) {
+	ret.importPhoto = function (formData, callback) {
 		$.ajax({
 			type: 'POST',
 			url: '/scan',
@@ -225,9 +247,13 @@ var Api = (function (Constants, Main) {
 			cache: false,
 			processData: false,
 			async: false,
-			success: function(data) {
-				ret.parseString(data, tab);
+			success: function (response) {
+				console.log(response);
+				ret.parseString(response, callback);
 			},
+			error: function (error) {
+				console.log(error);
+			}
 		});
 	};
 

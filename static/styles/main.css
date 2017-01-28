@@ -59,12 +59,12 @@ button {
 .canvas-container {
   background: #282a2e;
   border-style: none;
-  margin: 15px;
+  margin: 10px;
   vertical-align: top;
   display: inline-block; }
 
 #truth-table {
-  margin-top: 15px;
+  margin-top: 10px;
   padding: 10px;
   box-sizing: border-box;
   text-align: center;
@@ -190,15 +190,6 @@ div.active {
   font-size: 1em;
   overflow-y: auto;
   outline: 0; }
-
-#export-modal {
-  display: none; }
-
-#import-modal {
-  display: none; }
-
-#camera-modal {
-  display: none; }
 
 .modal-textarea:focus {
   border-bottom: #4271ae; }

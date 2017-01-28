@@ -32,7 +32,7 @@ var Main = (function (Constants) {
 	ret.currObjectId = Constants.OPTS.initialObjectId;
 	ret.currTab = 0;
 	ret.canvas = null;
-	ret.objects = [{}];
+	ret.objects = {};
 
 	ret.initApp = function () {
 		// initialize the canvas
@@ -74,21 +74,21 @@ var Main = (function (Constants) {
 		}
 	};
 
-	ret.getGate = function (type) {
-		return Constants.TYPE_NAMES[type];
-	};
-
-	ret.updateJsonOutput = function () {
-		for (var i = 0; i < ret.objects.length; i++) {
-			for (var key in ret.objects[i]) {
-				var element = ret.objects[i][key].element;
-				ret.objects[i][key].x1 = element.x1;
-				ret.objects[i][key].x2 = element.x2;
-				ret.objects[i][key].y1 = element.y1;
-				ret.objects[i][key].y2 = element.y2;
+	ret.getJsonOutput = function (objectsList) {
+		for (var i = 0; i < objectsList.length; i++) {
+			for (var key in objectsList[i]) {
+				var element = objectsList[i][key].element;
+				objectsList[i][key].x1 = element.x1;
+				objectsList[i][key].x2 = element.x2;
+				objectsList[i][key].y1 = element.y1;
+				objectsList[i][key].y2 = element.y2;
 			}
 		}
-		$("#export-modal-textarea").val(JSON.stringify(ret.objects));
+		return JSON.stringify(objectsList);
+	};
+
+	ret.getGate = function (type) {
+		return Constants.TYPE_NAMES[type];
 	};
 
 	ret.isGate = function (type) {
@@ -101,22 +101,22 @@ var Main = (function (Constants) {
 
 	ret.updateCost = function () {
 		var cost = 0;
-		for (var key in ret.objects[ret.currTab]) {
-			var element = ret.objects[ret.currTab][key];
+		for (var key in ret.objects) {
+			var element = ret.objects[key];
 			if (element.type == Constants.TYPES.NOT_GATE) {
-				if (element.inputs.length == 0 || ret.objects[ret.currTab][element.inputs[0]].type != Constants.TYPES.OUTPUT_GATE)
+				if (element.inputs.length == 0 || ret.objects[element.inputs[0]].type != Constants.TYPES.OUTPUT_GATE)
 					cost += 1;
 			} else if (element.type != Constants.TYPES.INPUT_GATE && element.type != Constants.TYPES.OUTPUT_GATE && ret.isGate(element.type)) {
-				cost += 1 + ret.objects[ret.currTab][key].inputs.length;
+				cost += 1 + ret.objects[key].inputs.length;
 			}
 		}
 		$('#circuit-cost').text("Cost: " + cost + ".");
 	};
 
 
-	ret.wireObjects = function (objId1, objId2, tab) {
-		var obj1 = ret.objects[tab][objId1];
-		var obj2 = ret.objects[tab][objId2];
+	ret.wireObjects = function (objId1, objId2, objects) {
+		var obj1 = objects[objId1];
+		var obj2 = objects[objId2];
 
 		var x1 = obj1.left;
 		var x2 = obj2.left + Constants.OPTS.gridSize;
@@ -181,15 +181,15 @@ var Main = (function (Constants) {
 		hline2.outputs.push(vline.element.id);
 		hline2.inputs.push(objId2);
 
-		ret.objects[tab][objId1].inputs.push(hline1.element.id);
-		ret.objects[tab][objId2].outputs.push(hline2.element.id);
+		objects[objId1].inputs.push(hline1.element.id);
+		objects[objId2].outputs.push(hline2.element.id);
 
-		ret.objects[tab][hline1.element.id] = hline1;
-		ret.objects[tab][hline2.element.id] = hline2;
-		ret.objects[tab][vline.element.id] = vline;
+		objects[hline1.element.id] = hline1;
+		objects[hline2.element.id] = hline2;
+		objects[vline.element.id] = vline;
 	};
 
-	ret.getOutput = function (currGate, inputMap) {
+	ret.getOutput = function (currGate, inputMap, objects) {
 		if (!currGate)
 			return 0;
 		if (currGate.type == Constants.TYPES.INPUT_GATE) {
@@ -200,39 +200,39 @@ var Main = (function (Constants) {
 		if (currGate.inputs.length == 0)
 			return 0;
 		if (currGate.type == Constants.TYPES.HORIZONTAL_LINE || currGate.type == Constants.TYPES.VERTICAL_LINE) {
-			var output = ret.getOutput(ret.objects[ret.currTab][currGate.inputs[0]], inputMap);
+			var output = ret.getOutput(objects[currGate.inputs[0]], inputMap, objects);
 			if (!inputMap)
 				currGate.element.setStroke(output ? "#22A80C" : "#81a2be");
 		} else if (currGate.type == Constants.TYPES.AND_GATE || currGate.type == Constants.TYPES.NAND_GATE) {
 			var output = 1;
 			for (var i = 0; i < currGate.inputs.length; i++)
-				output &= ret.getOutput(ret.objects[ret.currTab][currGate.inputs[i]], inputMap);
+				output &= ret.getOutput(objects[currGate.inputs[i]], inputMap, objects);
 			if (currGate.type == Constants.TYPES.NAND_GATE) output = !output;
 		} else if (currGate.type == Constants.TYPES.OR_GATE || currGate.type == Constants.TYPES.NOR_GATE) {
 			var output = 0;
 			for (var i = 0; i < currGate.inputs.length; i++)
-				output |= ret.getOutput(ret.objects[ret.currTab][currGate.inputs[i]], inputMap);
+				output |= ret.getOutput(objects[currGate.inputs[i]], inputMap, objects);
 			if (currGate.type == Constants.TYPES.NOR_GATE) output = !output;
 		} else if (currGate.type == Constants.TYPES.XOR_GATE || currGate.type == Constants.TYPES.NXOR_GATE) {
 			var output = 0;
 			for (var i = 0; i < currGate.inputs.length; i++)
-				output ^= ret.getOutput(ret.objects[ret.currTab][currGate.inputs[i]], inputMap);
+				output ^= ret.getOutput(objects[currGate.inputs[i]], inputMap, objects);
 			if (currGate.type == Constants.TYPES.NXOR_GATE) output = !output;
 		} else if (currGate.type == Constants.TYPES.NOT_GATE) {
 			var output = 0;
 			if (currGate.inputs.length > 0)
-				output = !ret.getOutput(ret.objects[ret.currTab][currGate.inputs[0]], inputMap);
+				output = !ret.getOutput(objects[currGate.inputs[0]], inputMap, objects);
 		}
 		return output;
 	};
 
 	ret.updateOutputs = function () {
-		for (var key in ret.objects[ret.currTab]) {
-			var currGate = ret.objects[ret.currTab][key];
+		for (var key in ret.objects) {
+			var currGate = ret.objects[key];
 			if (currGate.type == Constants.TYPES.OUTPUT_GATE) {
 				var currState = Constants.STATES.OUTPUT_OFF;
 				if (currGate.inputs.length > 0)
-					currState = ret.getOutput(ret.objects[ret.currTab][currGate.inputs[0]], null) == 1 ? Constants.STATES.OUTPUT_ON : Constants.STATES.OUTPUT_OFF;
+					currState = ret.getOutput(ret.objects[currGate.inputs[0]], null, ret.objects) == 1 ? Constants.STATES.OUTPUT_ON : Constants.STATES.OUTPUT_OFF;
 				currGate.element.setSrc(currState, function () {
 					ret.canvas.renderAll();
 				});
@@ -240,15 +240,17 @@ var Main = (function (Constants) {
 		}
 	};
 
-	ret.generateTruthTable = function () {
+	ret.generateTruthTable = function (objects) {
+		if (objects === undefined)
+			objects = ret.objects;
 		var inputIds = [];
 		var outputNodes = [];
 
-		for (var key in ret.objects[ret.currTab]) {
-			if (ret.objects[ret.currTab][key].type == Constants.TYPES.INPUT_GATE)
-				inputIds.push(ret.objects[ret.currTab][key].element.id);
-			else if (ret.objects[ret.currTab][key].type == Constants.TYPES.OUTPUT_GATE) {
-				outputNodes.push(ret.objects[ret.currTab][key].element.id);
+		for (var key in objects) {
+			if (objects[key].type == Constants.TYPES.INPUT_GATE)
+				inputIds.push(objects[key].element.id);
+			else if (objects[key].type == Constants.TYPES.OUTPUT_GATE) {
+				outputNodes.push(objects[key].element.id);
 			}
 		}
 		inputIds.sort();
@@ -266,13 +268,15 @@ var Main = (function (Constants) {
 			}
 
 			for (var j = 0; j < outputNodes.length; j++) {
-				if (ret.objects[ret.currTab][outputNodes[j]].inputs.length == 0)
+				if (objects[outputNodes[j]].inputs.length == 0)
 					truthTable[i][inputIds.length + j] = 0;
 				else 
-					truthTable[i][inputIds.length + j] = ret.getOutput(ret.objects[ret.currTab][ret.objects[ret.currTab][outputNodes[j]].inputs[0]], inputMap);
+					truthTable[i][inputIds.length + j] = ret.getOutput(objects[objects[outputNodes[j]].inputs[0]], inputMap, objects);
 			}
 		}
-		
+		console.log(truthTable);
+		console.log(inputIds);
+		console.log(outputNodes);
 		injectLatex(truthTable, inputIds.length);
 		return truthTable;	
 	};

@@ -1,174 +1,272 @@
 var Ui = (function (Constants, Main, Api) {
+	var Events = new Vue({});
+
 	var globalTabCounter = 2;
-	var ret = {};
+	var globalTabIdCounter = 1;
 
-	ret.addTab = function () {
-		var len = $("div[id^='tab-']").length;
-		$("#tabs .tab.active").removeClass("active");
-
-		$("#tabs").append("<div id='tab-" + len + "' class='active tab'><span>Tab " + globalTabCounter + "</span><button id='delete-tab-" + len + "'><i class=\"el el-remove\"></i></button></div>");
-		
-		removeAllCanvasObjects(Main.currTab);
-		Main.objects.push({});
-		globalTabCounter++;
-	};
-
-
-	ret.deleteTabOnClick = function (e) {
-		var id = parseInt($(this).attr('id').split("-")[2]);
-		removeAllObjects(id);
-		Main.objects.splice(id, 1);
-
-		$(this).parent().remove();
-		for (var i = id; i < Main.objects.length; i++)
-			$('#tabs .tab').eq(i).attr('id', 'tab-'+i).find('button').attr('id', 'delete-tab-'+i);
-
-		if (Main.objects.length == 0) {
-			Main.objects.push({});
-			$("#tabs").append("<div id='tab-0' class='active tab'><span>Tab "+globalTabCounter+"</span><button id='delete-tab-0'><i class=\"el el-remove\"></i></button></div>");		
-			globalTabCounter++;
-		}
-
-		if (id == Main.objects.length)
-			id--;
-		
-		$("div[id='tab-" + id + "']").addClass("active");
-
-		Main.currTab = id;
-		addAllCanvasObjects(Main.currTab);
-	};
-
-	ret.tabOnClick = function (e) {
-		if ($(e.target).is('button')) return;
-		if ($(e.target).is('i')) return;
-		var id = parseInt($(this).attr('id').split("-")[1]);
-		$("#tabs .tab.active").removeClass("active");
-		$("div[id='tab-" + id + "']").addClass("active");
-		removeAllCanvasObjects(Main.currTab);
-		addAllCanvasObjects(id);
-		Main.currTab = id;
-		Main.generateTruthTable();
-		Main.updateCost();
-	};
-
-	ret.simplifyButtonOnClick = function () {
-		ret.addTab();
-		Api.getMinimize(Main.objects.length - 1);
-		Main.currTab = Main.objects.length - 1;
-	};
-
-	ret.exportButtonOnClick = function () {
-		$("#export-modal").css("display", "block");
-	};
-
-	ret.exportExitOnClick = function () {
-		$("#export-modal").css("display", "none");
-	};
-
-	ret.cameraButtonOnClick = function () {
-		$("#camera-modal").css("display", "block");
-	};
-
-	ret.cameraExitOnClick = function () {
-		$("#camera-modal").css("display", "none");
-	};
-
-	ret.cameraImportOnClick = function(e) {
-		e.preventDefault();
-		var formData = new FormData();
-		formData.append('file', $('#camera-modal-textarea')[0].files[0]);
-		
-		ret.addTab();
-		Api.importPhoto(formData, Main.objects.length - 1);
-		Main.currTab = Main.objects.length - 1;
-
-		$("#camera-modal").css("display", "none");
-		var control = $('#camera-modal-textarea');
-		control.replaceWith(control = control.clone(true));
-	};
-
-	ret.importButtonOnClick = function () {
-		$("#import-modal").css("display", "block");
-	};
-
-	ret.importExitOnClick = function () {
-		$("#import-modal").css("display", "none");
-	};
-
-	ret.importImportOnClick = function () {
-		removeAllCanvasObjects(Main.currTab);
-		delete Main.objects;
-		Main.currTab = 0;
-		Main.objects = JSON.parse($("#import-modal-textarea").val());
-		for (var i = 0; i < Main.objects.length; i++) {
-			for (var key in Main.objects[i]) {
-				var tab = i;
-				var element = Main.objects[tab][key].element;
-				if (element.type == "image") {
-					var src = Main.objects[tab][key].type == Constants.TYPES.INPUT_GATE ? Constants.STATES.INPUT_OFF : element.src;
-					fabric.Image.fromURL(src, function (oImage) {
-						Main.objects[oImage.tab][oImage.id].element = oImage;
-						Main.objects[oImage.tab][oImage.id].state = Constants.STATES.INPUT_OFF;
-						if (oImage.tab == Main.currTab) {
-							Main.canvas.add(oImage);
-						}
-					}, {
-						id: key,
-						tab: tab,
-						top: element.top,
-						left: element.left,
-						height: element.height,
-						width: element.width,
-						hasBorders: false,
-						hasControls: false,
-						hasRotatingPoint: false
-					});
-				} else if (Main.objects[tab][key].type == Constants.TYPES.HORIZONTAL_LINE) {
-					Main.objects[tab][key].element = new fabric.Line([Main.objects[tab][key].x1, Main.objects[tab][key].y1, Main.objects[tab][key].x2, Main.objects[tab][key].y2], {
-						stroke: '#81a2be',
-						selectable: false,
-						id: key,
-						strokeWidth: 3
-					});
-					if (tab == Main.currTab)
-						Main.canvas.add(Main.objects[tab][key].element);
-				} else if (Main.objects[tab][key].type == Constants.TYPES.VERTICAL_LINE) {
-					Main.objects[tab][key].element = new fabric.Line([Main.objects[tab][key].x1, Main.objects[tab][key].y1, Main.objects[tab][key].x2, Main.objects[tab][key].y2], {
-						stroke: '#81a2be',
-						selectable: true,
-						hasControls: false,
-						y1: Main.objects[tab][key].y1,
-						y2: Main.objects[tab][key].y2,
-						id: key,
-						strokeWidth: 3
-					});
-					if (tab == Main.currTab)
-						Main.canvas.add(Main.objects[tab][key].element);
+	Vue.component('truth-button', {
+		template: "#truth-button-template",
+		props: ["name"],
+		computed: {
+			icon: function () {
+				switch(this.name) {
+					case "export":
+						return "el el-download-alt";
+					case "import":
+						return "el el-eject";
+					case "simplify":
+						return "el el-cogs";
+					case "camera":
+						return "el el-camera";
 				}
-				Main.currObjectId = Math.max(Main.currObjectId, key + 1);
+			}
+		},
+		methods: {
+			onClick: function () {
+				Events.$emit(this.name + ":clicked");
 			}
 		}
-		$("div[id^='tab-']").remove();
+	});
 
-		globalTabCounter = 1;
-		
-		for (var i = 0; i < Main.objects.length; i++) {
-			if (i == 0)
-				$("#tabs").append("<div id='tab-" + i + "' class='active tab'><span>Imported "+globalTabCounter+"</span><button id='delete-tab-" + i + "'><i class=\"el el-remove\"></i></button></div>");		
-			else
-				$("#tabs").append("<div id='tab-" + i + "' class='tab'><span>Imported "+globalTabCounter+"</span><button id='delete-tab-" + i + "'><i class=\"el el-remove\"></i></button></div>");		
-			globalTabCounter++;
+	Vue.component('modal', {
+		template: "#modal-template",
+		props: ["name", "title", "objectsList"],
+		data: function () {
+			return {
+				isVisible: false,
+				textAreaContent: null
+			}
+		},
+		computed: {
+			hasFileInput: function () {
+				return this.name == "camera";
+			},
+			hasTextArea: function () {
+				return this.name == "export" || this.name == "import";
+			}
+		},
+		methods: {
+			exitAction: function () {
+				this.isVisible = false;
+			},
+			importAction: function () {
+				this.isVisible = false;
+				if (this.name == "import")
+					Events.$emit('tabs:import-tabs', this.textAreaContent);
+				else if (this.name == "camera") {
+					Events.$emit('tabs:import-photo', this.textAreaContent);
+				}
+			},
+			onFileChange: function (e) {
+				console.log(e.target.files);
+				var formData = new FormData();
+				formData.append('file', e.target.files[0]);
+				this.textAreaContent = formData;
+			}
+		},
+		mounted: function () {
+			var ref = this;
+			Events.$on(this.name+":clicked", function () {
+				if (ref.name == "export")
+					ref.textAreaContent = Main.getJsonOutput(ref.objectsList);
+				ref.isVisible = true;
+			});
 		}
+	});
 
-		globalTabCounter = 1;
-		
-		$("#import-modal").css("display", "none");
-		setTimeout(function () {
-			Main.generateTruthTable();
-			Main.updateOutputs();
-			Main.updateCost();
-		}, 500);
-	};
+	Vue.component('tab', {
+		template: "#tab-template",
+		props: ['tabId', 'currActive', 'name'],
+		data: function () {
+			return {};
+		},
+		computed: {
+			isActive: function () {
+				return this.currActive == this.tabId;
+			}
+		},
+		methods: {
+			setActive: function (event) {
+				Events.$emit('tabs:set-active', event, this.tabId);
+			},
+			deleteTab: function () {
+				Events.$emit('tabs:delete-tab', event, this.tabId);
+			}
+		}
+	});
 
-	return ret;
+	Vue.component('add-tab', {
+		template: "#add-tab-template",
+		methods: {
+			addTab: function (event) {
+				Events.$emit('tabs:add-tab');
+			}
+		}
+	});
+
+	Vue.component('tabs-bar', {
+		template: "#tabs-bar-template",
+		props: ['tabs', 'activeTab'],
+		data: function () {
+			return {};
+		}
+	});
+
+	$(document).ready(function () {
+		var app = new Vue({
+			el: '#main',
+			data: {
+				tabs: [{
+					name: "Tab 1",
+					id: 0
+				}],
+				activeTab: 0,
+				objectsList: [{}]
+			},
+			methods: {
+				addTab: function () {
+					this.tabs.push({
+						name: "Tab " + globalTabCounter++,
+						id: globalTabIdCounter++
+					});
+					this.objectsList.push({});
+
+					this.activeTab = globalTabIdCounter - 1;
+					removeAllCanvasObjects();
+					Main.objects = this.objectsList[this.tabs.length - 1];
+				}
+			},
+			mounted: function () {
+				Main.objects = this.objectsList[0];
+				var ref = this;
+				Events.$on('tabs:add-tab', this.addTab);
+				Events.$on('tabs:set-active', function (event, tabId) {
+					ref.activeTab = tabId;
+					var index = ref.tabs.findIndex(tab => tab.id == tabId);
+					removeAllCanvasObjects();
+					Main.objects = ref.objectsList[index];
+					addAllCanvasObjects();
+					Main.generateTruthTable();
+					Main.updateCost();
+				});
+				Events.$on('tabs:delete-tab', function (event, tabId) {
+					event.stopPropagation();
+					var index = ref.tabs.findIndex(tab => tab.id == tabId);
+					var deletedId = ref.tabs[index].id;
+					ref.tabs.splice(index, 1);
+					ref.objectsList.splice(index, 1);
+					if (ref.tabs.length == 0) {
+						ref.tabs.push({
+							name: "Tab " + globalTabCounter++,
+							id: globalTabIdCounter++
+						});
+						ref.objectsList.push({});
+					}
+					if (index == ref.tabs.length)
+						index--;
+					if (ref.activeTab == deletedId) {
+						ref.activeTab = ref.tabs[index].id;
+						removeAllCanvasObjects();
+						Main.objects = ref.objectsList[index];
+					}
+					});
+				Events.$on('tabs:import-tabs', function (objectsListJson) {
+					removeAllCanvasObjects();
+					ref.tabs = [];
+					ref.objectsList = JSON.parse(objectsListJson);
+					ref.activeTab = 0;
+					globalTabCounter = 1;
+					globalTabIdCounter = 0;
+
+					for (var i = 0; i < ref.objectsList.length; i++) {
+						for (var key in ref.objectsList[i]) {
+							var tab = i;
+							var element = ref.objectsList[tab][key].element;
+							if (element.type == "image") {
+								var src = ref.objectsList[tab][key].type == Constants.TYPES.INPUT_GATE ? Constants.STATES.INPUT_OFF : element.src;
+								fabric.Image.fromURL(src, function (oImage) {
+									ref.objectsList[oImage.tab][oImage.id].element = oImage;
+									ref.objectsList[oImage.tab][oImage.id].state = Constants.STATES.INPUT_OFF;
+									if (oImage.tab == Main.currTab) {
+										Main.canvas.add(oImage);
+									}
+								}, {
+									id: key,
+									tab: tab,
+									top: element.top,
+									left: element.left,
+									height: element.height,
+									width: element.width,
+									hasBorders: false,
+									hasControls: false,
+									hasRotatingPoint: false
+								});
+							} else if (ref.objectsList[tab][key].type == Constants.TYPES.HORIZONTAL_LINE) {
+								ref.objectsList[tab][key].element = new fabric.Line([ref.objectsList[tab][key].x1, ref.objectsList[tab][key].y1, ref.objectsList[tab][key].x2, ref.objectsList[tab][key].y2], {
+									stroke: '#81a2be',
+									selectable: false,
+									id: key,
+									strokeWidth: 3
+								});
+								if (tab == Main.currTab)
+									Main.canvas.add(ref.objectsList[tab][key].element);
+							} else if (ref.objectsList[tab][key].type == Constants.TYPES.VERTICAL_LINE) {
+								ref.objectsList[tab][key].element = new fabric.Line([ref.objectsList[tab][key].x1, ref.objectsList[tab][key].y1, ref.objectsList[tab][key].x2, ref.objectsList[tab][key].y2], {
+									stroke: '#81a2be',
+									selectable: true,
+									hasControls: false,
+									y1: ref.objectsList[tab][key].y1,
+									y2: ref.objectsList[tab][key].y2,
+									id: key,
+									strokeWidth: 3
+								});
+								if (tab == Main.currTab)
+									Main.canvas.add(ref.objectsList[tab][key].element);
+							}
+							Main.currObjectId = Math.max(Main.currObjectId, key + 1);
+						}
+					}
+
+					for (var i = 0; i < ref.objectsList.length; i++) {
+						ref.tabs.push({
+							name: "Imported " + globalTabCounter++,
+							id: globalTabIdCounter++
+						});
+					}
+
+					console.log(ref.tabs);
+					console.log(ref.objectsList);
+
+					globalTabCounter = 1;
+					Main.objects = ref.objectsList[0];
+
+					setTimeout(function () {
+						Main.generateTruthTable();
+						Main.updateOutputs();
+						Main.updateCost();
+					});
+				});
+
+				Events.$on('simplify:clicked', function () {
+					var index = ref.tabs.findIndex(tab => tab.id == ref.activeTab);
+					ref.addTab()
+					Api.getMinimize(ref.objectsList[index], function (objects) {
+						ref.objectsList[ref.objectsList.length - 1] = objects;
+						Main.objects = objects;
+						addAllCanvasObjects();
+					});
+				});
+				Events.$on('tabs:import-photo', function (file) {
+					ref.addTab();
+					Api.importPhoto(file, function (objects) {
+						ref.objectsList[ref.objectsList.length - 1] = objects;
+						Main.objects = objects;
+						addAllCanvasObjects();
+					});
+				});
+			}
+		});
+	});
+
+	return {};
 }(Constants, Main, Api));
