@@ -142,13 +142,30 @@ var Main = (function (Constants) {
 		return id >= Constants.OPTS.initialObjectId
 	};
 
+	ret.getPreviousGate = function (id) {
+		if (ret.objects[id].inputs.length == 0)
+			return null;
+		var currId = ret.objects[id].inputs[0];
+		if (!ret.objects[currId])
+			return null;
+		while (!ret.isGate(ret.objects[currId].type)) {
+			if (ret.objects[currId].inputs.length == 0)
+				return null;
+			currId = ret.objects[currId].inputs[0];
+			if (!ret.objects[currId])
+				return null;
+		}
+		return currId;
+	}
+
 	ret.getCost = function (objects) {
 		var cost = 0;
 		for (var key in objects) {
 			var element = objects[key];
 			if (element.type == Constants.TYPES.NOT_GATE) {
-				// need to fix	
-				if (element.inputs.length == 0)
+				// if not connected to input gate, cost is one
+				var previousGateId = ret.getPreviousGate(key);
+				if (element.inputs.length == 0 || previousGateId == null || ret.objects[previousGateId].type != Constants.TYPES.INPUT_GATE)
 					cost += 1;
 			} else if (element.type != Constants.TYPES.INPUT_GATE && element.type != Constants.TYPES.OUTPUT_GATE && ret.isGate(element.type)) {
 				cost += 1 + objects[key].inputs.length;
