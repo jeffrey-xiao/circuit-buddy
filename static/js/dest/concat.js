@@ -294,9 +294,9 @@ var Main = (function (Constants) {
 
 		for (var key in objects) {
 			if (objects[key].type == Constants.TYPES.INPUT_GATE)
-				inputIds.push(objects[key].element.id);
+				inputIds.push(key);
 			else if (objects[key].type == Constants.TYPES.OUTPUT_GATE) {
-				outputIds.push(objects[key].element.id);
+				outputIds.push(key);
 			}
 		}
 
@@ -330,8 +330,6 @@ var Main = (function (Constants) {
 	};
 
 	ret.getLatex = function (objects) {
-		console.log(objects);
-		console.log(ret);
 		var tableObject = ret.getTruthTable(objects);
 		var table = tableObject.table;
 		var inputLength = tableObject.inputLength;
