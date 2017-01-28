@@ -17,6 +17,16 @@ var Ui = (function (Constants, Main, Api) {
 		return JSON.stringify(objectsList);
 	};
 
+	Vue.component('truth-table-content', {
+		template: "<div id='truth-table-content' v-html='html()'></div>",
+		props: ["objectsList", "activeTab"],
+		methods: {
+			html: function () {
+				return Main.getLatex(this.objectsList[this.activeTab]);
+			}
+		}
+	});
+
 	Vue.component('truth-button', {
 		template: "#truth-button-template",
 		props: ["name"],
@@ -159,7 +169,6 @@ var Ui = (function (Constants, Main, Api) {
 					removeAllCanvasObjects();
 					Main.objects = ref.objectsList[index];
 					addAllCanvasObjects();
-					Main.generateTruthTable();
 					Main.updateCost();
 				});
 				Events.$on('tabs:delete-tab', function (event, tabId) {
@@ -182,7 +191,7 @@ var Ui = (function (Constants, Main, Api) {
 						removeAllCanvasObjects();
 						Main.objects = ref.objectsList[index];
 					}
-					});
+				});
 				Events.$on('tabs:import-tabs', function (objectsListJson) {
 					removeAllCanvasObjects();
 					ref.tabs = [];
@@ -247,14 +256,10 @@ var Ui = (function (Constants, Main, Api) {
 						});
 					}
 
-					console.log(ref.tabs);
-					console.log(ref.objectsList);
-
 					globalTabCounter = 1;
 					Main.objects = ref.objectsList[0];
 
 					setTimeout(function () {
-						Main.generateTruthTable();
 						Main.updateOutputs();
 						Main.updateCost();
 					});

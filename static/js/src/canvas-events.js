@@ -139,7 +139,7 @@ var CanvasEvents = (function (Constants, Main) {
 		}
 
 		Main.canvas.remove(element.element);
-		delete Main.objects[element.element.id];
+		Vue.delete(Main.objects, element.element.id);
 	};
 
 	return {
@@ -184,7 +184,7 @@ var CanvasEvents = (function (Constants, Main) {
 					var currGate = Constants.GATES[options.target.id];
 					fabric.Image.fromURL(currGate.url, function (oImage) {
 						Main.canvas.add(oImage);
-						Main.objects[oImage.id] = {
+						Vue.set(Main.objects, oImage.id, {
 							element: oImage,
 							type: currGate.type,
 							outputs: [],
@@ -194,8 +194,8 @@ var CanvasEvents = (function (Constants, Main) {
 							width: Constants.OPTS.gridSize,
 							height: Constants.OPTS.gridSize,
 							state: Constants.STATES.INPUT_OFF
-						};
-						Main.generateTruthTable();
+						});
+						
 						Main.updateCost();
 					}, {
 						id: Main.currObjectId++,
@@ -219,6 +219,7 @@ var CanvasEvents = (function (Constants, Main) {
 					currGate.element.setSrc(currGate.state, function () {
 						Main.canvas.renderAll();
 					});
+
 					Main.updateOutputs();
 					Main.updateCost();
 				}
@@ -229,9 +230,9 @@ var CanvasEvents = (function (Constants, Main) {
 				var x = hline2.element.x2;
 				var y = hline2.element.y2;
 				var connected = false;
-				Main.objects[hline1.element.id] = hline1;
-				Main.objects[hline2.element.id] = hline2;
-				Main.objects[vline.element.id] = vline;
+				Vue.set(Main.objects, hline1.element.id, hline1);
+				Vue.set(Main.objects, hline2.element.id, hline2);
+				Vue.set(Main.objects, vline.element.id, vline);
 
 				for (var key in Main.objects) {
 					var currGate = Main.objects[key];
@@ -306,15 +307,15 @@ var CanvasEvents = (function (Constants, Main) {
 					Main.canvas.remove(hline1.element);
 					Main.canvas.remove(hline2.element);
 					Main.canvas.remove(vline.element);
-					delete Main.objects[hline1.element.id];
-					delete Main.objects[hline2.element.id];
-					delete Main.objects[vline.element.id];
+					Vue.delete(Main.objects, hline1.element.id);
+					Vue.delete(Main.objects, hline2.element.id);
+					Vue.delete(Main.objects, vline.element.id);
 				}
 
 				hline1 = null;
 				hline2 = null;
 				vline = null;
-				Main.generateTruthTable();
+				
 			}
 			
 			creatingLine = false;
@@ -370,7 +371,6 @@ var CanvasEvents = (function (Constants, Main) {
 				});
 
 				options.target.setCoords();
-
 
 				inputElement.element.setCoords();
 				outputElement.element.setCoords();
@@ -559,7 +559,7 @@ var CanvasEvents = (function (Constants, Main) {
 								hline1.inputs.push(vline.element.id);
 								vline.inputs.push(hline2.element.id);
 							}
-							Main.generateTruthTable();
+							
 						}
 					}
 				}

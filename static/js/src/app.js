@@ -6,13 +6,11 @@ function removeAllCanvasObjects () {
 function addAllCanvasObjects () {
 	for (var key in Main.objects)
 		Main.canvas.add(Main.objects[key].element);
-	Main.generateTruthTable();
 }
 
 $(function () {
-	window.onkeydown = CanvasEvents.onKeyDown;
-
-	window.onkeyup = CanvasEvents.onKeyUp;
+	$(this).keydown(CanvasEvents.onKeyDown);
+	$(this).keyup(CanvasEvents.onKeyUp);
 
 	$(document).ready(function () {
 		Main.initApp();

@@ -83,34 +83,6 @@ var Constants = (function () {
 	return ret;
 }());
 var Main = (function (Constants) {
-	// fills the truth table
-	var injectLatex = function (table, inputs) {
-		if (table.length == 0) {
-			$("#truth-table-content").text("\\begin{array}{}\\\\\\hline \\\\\\end{array}");
-			return;
-		}
-		var ret = "\\begin{array}{";
-		for (var i = 0; i < table[0].length; i++)
-			ret += i == 0 ? "C" : "|C";
-		ret += "}"
-		for (var i = 0; i < table[0].length; i++) {
-			if (i != 0)
-				ret += "&";
-			ret += i < inputs ? String.fromCharCode(65 + i) : String.fromCharCode(88 + i - inputs);
-		}
-		ret += "\\\\\\hline ";
-		for (var i = 0; i < table.length; i++) {
-			for (var j = 0; j < table[i].length; j++) {
-				if (j != 0)
-					ret += "&";
-				ret += table[i][j] ? "T" : "F";
-			}
-			ret += "\\\\";
-		}
-		ret += "\\end{array}";
-		$("#truth-table-content").text(ret);
-		MathJax.Hub.Queue(["Typeset",MathJax.Hub,"truth-table"]);
-	}
 
 	var ret = {};
 	ret.currObjectId = Constants.OPTS.initialObjectId;
@@ -156,19 +128,6 @@ var Main = (function (Constants) {
 				width: Constants.OPTS.gridSize
 			});
 		}
-	};
-
-	ret.getJsonOutput = function (objectsList) {
-		for (var i = 0; i < objectsList.length; i++) {
-			for (var key in objectsList[i]) {
-				var element = objectsList[i][key].element;
-				objectsList[i][key].x1 = element.x1;
-				objectsList[i][key].x2 = element.x2;
-				objectsList[i][key].y1 = element.y1;
-				objectsList[i][key].y2 = element.y2;
-			}
-		}
-		return JSON.stringify(objectsList);
 	};
 
 	ret.getGate = function (type) {
@@ -268,9 +227,10 @@ var Main = (function (Constants) {
 		objects[objId1].inputs.push(hline1.element.id);
 		objects[objId2].outputs.push(hline2.element.id);
 
-		objects[hline1.element.id] = hline1;
-		objects[hline2.element.id] = hline2;
-		objects[vline.element.id] = vline;
+		// maybe not necessary
+		Vue.set(objects, hline1.element.id, hline1);
+		Vue.set(objects, hline2.element.id, hline2);
+		Vue.set(objects, vline.element.id, vline);
 	};
 
 	ret.getOutput = function (currGate, inputMap, objects) {
@@ -324,45 +284,82 @@ var Main = (function (Constants) {
 		}
 	};
 
-	ret.generateTruthTable = function (objects) {
+	ret.getTruthTable = function (objects) {
 		if (objects === undefined)
 			objects = ret.objects;
+
 		var inputIds = [];
-		var outputNodes = [];
+		var outputIds = [];
 
 		for (var key in objects) {
 			if (objects[key].type == Constants.TYPES.INPUT_GATE)
 				inputIds.push(objects[key].element.id);
 			else if (objects[key].type == Constants.TYPES.OUTPUT_GATE) {
-				outputNodes.push(objects[key].element.id);
+				outputIds.push(objects[key].element.id);
 			}
 		}
+
 		inputIds.sort();
-		outputNodes.sort();
+		outputIds.sort();
 
 		var inputMap = {};
 
 		var truthTable = [];
 		
 		for (var i = 0; i < 1 << inputIds.length; i++) {
-			truthTable.push(new Array(inputIds.length + outputNodes.length));
+			truthTable.push(new Array(inputIds.length + outputIds.length));
 			for (var j = 0; j < inputIds.length; j++) {
 				inputMap[inputIds[j]] = (i & 1 << j) > 0 ? 1 : 0;
 				truthTable[i][j] = (i & 1 << j) > 0 ? 1 : 0;
 			}
 
-			for (var j = 0; j < outputNodes.length; j++) {
-				if (objects[outputNodes[j]].inputs.length == 0)
+			for (var j = 0; j < outputIds.length; j++) {
+				if (objects[outputIds[j]].inputs.length == 0)
 					truthTable[i][inputIds.length + j] = 0;
 				else 
-					truthTable[i][inputIds.length + j] = ret.getOutput(objects[objects[outputNodes[j]].inputs[0]], inputMap, objects);
+					truthTable[i][inputIds.length + j] = ret.getOutput(objects[objects[outputIds[j]].inputs[0]], inputMap, objects);
 			}
 		}
-		console.log(truthTable);
-		console.log(inputIds);
-		console.log(outputNodes);
-		injectLatex(truthTable, inputIds.length);
-		return truthTable;	
+
+		return {
+			table: truthTable,
+			inputLength: inputIds.length,
+			outputLength: outputIds.length
+		};	
+	};
+
+	ret.getLatex = function (objects) {
+		console.log(objects);
+		console.log(ret);
+		var tableObject = ret.getTruthTable(objects);
+		var table = tableObject.table;
+		var inputLength = tableObject.inputLength;
+		if (table.length == 0) {
+			$("#truth-table-content").text("\\begin{array}{}\\\\\\hline \\\\\\end{array}");
+			return;
+		}
+		var rawLatex = "\\begin{array}{";
+		for (var i = 0; i < table[0].length; i++)
+			rawLatex += i == 0 ? "C" : "|C";
+		rawLatex += "}"
+		for (var i = 0; i < table[0].length; i++) {
+			if (i != 0)
+				rawLatex += "&";
+			rawLatex += i < inputLength ? String.fromCharCode(65 + i) : String.fromCharCode(88 + i - inputLength);
+		}
+		rawLatex += "\\\\\\hline ";
+		for (var i = 0; i < table.length; i++) {
+			for (var j = 0; j < table[i].length; j++) {
+				if (j != 0)
+					rawLatex += "&";
+				rawLatex += table[i][j] ? "T" : "F";
+			}
+			rawLatex += "\\\\";
+		}
+		rawLatex += "\\end{array}";
+		$("#truth-table-content").text(rawLatex);
+		//MathJax.Hub.Queue(["Typeset",MathJax.Hub,"truth-table"]);
+		return rawLatex;
 	};
 
 	return ret;
@@ -508,7 +505,7 @@ var CanvasEvents = (function (Constants, Main) {
 		}
 
 		Main.canvas.remove(element.element);
-		delete Main.objects[element.element.id];
+		Vue.delete(Main.objects, element.element.id);
 	};
 
 	return {
@@ -553,7 +550,7 @@ var CanvasEvents = (function (Constants, Main) {
 					var currGate = Constants.GATES[options.target.id];
 					fabric.Image.fromURL(currGate.url, function (oImage) {
 						Main.canvas.add(oImage);
-						Main.objects[oImage.id] = {
+						Vue.set(Main.objects, oImage.id, {
 							element: oImage,
 							type: currGate.type,
 							outputs: [],
@@ -563,8 +560,8 @@ var CanvasEvents = (function (Constants, Main) {
 							width: Constants.OPTS.gridSize,
 							height: Constants.OPTS.gridSize,
 							state: Constants.STATES.INPUT_OFF
-						};
-						Main.generateTruthTable();
+						});
+						
 						Main.updateCost();
 					}, {
 						id: Main.currObjectId++,
@@ -588,6 +585,7 @@ var CanvasEvents = (function (Constants, Main) {
 					currGate.element.setSrc(currGate.state, function () {
 						Main.canvas.renderAll();
 					});
+
 					Main.updateOutputs();
 					Main.updateCost();
 				}
@@ -598,9 +596,9 @@ var CanvasEvents = (function (Constants, Main) {
 				var x = hline2.element.x2;
 				var y = hline2.element.y2;
 				var connected = false;
-				Main.objects[hline1.element.id] = hline1;
-				Main.objects[hline2.element.id] = hline2;
-				Main.objects[vline.element.id] = vline;
+				Vue.set(Main.objects, hline1.element.id, hline1);
+				Vue.set(Main.objects, hline2.element.id, hline2);
+				Vue.set(Main.objects, vline.element.id, vline);
 
 				for (var key in Main.objects) {
 					var currGate = Main.objects[key];
@@ -675,15 +673,15 @@ var CanvasEvents = (function (Constants, Main) {
 					Main.canvas.remove(hline1.element);
 					Main.canvas.remove(hline2.element);
 					Main.canvas.remove(vline.element);
-					delete Main.objects[hline1.element.id];
-					delete Main.objects[hline2.element.id];
-					delete Main.objects[vline.element.id];
+					Vue.delete(Main.objects, hline1.element.id);
+					Vue.delete(Main.objects, hline2.element.id);
+					Vue.delete(Main.objects, vline.element.id);
 				}
 
 				hline1 = null;
 				hline2 = null;
 				vline = null;
-				Main.generateTruthTable();
+				
 			}
 			
 			creatingLine = false;
@@ -739,7 +737,6 @@ var CanvasEvents = (function (Constants, Main) {
 				});
 
 				options.target.setCoords();
-
 
 				inputElement.element.setCoords();
 				outputElement.element.setCoords();
@@ -928,7 +925,7 @@ var CanvasEvents = (function (Constants, Main) {
 								hline1.inputs.push(vline.element.id);
 								vline.inputs.push(hline2.element.id);
 							}
-							Main.generateTruthTable();
+							
 						}
 					}
 				}
@@ -1160,7 +1157,7 @@ var Api = (function (Constants, Main) {
 	};
 
 	ret.getMinimize = function (objects, callback) {
-		var truthTable = Main.generateTruthTable(objects);
+		var truthTable = Main.getTruthTable(objects).table;
 	   	$.ajax({
 	   		url: "/kmap",
 	   		datatype: "json",
@@ -1202,6 +1199,29 @@ var Ui = (function (Constants, Main, Api) {
 
 	var globalTabCounter = 2;
 	var globalTabIdCounter = 1;
+
+	var getJsonOutput = function (objectsList) {
+		for (var i = 0; i < objectsList.length; i++) {
+			for (var key in objectsList[i]) {
+				var element = objectsList[i][key].element;
+				objectsList[i][key].x1 = element.x1;
+				objectsList[i][key].x2 = element.x2;
+				objectsList[i][key].y1 = element.y1;
+				objectsList[i][key].y2 = element.y2;
+			}
+		}
+		return JSON.stringify(objectsList);
+	};
+
+	Vue.component('truth-table-content', {
+		template: "<div id='truth-table-content' v-html='html()'></div>",
+		props: ["objectsList", "activeTab"],
+		methods: {
+			html: function () {
+				return Main.getLatex(this.objectsList[this.activeTab]);
+			}
+		}
+	});
 
 	Vue.component('truth-button', {
 		template: "#truth-button-template",
@@ -1267,7 +1287,7 @@ var Ui = (function (Constants, Main, Api) {
 			var ref = this;
 			Events.$on(this.name+":clicked", function () {
 				if (ref.name == "export")
-					ref.textAreaContent = Main.getJsonOutput(ref.objectsList);
+					ref.textAreaContent = getJsonOutput(ref.objectsList);
 				ref.isVisible = true;
 			});
 		}
@@ -1345,7 +1365,6 @@ var Ui = (function (Constants, Main, Api) {
 					removeAllCanvasObjects();
 					Main.objects = ref.objectsList[index];
 					addAllCanvasObjects();
-					Main.generateTruthTable();
 					Main.updateCost();
 				});
 				Events.$on('tabs:delete-tab', function (event, tabId) {
@@ -1368,7 +1387,7 @@ var Ui = (function (Constants, Main, Api) {
 						removeAllCanvasObjects();
 						Main.objects = ref.objectsList[index];
 					}
-					});
+				});
 				Events.$on('tabs:import-tabs', function (objectsListJson) {
 					removeAllCanvasObjects();
 					ref.tabs = [];
@@ -1433,19 +1452,14 @@ var Ui = (function (Constants, Main, Api) {
 						});
 					}
 
-					console.log(ref.tabs);
-					console.log(ref.objectsList);
-
 					globalTabCounter = 1;
 					Main.objects = ref.objectsList[0];
 
 					setTimeout(function () {
-						Main.generateTruthTable();
 						Main.updateOutputs();
 						Main.updateCost();
 					});
 				});
-
 				Events.$on('simplify:clicked', function () {
 					var index = ref.tabs.findIndex(tab => tab.id == ref.activeTab);
 					ref.addTab()
@@ -1477,13 +1491,11 @@ function removeAllCanvasObjects () {
 function addAllCanvasObjects () {
 	for (var key in Main.objects)
 		Main.canvas.add(Main.objects[key].element);
-	Main.generateTruthTable();
 }
 
 $(function () {
-	window.onkeydown = CanvasEvents.onKeyDown;
-
-	window.onkeyup = CanvasEvents.onKeyUp;
+	$(this).keydown(CanvasEvents.onKeyDown);
+	$(this).keyup(CanvasEvents.onKeyUp);
 
 	$(document).ready(function () {
 		Main.initApp();

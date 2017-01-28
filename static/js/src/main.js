@@ -1,32 +1,4 @@
 var Main = (function (Constants) {
-	// fills the truth table
-	var injectLatex = function (table, inputs) {
-		if (table.length == 0) {
-			$("#truth-table-content").text("\\begin{array}{}\\\\\\hline \\\\\\end{array}");
-			return;
-		}
-		var ret = "\\begin{array}{";
-		for (var i = 0; i < table[0].length; i++)
-			ret += i == 0 ? "C" : "|C";
-		ret += "}"
-		for (var i = 0; i < table[0].length; i++) {
-			if (i != 0)
-				ret += "&";
-			ret += i < inputs ? String.fromCharCode(65 + i) : String.fromCharCode(88 + i - inputs);
-		}
-		ret += "\\\\\\hline ";
-		for (var i = 0; i < table.length; i++) {
-			for (var j = 0; j < table[i].length; j++) {
-				if (j != 0)
-					ret += "&";
-				ret += table[i][j] ? "T" : "F";
-			}
-			ret += "\\\\";
-		}
-		ret += "\\end{array}";
-		$("#truth-table-content").text(ret);
-		MathJax.Hub.Queue(["Typeset",MathJax.Hub,"truth-table"]);
-	}
 
 	var ret = {};
 	ret.currObjectId = Constants.OPTS.initialObjectId;
@@ -171,9 +143,10 @@ var Main = (function (Constants) {
 		objects[objId1].inputs.push(hline1.element.id);
 		objects[objId2].outputs.push(hline2.element.id);
 
-		objects[hline1.element.id] = hline1;
-		objects[hline2.element.id] = hline2;
-		objects[vline.element.id] = vline;
+		// maybe not necessary
+		Vue.set(objects, hline1.element.id, hline1);
+		Vue.set(objects, hline2.element.id, hline2);
+		Vue.set(objects, vline.element.id, vline);
 	};
 
 	ret.getOutput = function (currGate, inputMap, objects) {
@@ -227,45 +200,81 @@ var Main = (function (Constants) {
 		}
 	};
 
-	ret.generateTruthTable = function (objects) {
+	ret.getTruthTable = function (objects) {
 		if (objects === undefined)
 			objects = ret.objects;
 
 		var inputIds = [];
-		var outputNodes = [];
+		var outputIds = [];
 
 		for (var key in objects) {
 			if (objects[key].type == Constants.TYPES.INPUT_GATE)
 				inputIds.push(objects[key].element.id);
 			else if (objects[key].type == Constants.TYPES.OUTPUT_GATE) {
-				outputNodes.push(objects[key].element.id);
+				outputIds.push(objects[key].element.id);
 			}
 		}
 
 		inputIds.sort();
-		outputNodes.sort();
+		outputIds.sort();
 
 		var inputMap = {};
 
 		var truthTable = [];
 		
 		for (var i = 0; i < 1 << inputIds.length; i++) {
-			truthTable.push(new Array(inputIds.length + outputNodes.length));
+			truthTable.push(new Array(inputIds.length + outputIds.length));
 			for (var j = 0; j < inputIds.length; j++) {
 				inputMap[inputIds[j]] = (i & 1 << j) > 0 ? 1 : 0;
 				truthTable[i][j] = (i & 1 << j) > 0 ? 1 : 0;
 			}
 
-			for (var j = 0; j < outputNodes.length; j++) {
-				if (objects[outputNodes[j]].inputs.length == 0)
+			for (var j = 0; j < outputIds.length; j++) {
+				if (objects[outputIds[j]].inputs.length == 0)
 					truthTable[i][inputIds.length + j] = 0;
 				else 
-					truthTable[i][inputIds.length + j] = ret.getOutput(objects[objects[outputNodes[j]].inputs[0]], inputMap, objects);
+					truthTable[i][inputIds.length + j] = ret.getOutput(objects[objects[outputIds[j]].inputs[0]], inputMap, objects);
 			}
 		}
 
-		injectLatex(truthTable, inputIds.length);
-		return truthTable;	
+		return {
+			table: truthTable,
+			inputLength: inputIds.length,
+			outputLength: outputIds.length
+		};	
+	};
+
+	ret.getLatex = function (objects) {
+		console.log(objects);
+		console.log(ret);
+		var tableObject = ret.getTruthTable(objects);
+		var table = tableObject.table;
+		var inputLength = tableObject.inputLength;
+		if (table.length == 0) {
+			$("#truth-table-content").text("\\begin{array}{}\\\\\\hline \\\\\\end{array}");
+			return;
+		}
+		var rawLatex = "\\begin{array}{";
+		for (var i = 0; i < table[0].length; i++)
+			rawLatex += i == 0 ? "C" : "|C";
+		rawLatex += "}"
+		for (var i = 0; i < table[0].length; i++) {
+			if (i != 0)
+				rawLatex += "&";
+			rawLatex += i < inputLength ? String.fromCharCode(65 + i) : String.fromCharCode(88 + i - inputLength);
+		}
+		rawLatex += "\\\\\\hline ";
+		for (var i = 0; i < table.length; i++) {
+			for (var j = 0; j < table[i].length; j++) {
+				if (j != 0)
+					rawLatex += "&";
+				rawLatex += table[i][j] ? "T" : "F";
+			}
+			rawLatex += "\\\\";
+		}
+		rawLatex += "\\end{array}";
+		//MathJax.Hub.Queue(["Typeset",MathJax.Hub,"truth-table"]);
+		return rawLatex;
 	};
 
 	return ret;

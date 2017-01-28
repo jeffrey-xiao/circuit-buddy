@@ -222,7 +222,7 @@ var Api = (function (Constants, Main) {
 	};
 
 	ret.getMinimize = function (objects, callback) {
-		var truthTable = Main.generateTruthTable(objects);
+		var truthTable = Main.getTruthTable(objects).table;
 	   	$.ajax({
 	   		url: "/kmap",
 	   		datatype: "json",

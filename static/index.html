@@ -53,14 +53,16 @@
             <tabs-bar v-bind:tabs="tabs" v-bind:active-tab="activeTab"></tabs-bar>
 
             <canvas id="editor"></canvas>
+
             <div id="truth-table">
                 <truth-button v-bind:name="'export'"></truth-button>
                 <truth-button v-bind:name="'import'"></truth-button>
                 <truth-button v-bind:name="'simplify'"></truth-button>
                 <truth-button v-bind:name="'camera'"></truth-button><br/>
                 Truth Table
-                <div id="truth-table-content"></div>
+                <truth-table-content v-bind:objects-list="objectsList" v-bind:active-tab="activeTab"></truth-table-content>
             </div>
+            
             <div id="info-wrapper">
                 <div id="current-hovered-element">Hovered: No element.</div>
                 <div id="circuit-cost">Cost: 0.</div>
