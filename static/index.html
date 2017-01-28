@@ -60,7 +60,7 @@
                 <truth-button v-bind:name="'simplify'"></truth-button>
                 <truth-button v-bind:name="'camera'"></truth-button><br/>
                 Truth Table
-                <truth-table-content v-bind:objects-list="objectsList" v-bind:active-tab="activeTab"></truth-table-content>
+                <truth-table-content v-bind:objects="objectsList[activeTab]"></truth-table-content>
             </div>
             
             <div id="info-wrapper">

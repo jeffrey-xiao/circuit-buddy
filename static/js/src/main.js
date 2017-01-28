@@ -70,6 +70,7 @@ var Main = (function (Constants) {
 			}
 		}
 		$('#circuit-cost').text("Cost: " + cost + ".");
+		return cost;
 	};
 
 

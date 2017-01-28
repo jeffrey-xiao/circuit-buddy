@@ -221,6 +221,9 @@ var Api = (function (Constants, Main) {
 		});
 	};
 
+	// INPUTS
+	//  - objects 		circuit elements to minimize
+	//	- callback		function to call after circuit is minimized. Usually UI updates in callback.
 	ret.getMinimize = function (objects, callback) {
 		var truthTable = Main.getTruthTable(objects).table;
 	   	$.ajax({
@@ -238,6 +241,9 @@ var Api = (function (Constants, Main) {
 		});
 	};
 
+	// INPUTS
+	//  - formData 		data of image to process
+	//  - callback		function to call after image of circuit is imported. Usually UI updates in callback.
 	ret.importPhoto = function (formData, callback) {
 		$.ajax({
 			type: 'POST',

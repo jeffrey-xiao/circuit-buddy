@@ -154,6 +154,7 @@ var Main = (function (Constants) {
 			}
 		}
 		$('#circuit-cost').text("Cost: " + cost + ".");
+		return cost;
 	};
 
 
@@ -357,7 +358,6 @@ var Main = (function (Constants) {
 			rawLatex += "\\\\";
 		}
 		rawLatex += "\\end{array}";
-		$("#truth-table-content").text(rawLatex);
 		//MathJax.Hub.Queue(["Typeset",MathJax.Hub,"truth-table"]);
 		return rawLatex;
 	};
@@ -1156,6 +1156,9 @@ var Api = (function (Constants, Main) {
 		});
 	};
 
+	// INPUTS
+	//  - objects 		circuit elements to minimize
+	//	- callback		function to call after circuit is minimized. Usually UI updates in callback.
 	ret.getMinimize = function (objects, callback) {
 		var truthTable = Main.getTruthTable(objects).table;
 	   	$.ajax({
@@ -1173,6 +1176,9 @@ var Api = (function (Constants, Main) {
 		});
 	};
 
+	// INPUTS
+	//  - formData 		data of image to process
+	//  - callback		function to call after image of circuit is imported. Usually UI updates in callback.
 	ret.importPhoto = function (formData, callback) {
 		$.ajax({
 			type: 'POST',
@@ -1214,11 +1220,11 @@ var Ui = (function (Constants, Main, Api) {
 	};
 
 	Vue.component('truth-table-content', {
-		template: "<div id='truth-table-content' v-html='html()'></div>",
-		props: ["objectsList", "activeTab"],
-		methods: {
+		template: "<div id='truth-table-content' v-html='html'></div>",
+		props: ["objects"],
+		computed: {
 			html: function () {
-				return Main.getLatex(this.objectsList[this.activeTab]);
+				return Main.getLatex(this.objects);
 			}
 		}
 	});
@@ -1464,7 +1470,7 @@ var Ui = (function (Constants, Main, Api) {
 					var index = ref.tabs.findIndex(tab => tab.id == ref.activeTab);
 					ref.addTab()
 					Api.getMinimize(ref.objectsList[index], function (objects) {
-						ref.objectsList[ref.objectsList.length - 1] = objects;
+						Vue.set(ref.objectsList, ref.objectsList.length - 1, objects);
 						Main.objects = objects;
 						addAllCanvasObjects();
 					});
@@ -1472,7 +1478,7 @@ var Ui = (function (Constants, Main, Api) {
 				Events.$on('tabs:import-photo', function (file) {
 					ref.addTab();
 					Api.importPhoto(file, function (objects) {
-						ref.objectsList[ref.objectsList.length - 1] = objects;
+						Vue.set(ref.objectsList, ref.objectsList.length - 1, objects);
 						Main.objects = objects;
 						addAllCanvasObjects();
 					});

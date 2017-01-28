@@ -161,13 +161,12 @@ div.active {
 .modal-button {
   font-size: 18px;
   padding: 10px 20px;
-  margin: 0 0 0 5px;
   background: #282a2e;
   border-style: none;
   font-family: 'Overpass Mono', monospace;
   color: #c5c8c6;
   vertical-align: top;
-  margin: -7px 0 0 0;
+  margin: -4px 0 0 0;
   box-sizing: border-box;
   display: inline-block; }
 
