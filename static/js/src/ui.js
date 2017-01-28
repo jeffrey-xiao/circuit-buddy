@@ -179,7 +179,7 @@ var Ui = (function (Constants, Main, Api) {
 					removeAllCanvasObjects();
 					Main.objects = ref.objectsList[index];
 					addAllCanvasObjects();
-					
+					Main.updateOutputs();
 				});
 				Events.$on('tabs:delete-tab', function (event, tabId) {
 					event.stopPropagation();
@@ -201,6 +201,8 @@ var Ui = (function (Constants, Main, Api) {
 						removeAllCanvasObjects();
 						Main.objects = ref.objectsList[index];
 					}
+					addAllCanvasObjects();
+					Main.updateOutputs();
 				});
 				Events.$on('tabs:import-tabs', function (objectsListJson) {
 					removeAllCanvasObjects();
@@ -219,9 +221,6 @@ var Ui = (function (Constants, Main, Api) {
 								fabric.Image.fromURL(src, function (oImage) {
 									ref.objectsList[oImage.tab][oImage.id].element = oImage;
 									ref.objectsList[oImage.tab][oImage.id].state = Constants.STATES.INPUT_OFF;
-									if (oImage.tab == Main.currTab) {
-										Main.canvas.add(oImage);
-									}
 								}, {
 									id: key,
 									tab: tab,
@@ -240,8 +239,6 @@ var Ui = (function (Constants, Main, Api) {
 									id: key,
 									strokeWidth: 3
 								});
-								if (tab == Main.currTab)
-									Main.canvas.add(ref.objectsList[tab][key].element);
 							} else if (ref.objectsList[tab][key].type == Constants.TYPES.VERTICAL_LINE) {
 								ref.objectsList[tab][key].element = new fabric.Line([ref.objectsList[tab][key].x1, ref.objectsList[tab][key].y1, ref.objectsList[tab][key].x2, ref.objectsList[tab][key].y2], {
 									stroke: '#81a2be',
@@ -252,8 +249,6 @@ var Ui = (function (Constants, Main, Api) {
 									id: key,
 									strokeWidth: 3
 								});
-								if (tab == Main.currTab)
-									Main.canvas.add(ref.objectsList[tab][key].element);
 							}
 							Main.currObjectId = Math.max(Main.currObjectId, key + 1);
 						}
@@ -270,6 +265,7 @@ var Ui = (function (Constants, Main, Api) {
 					Main.objects = ref.objectsList[0];
 
 					setTimeout(function () {
+						addAllCanvasObjects();
 						Main.updateOutputs();
 						
 					});
@@ -281,6 +277,7 @@ var Ui = (function (Constants, Main, Api) {
 						Vue.set(ref.objectsList, ref.objectsList.length - 1, objects);
 						Main.objects = objects;
 						addAllCanvasObjects();
+						Main.updateOutputs();
 					});
 				});
 				Events.$on('tabs:import-photo', function (file) {
@@ -289,6 +286,7 @@ var Ui = (function (Constants, Main, Api) {
 						Vue.set(ref.objectsList, ref.objectsList.length - 1, objects);
 						Main.objects = objects;
 						addAllCanvasObjects();
+						Main.updateOutputs();
 					});
 				});
 			}
