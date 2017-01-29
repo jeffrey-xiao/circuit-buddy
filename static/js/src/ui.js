@@ -24,7 +24,8 @@ var Ui = (function (Constants, Main, Api) {
 			html: function () {
 				return "Cost: " + Main.getCost(this.objects);
 			}
-		}
+		},
+
 	});
 
 	Vue.component('truth-table-content', {
@@ -32,6 +33,9 @@ var Ui = (function (Constants, Main, Api) {
 		props: ["objects"],
 		computed: {
 			html: function () {
+				this.$nextTick(function() {
+                     MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+                });
 				return Main.getLatex(this.objects);
 			}
 		}

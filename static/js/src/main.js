@@ -289,7 +289,7 @@ var Main = (function (Constants) {
 			rawLatex += "\\\\";
 		}
 		rawLatex += "\\end{array}";
-		//MathJax.Hub.Queue(["Typeset",MathJax.Hub,"truth-table"]);
+		MathJax.Hub.Queue(["Typeset",MathJax.Hub,"truth-table"]);
 		return rawLatex;
 	};
 
