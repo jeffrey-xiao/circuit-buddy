@@ -7,6 +7,7 @@ ret.currObjectId = Constants.OPTS.initialObjectId;
 ret.currTab = 0;
 ret.canvas = null;
 ret.objects = {};
+ret.Events = new Vue({});
 
 ret.initApp = function () {
 	// initialize the canvas

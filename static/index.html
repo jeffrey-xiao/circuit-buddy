@@ -11,24 +11,6 @@
                 </button>
             </div>
         </script>
-        <script type="x-template" id="add-tab-template">
-            <button id="add-tab" class="tab" v-on:click="addTab">
-                <i class="el el-plus">
-                </i>
-            </button>
-        </script>
-        <script type="x-template" id="tabs-bar-template">
-            <div id="tabs-bar">
-                <div id="tabs">
-                    <tab v-for="tab in tabs" v-bind:tab-id="tab.id" v-bind:name="tab.name" v-bind:curr-active="activeTab"></tab>
-                </div><add-tab></add-tab>
-            </div>
-        </script>
-        <script type="x-template" id="truth-button-template">
-            <button class="truth-button" v-bind:id="name + '-button'" v-on:click="onClick">
-                <i v-bind:class="icon"></i>
-            </button>
-        </script>
         <script type="x-template" id="modal-template">
             <div class="modal" v-bind:id="name + '-modal'" v-if="isVisible">
                 <div class="modal-inner">

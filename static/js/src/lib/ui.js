@@ -6,10 +6,25 @@ var fabric = require("fabric-webpack").fabric;
 var $ = require("jquery");
 var Tooltip = require("tether-tooltip");
 
-var Events = new Vue({});
+var AddTab = require("../components/add-tab.vue");
+var CostInfo = require("../components/cost-info.vue");
+var Modal = require("../components/modal.vue");
+var Tab = require("../components/tab.vue");
+var TabsBar = require("../components/tabs-bar.vue");
+var TruthButton = require("../components/truth-button.vue");
+var TruthTableContent = require("../components/truth-table-content.vue");
+
+Vue.component('add-tab', AddTab);
+Vue.component('cost-info', CostInfo);
+Vue.component('modal', Modal);
+Vue.component('tab', Tab);
+Vue.component('tabs-bar', TabsBar);
+Vue.component('truth-button', TruthButton);
+Vue.component('truth-table-content', TruthTableContent);
 
 var globalTabCounter = 2;
 var globalTabIdCounter = 1;
+
 var positions = [
 	'top-left',
 	'left-top',
@@ -25,39 +40,12 @@ var positions = [
 	'top-center'
 ];
 
-
-var getJsonOutput = function (objectsList) {
-	for (var i = 0; i < objectsList.length; i++) {
-		for (var key in objectsList[i]) {
-			var element = objectsList[i][key].element;
-			objectsList[i][key].x1 = element.x1;
-			objectsList[i][key].x2 = element.x2;
-			objectsList[i][key].y1 = element.y1;
-			objectsList[i][key].y2 = element.y2;
-		}
-	}
-	return JSON.stringify(objectsList);
-};
-
-
-var costInfo = Vue.component('cost-info', {
-	template: "<div id='circuit-cost' v-html='html'></div>",
-	props: ["objects"],
-	computed: {
-		html: function () {
-			return "Cost: " + Main.getCost(this.objects);
-		}
-	},
-
-});
-
 function destroyTooltip (el) {
 	if (el._tooltip) {
 		el._tooltip.destroy();
 		delete el._tooltip;
 	}
 }
-
 function createTooltip (el, content, position) {
 	el._tooltip = new Tooltip({
 		target: el,
@@ -88,128 +76,6 @@ Vue.directive('tooltip', {
 	}
 });
 
-
-Vue.component('truth-table-content', {
-	template: "<div id='truth-table-content' v-html='html'></div>",
-	props: ["objects"],
-	computed: {
-		html: function () {
-			this.$nextTick(function() {
-                 MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-            });
-			return Main.getLatex(this.objects);
-		}
-	}
-});
-
-Vue.component('truth-button', {
-	template: "#truth-button-template",
-	props: ["name"],
-	computed: {
-		icon: function () {
-			switch (this.name) {
-				case "export":
-					return "el el-download-alt";
-				case "import":
-					return "el el-eject";
-				case "simplify":
-					return "el el-cogs";
-				case "camera":
-					return "el el-camera";
-			}
-		}
-	},
-	methods: {
-		onClick: function () {
-			Events.$emit(this.name + ":clicked");
-		}
-	}
-});
-
-Vue.component('modal', {
-	template: "#modal-template",
-	props: ["name", "title", "objectsList"],
-	data: function () {
-		return {
-			isVisible: false,
-			textAreaContent: null
-		}
-	},
-	computed: {
-		hasFileInput: function () {
-			return this.name == "camera";
-		},
-		hasTextArea: function () {
-			return this.name == "export" || this.name == "import";
-		}
-	},
-	methods: {
-		exitAction: function () {
-			this.isVisible = false;
-		},
-		importAction: function () {
-			this.isVisible = false;
-			if (this.name == "import")
-				Events.$emit('tabs:import-tabs', this.textAreaContent);
-			else if (this.name == "camera") {
-				Events.$emit('tabs:import-photo', this.textAreaContent);
-			}
-		},
-		onFileChange: function (e) {
-			console.log(e.target.files);
-			var formData = new FormData();
-			formData.append('file', e.target.files[0]);
-			this.textAreaContent = formData;
-		}
-	},
-	mounted: function () {
-		var ref = this;
-		Events.$on(this.name+":clicked", function () {
-			if (ref.name == "export")
-				ref.textAreaContent = getJsonOutput(ref.objectsList);
-			ref.isVisible = true;
-		});
-	}
-});
-
-Vue.component('tab', {
-	template: "#tab-template",
-	props: ['tabId', 'currActive', 'name'],
-	data: function () {
-		return {};
-	},
-	computed: {
-		isActive: function () {
-			return this.currActive == this.tabId;
-		}
-	},
-	methods: {
-		setActive: function (event) {
-			Events.$emit('tabs:set-active', event, this.tabId);
-		},
-		deleteTab: function () {
-			Events.$emit('tabs:delete-tab', event, this.tabId);
-		}
-	}
-});
-
-Vue.component('add-tab', {
-	template: "#add-tab-template",
-	methods: {
-		addTab: function (event) {
-			Events.$emit('tabs:add-tab');
-		}
-	}
-});
-
-Vue.component('tabs-bar', {
-	template: "#tabs-bar-template",
-	props: ['tabs', 'activeTab'],
-	data: function () {
-		return {};
-	}
-});
-
 $(document).ready(function () {
 	var app = new Vue({
 		el: '#main',
@@ -237,8 +103,8 @@ $(document).ready(function () {
 		mounted: function () {
 			Main.objects = this.objectsList[0];
 			var ref = this;
-			Events.$on('tabs:add-tab', this.addTab);
-			Events.$on('tabs:set-active', function (event, tabId) {
+			Main.Events.$on('tabs:add-tab', this.addTab);
+			Main.Events.$on('tabs:set-active', function (event, tabId) {
 				ref.activeTab = tabId;
 				var index = ref.tabs.findIndex(tab => tab.id == tabId);
 				Main.removeAllCanvasObjects();
@@ -246,7 +112,7 @@ $(document).ready(function () {
 				Main.addAllCanvasObjects();
 				Main.updateOutputs();
 			});
-			Events.$on('tabs:delete-tab', function (event, tabId) {
+			Main.Events.$on('tabs:delete-tab', function (event, tabId) {
 				event.stopPropagation();
 				var index = ref.tabs.findIndex(tab => tab.id == tabId);
 				var deletedId = ref.tabs[index].id;
@@ -269,7 +135,7 @@ $(document).ready(function () {
 				Main.addAllCanvasObjects();
 				Main.updateOutputs();
 			});
-			Events.$on('tabs:import-tabs', function (objectsListJson) {
+			Main.Events.$on('tabs:import-tabs', function (objectsListJson) {
 				Main.removeAllCanvasObjects();
 				ref.tabs = [];
 				ref.objectsList = JSON.parse(objectsListJson);
@@ -335,7 +201,7 @@ $(document).ready(function () {
 					
 				});
 			});
-			Events.$on('simplify:clicked', function () {
+			Main.Events.$on('simplify:clicked', function () {
 				var index = ref.tabs.findIndex(tab => tab.id == ref.activeTab);
 				ref.addTab()
 				Api.getMinimize(ref.objectsList[index], function (objects) {
@@ -345,7 +211,7 @@ $(document).ready(function () {
 					Main.updateOutputs();
 				});
 			});
-			Events.$on('tabs:import-photo', function (file) {
+			Main.Events.$on('tabs:import-photo', function (file) {
 				ref.addTab();
 				Api.importPhoto(file, function (objects) {
 					Vue.set(ref.objectsList, ref.objectsList.length - 1, objects);

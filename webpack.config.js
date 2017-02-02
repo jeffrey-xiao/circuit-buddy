@@ -8,5 +8,23 @@ module.exports = {
 		alias: {
 			'vue$': 'vue/dist/vue.common.js'
 		}
-	}
+	},
+	module: {
+		loaders: [
+			{
+				test: /\.js$/,
+        		loader: 'babel',
+        		exclude: /node_modules/
+      		},
+		    {
+				test: /\.vue$/,
+				loader: 'vue'
+			}
+		]
+	},
+  	vue: {
+  		loaders: {
+      		js: 'babel'
+      	}
+  	}
 }

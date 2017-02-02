@@ -194,7 +194,7 @@ div.active {
 	font-family: 'Overpass Mono', monospace;
 	color: #c5c8c6;
 	vertical-align: top;
-	margin: -7px 0 0 0;
+	margin: -6px 0 0 0;
 	box-sizing: border-box;
 	display: inline-block;
 }
@@ -221,19 +221,6 @@ div.active {
 	overflow-y: auto;
 	outline: 0;
 }
-
-#export-modal {
-	display: none;
-}
-
-#import-modal {
-	display: none;
-}
-
-#camera-modal {
-	display: none;
-}
-
 .modal-textarea:focus {
 	border-bottom: #4271ae;
 }

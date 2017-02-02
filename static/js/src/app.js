@@ -1,9 +1,9 @@
 var $ = require("jquery");
-var Main = require("./main.js");
-var Api = require("./api.js");
-var CanvasEvents = require("./canvas-events.js");
-var Constants = require("./constants.js");
-var Ui = require("./ui.js");
+var Main = require("./lib/main.js");
+var Api = require("./lib/api.js");
+var CanvasEvents = require("./lib/canvas-events.js");
+var Constants = require("./lib/constants.js");
+var Ui = require("./lib/ui.js");
 
 $(function () {
 	$(this).keydown(CanvasEvents.onKeyDown);
