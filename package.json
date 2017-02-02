@@ -15,7 +15,6 @@
     "fabric-webpack": "^1.6.0-rc.1",
     "immutable": "^3.8.1",
     "jquery": "^3.1.1",
-    "mathjax": "^2.7.0",
     "morgan": "^1.7.0",
     "tether-tooltip": "^1.2.0",
     "vue": "^2.1.10"

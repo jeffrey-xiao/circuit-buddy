@@ -265,36 +265,6 @@ ret.getTruthTable = function (objects) {
 	};	
 };
 
-ret.getLatex = function (objects) {
-	var tableObject = ret.getTruthTable(objects);
-	var table = tableObject.table;
-	var inputLength = tableObject.inputLength;
-	if (table.length == 0) {
-		return "\\begin{array}{}\\\\\\hline \\\\\\end{array}";
-	}
-	var rawLatex = "\\begin{array}{";
-	for (var i = 0; i < table[0].length; i++)
-		rawLatex += i == 0 ? "C" : "|C";
-	rawLatex += "}"
-	for (var i = 0; i < table[0].length; i++) {
-		if (i != 0)
-			rawLatex += "&";
-		rawLatex += i < inputLength ? String.fromCharCode(65 + i) : String.fromCharCode(88 + i - inputLength);
-	}
-	rawLatex += "\\\\\\hline ";
-	for (var i = 0; i < table.length; i++) {
-		for (var j = 0; j < table[i].length; j++) {
-			if (j != 0)
-				rawLatex += "&";
-			rawLatex += table[i][j] ? "T" : "F";
-		}
-		rawLatex += "\\\\";
-	}
-	rawLatex += "\\end{array}";
-	return rawLatex;
-};
-
-
 ret.removeAllCanvasObjects = function () {
 	for (var key in ret.objects)
 		ret.canvas.remove(ret.objects[key].element);

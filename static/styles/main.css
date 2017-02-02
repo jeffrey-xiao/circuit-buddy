@@ -7,6 +7,9 @@ html {
 body {
   height: 100%; }
 
+#main {
+  height: 100%; }
+
 #tabs-bar {
   position: relative;
   background: #282a2e; }
@@ -66,7 +69,6 @@ button {
 #truth-table {
   margin-top: 15px;
   padding: 10px;
-  box-sizing: border-box;
   text-align: center;
   width: 285px;
   background: #282a2e;
@@ -74,9 +76,25 @@ button {
   vertical-align: top;
   height: calc(100% - 160px);
   max-height: calc(100% - 160px); }
-  #truth-table #truth-table-content {
-    height: inherit;
-    overflow-y: scroll; }
+  #truth-table #truth-table-wrapper {
+    margin-top: 20px;
+    max-height: calc(100% - 100px);
+    overflow-y: auto; }
+    #truth-table #truth-table-wrapper #truth-table-content {
+      margin: 0 auto;
+      border-collapse: collapse; }
+      #truth-table #truth-table-wrapper #truth-table-content:hover {
+        cursor: default; }
+      #truth-table #truth-table-wrapper #truth-table-content th, #truth-table #truth-table-wrapper #truth-table-content td {
+        padding: 0px 7px; }
+      #truth-table #truth-table-wrapper #truth-table-content th {
+        border-bottom: 2px solid #ddd; }
+      #truth-table #truth-table-wrapper #truth-table-content .vertical-separator {
+        border-left: 2px solid #ddd; }
+      #truth-table #truth-table-wrapper #truth-table-content .horizontal-separator {
+        padding-top: 3px; }
+      #truth-table #truth-table-wrapper #truth-table-content tr:hover {
+        color: white; }
 
 .truth-button {
   background: #101112;

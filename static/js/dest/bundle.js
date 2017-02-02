@@ -10550,33 +10550,6 @@
 		};
 	};
 
-	ret.getLatex = function (objects) {
-		var tableObject = ret.getTruthTable(objects);
-		var table = tableObject.table;
-		var inputLength = tableObject.inputLength;
-		if (table.length == 0) {
-			return "\\begin{array}{}\\\\\\hline \\\\\\end{array}";
-		}
-		var rawLatex = "\\begin{array}{";
-		for (var i = 0; i < table[0].length; i++) {
-			rawLatex += i == 0 ? "C" : "|C";
-		}rawLatex += "}";
-		for (var i = 0; i < table[0].length; i++) {
-			if (i != 0) rawLatex += "&";
-			rawLatex += i < inputLength ? String.fromCharCode(65 + i) : String.fromCharCode(88 + i - inputLength);
-		}
-		rawLatex += "\\\\\\hline ";
-		for (var i = 0; i < table.length; i++) {
-			for (var j = 0; j < table[i].length; j++) {
-				if (j != 0) rawLatex += "&";
-				rawLatex += table[i][j] ? "T" : "F";
-			}
-			rawLatex += "\\\\";
-		}
-		rawLatex += "\\end{array}";
-		return rawLatex;
-	};
-
 	ret.removeAllCanvasObjects = function () {
 		for (var key in ret.objects) {
 			ret.canvas.remove(ret.objects[key].element);
@@ -55050,7 +55023,39 @@
 
 	// <template>
 
-	// 	<div id="truth-table-content" v-html="html"></div>
+	// 	<div id="truth-table-wrapper">
+
+	// 		<table id="truth-table-content">
+
+	// 			<thead><tr>
+
+	// 				<th v-for="i in tableObject.inputLength + tableObject.outputLength"
+
+	// 					v-bind:class="{'vertical-separator': i == tableObject.inputLength + 1}">
+
+	// 					{{i <= tableObject.inputLength ? String.fromCharCode(64 + i) : String.fromCharCode(87 + i - tableObject.inputLength)}}
+
+	// 				</th>
+
+	// 			</tr></thead>
+
+	// 			<tr v-for="(row, i) in tableObject.table">
+
+	// 				<td v-for="(cell, j) in row"
+
+	// 					v-bind:class="{'vertical-separator': j == tableObject.inputLength,
+
+	// 								   'horizontal-separator': i == 0}">
+
+	// 					{{cell}}
+
+	// 				</td>
+
+	// 			</tr>
+
+	// 		</table>
+
+	// 	</div>
 
 	// </template>
 
@@ -55060,11 +55065,9 @@
 	module.exports = {
 		props: ["objects"],
 		computed: {
-			html: function html() {
-				this.$nextTick(function () {
-					MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-				});
-				return Main.getLatex(this.objects);
+			tableObject: function tableObject() {
+				console.log(Main.getTruthTable(this.objects));
+				return Main.getTruthTable(this.objects);
 			}
 		}
 	};
@@ -55074,7 +55077,7 @@
 /* 68 */
 /***/ function(module, exports) {
 
-	module.exports = "<div id=\"truth-table-content\" v-html=\"html\"></div>";
+	module.exports = "<div id=\"truth-table-wrapper\">\r\n\t\t<table id=\"truth-table-content\">\r\n\t\t\t<thead><tr>\r\n\t\t\t\t<th v-for=\"i in tableObject.inputLength + tableObject.outputLength\"\r\n\t\t\t\t\tv-bind:class=\"{'vertical-separator': i == tableObject.inputLength + 1}\">\r\n\t\t\t\t\t{{i <= tableObject.inputLength ? String.fromCharCode(64 + i) : String.fromCharCode(87 + i - tableObject.inputLength)}}\r\n\t\t\t\t</th>\r\n\t\t\t</tr></thead>\r\n\t\t\t<tr v-for=\"(row, i) in tableObject.table\">\r\n\t\t\t\t<td v-for=\"(cell, j) in row\"\r\n\t\t\t\t\tv-bind:class=\"{'vertical-separator': j == tableObject.inputLength,\r\n\t\t\t\t\t\t\t\t   'horizontal-separator': i == 0}\">\r\n\t\t\t\t\t{{cell}}\r\n\t\t\t\t</td>\r\n\t\t\t</tr>\r\n\t\t</table>\r\n\t</div>";
 
 /***/ },
 /* 69 */,

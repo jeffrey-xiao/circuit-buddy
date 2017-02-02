@@ -3,26 +3,6 @@
     <head>
         <title>Digital Circuit Builder</title>
         <link href="styles/main.css" rel="stylesheet"/>
-        <script type="x-template" id="tab-template">
-            <div v-bind:id="'tab-' + tabId" class="tab" v-bind:class="{active: isActive}" v-on:click="setActive">
-                <span>{{name}}</span>
-                <button v-bind:id="'delete-tab-' + tabId" v-on:click="deleteTab">
-                    <i class="el el-remove"></i>
-                </button>
-            </div>
-        </script>
-        <script type="x-template" id="modal-template">
-            <div class="modal" v-bind:id="name + '-modal'" v-if="isVisible">
-                <div class="modal-inner">
-                    <h1 class="modal-title" v-html="title"></h1>
-                    <input v-if="hasFileInput" class="modal-textarea" name="file" type="file" @change="onFileChange"></input>
-                    <textarea v-if="hasTextArea" class="modal-textarea" v-model="textAreaContent"></textarea>
-                    <button class="modal-button" v-on:click="exitAction">Exit</button>
-                    <button class="modal-button" v-on:click="importAction" v-if="name == 'camera' || name == 'import'">Import</button>
-                </div>
-            </div>
-        </script>
-        <script src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></script>
         <link href="https://fonts.googleapis.com/css?family=Overpass+Mono" rel="stylesheet"/>
         <link rel="stylesheet" href="http://code.rifix.net/elusiveicons/2.0.0/css/elusive-icons.min.css"/>
     </head>
