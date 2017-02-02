@@ -51,10 +51,10 @@
             <canvas id="editor"></canvas>
 
             <div id="truth-table">
-                <truth-button v-bind:name="'export'"></truth-button>
-                <truth-button v-bind:name="'import'"></truth-button>
-                <truth-button v-bind:name="'simplify'"></truth-button>
-                <truth-button v-bind:name="'camera'"></truth-button><br/>
+                <truth-button name="export" v-tooltip.top-center="'Export as JSON'"></truth-button>
+                <truth-button name="import" v-tooltip.top-center="'Import JSON'"></truth-button>
+                <truth-button name="simplify" v-tooltip.top-center="'Minimize Circuit'"></truth-button>
+                <truth-button name="camera" v-tooltip.top-center="'Import Photo'"></truth-button><br/>
                 Truth Table
                 <truth-table-content v-bind:objects="objectsList[activeTab]"></truth-table-content>
             </div>
@@ -64,9 +64,9 @@
                 <cost-info v-bind:objects="objectsList[activeTab]"></cost-info>
             </div>
 
-            <modal v-bind:name="'export'" v-bind:title="'Export Content'" v-bind:objects-list="objectsList"></modal>
-            <modal v-bind:name="'import'" v-bind:title="'Import Content'"></modal>
-            <modal v-bind:name="'camera'" v-bind:title="'Import Scanned Image'"></modal>
+            <modal name="export" title="Export Content" v-bind:objects-list="objectsList"></modal>
+            <modal name="import" title="Import Content"></modal>
+            <modal name="camera" title="Import Scanned Image"></modal>
         </div>
         <script src="js/dest/bundle.js" type="text/javascript"></script>
     </body>

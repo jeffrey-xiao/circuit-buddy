@@ -1,208 +1,260 @@
 html {
-  height: 100%;
-  padding: 0;
-  margin: 0;
-  font-family: 'Overpass Mono', monospace; }
+	height: 100%;
+	padding: 0;
+	margin: 0;
+	font-family: 'Overpass Mono', monospace;
+}
 
 body {
 	height: 100%;
 }
 
 #tabs-bar {
-  position: relative;
-  background: #282a2e; }
+	position: relative;
+	background: #282a2e;
+}
 
 #tabs {
-  display: inline-block; vertical-align:top;}
-#tabs-bar .tab:hover{
-  background:#373b41;
+	display: inline-block;
+	vertical-align: top;
 }
-#tabs-bar .tab:active{
-	background:#4271ae;
+
+#tabs-bar .tab:hover {
+	background: #373b41;
 }
-#tabs .tab{
-  float:left;
+
+#tabs-bar .tab:active {
+	background: #4271ae;
 }
-button{
-	outline:0;
+
+#tabs .tab {
+	float: left;
 }
+
+button {
+	outline: 0;
+}
+
 #tabs-bar .tab {
-	cursor:default;
-   vertical-align:top;
-  padding: 0.8em 1em;
-  font-size: 1em;
-  background: #282a2e;
-  border-style: none;
-  border-right:1px solid #373b41;
-  border-bottom:2px solid #282a2e;
-  color: #c5c8c6;
-  line-height:1em;
-  display: inline-block; }
-#tabs-bar .tab.active{
-	border-bottom:2px solid #4271ae;
+	cursor: default;
+	vertical-align: top;
+	padding: 0.8em 1em;
+	font-size: 1em;
+	background: #282a2e;
+	border-style: none;
+	border-right: 1px solid #373b41;
+	border-bottom: 2px solid #282a2e;
+	color: #c5c8c6;
+	line-height: 1em;
+	display: inline-block;
 }
+
+#tabs-bar .tab.active {
+	border-bottom: 2px solid #4271ae;
+}
+
 #tabs-bar .tab button {
-  padding:0.8em;
-  margin:-0.8em 0 -0.8em 0.8em;
-  color: #c5c8c6;
-  background: transparent;
-  display:inline-block;
-  position:relative;
-  z-index:2;
-  border-style: none; }
-  #tabs-bar .tab button:hover{
-    color:#c82829;
-  }
+	padding: 0.8em;
+	margin: -0.8em 0 -0.8em 0.8em;
+	color: #c5c8c6;
+	background: transparent;
+	display: inline-block;
+	position: relative;
+	z-index: 2;
+	border-style: none;
+}
+
+#tabs-bar .tab button:hover {
+	color: #c82829;
+}
 
 .canvas-container {
-  background: #282a2e;
-  border-style:none;
-  margin: 15px;
-  vertical-align: top;
-  display: inline-block; }
+	background: #282a2e;
+	border-style: none;
+	margin: 15px;
+	vertical-align: top;
+	display: inline-block;
+}
 
 #truth-table {
-  margin-top: 15px;
-  padding: 10px;
-  box-sizing: border-box;
-  text-align: center;
-  width: 285px;
-  background: #282a2e;
-  display: inline-block;
-  vertical-align: top; 
-  height: calc(100% - 160px);
-  max-height: calc(100% - 160px);
-  #truth-table-content {
-  	height: inherit;
-  	overflow-y: scroll;
-  }
+	margin-top: 15px;
+	padding: 10px;
+	box-sizing: border-box;
+	text-align: center;
+	width: 285px;
+	background: #282a2e;
+	display: inline-block;
+	vertical-align: top;
+	height: calc(100% - 160px);
+	max-height: calc(100% - 160px);
+	#truth-table-content {
+		height: inherit;
+		overflow-y: scroll;
+	}
 }
-.truth-button{
-	background:#101112;
-	padding:1em;
-	box-sizing:border-box;
-	border-style:none;
-	position:relative;
-	z-index:220;
-	color:#c5c8c6;
-	width:25%;
-	display:block;
-	float:left;
-	margin:0 0 1em 0;
-	outline:0;
+
+.truth-button {
+	background: #101112;
+	padding: 1em;
+	box-sizing: border-box;
+	border-style: none;
+	position: relative;
+	z-index: 220;
+	color: #c5c8c6;
+	width: 25%;
+	display: block;
+	float: left;
+	margin: 0 0 1em 0;
+	outline: 0;
 }
-.truth-button:hover{
-	background:#373b41;
+
+.truth-button:hover {
+	background: #373b41;
 }
-.truth-button:active{ 
-	background:#4271ae;
+
+.truth-button:active {
+	background: #4271ae;
 }
+
 body {
-  padding: 0;
-  margin: 0;
-  color: #c5c8c6;
-  background: #101112; }
+	padding: 0;
+	margin: 0;
+	color: #c5c8c6;
+	background: #101112;
+}
 
 #info-wrapper {
-  width: 100%;
-  position: relative;
+	width: 100%;
+	position: relative;
 }
 
 #current-hovered-element {
-  width: calc(50% - 35px);
-  display: inline-block;
-  float: left;
-  margin: 0 15px 15px 15px;
-  padding: 15px;
-  font-family: 'Overpass Mono', monospace;
-  box-sizing: border-box;
-  background: #282a2e; }
-
+	width: calc(50% - 35px);
+	display: inline-block;
+	float: left;
+	margin: 0 15px 15px 15px;
+	padding: 15px;
+	font-family: 'Overpass Mono', monospace;
+	box-sizing: border-box;
+	background: #282a2e;
+}
 
 #circuit-cost {
-  width: calc(50% - 35px);
-  float: left;
-  display: inline-block;
-  margin: 0 15px 15px 15px;
-  padding: 15px;
-  font-family: 'Overpass Mono', monospace;
-  box-sizing: border-box;
-  background: #282a2e; }
+	width: calc(50% - 35px);
+	float: left;
+	display: inline-block;
+	margin: 0 15px 15px 15px;
+	padding: 15px;
+	font-family: 'Overpass Mono', monospace;
+	box-sizing: border-box;
+	background: #282a2e;
+}
 
 #tabs div {
-  background-color: white; }
+	background-color: white;
+}
 
 div.active {
-  background-color: black; }
+	background-color: black;
+}
 
-.modal{
-  top:0px;
-  left:0px;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.5);
-  position:fixed;
-  z-index:300;
+.modal {
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.5);
+	position: fixed;
+	z-index: 300;
 }
-.modal-inner{
-  top:50%;
-  left:50%;
-  width:600px;
-  background:#282a2e;
-  text-align:right;
-  position:absolute;
-  margin-top:-150px;
-  margin-left:-300px;
+
+.modal-inner {
+	top: 50%;
+	left: 50%;
+	width: 600px;
+	background: #282a2e;
+	text-align: right;
+	position: absolute;
+	margin-top: -150px;
+	margin-left: -300px;
 }
-.modal-title{
-  margin:-1.5em 0 0 0;
-  padding:0;
-  text-align:left;
+
+.modal-title {
+	margin: -1.5em 0 0 0;
+	padding: 0;
+	text-align: left;
 }
-.modal-button{
-  font-size:18px;
-  padding:10px 20px;
-  margin:0 0 0 5px;
-  background:#282a2e;
-  border-style:none;
-  font-family: 'Overpass Mono', monospace;
-  color:#c5c8c6;
-  vertical-align:top;
-  margin:-7px 0 0 0;
-  box-sizing:border-box;
-  display:inline-block;
+
+.modal-button {
+	font-size: 18px;
+	padding: 10px 20px;
+	margin: 0 0 0 5px;
+	background: #282a2e;
+	border-style: none;
+	font-family: 'Overpass Mono', monospace;
+	color: #c5c8c6;
+	vertical-align: top;
+	margin: -7px 0 0 0;
+	box-sizing: border-box;
+	display: inline-block;
 }
-.modal-button:hover{
-  background:#373b41;
+
+.modal-button:hover {
+	background: #373b41;
 }
-.modal-button:active{
-  background:#4271ae;
+
+.modal-button:active {
+	background: #4271ae;
 }
-.modal-textarea{
-  text-align:left;
-  width:100%;
-  height:250px;
-  padding:1em;
-  box-sizing:border-box;
-  margin:0; 
-  background:#efefef;
-  border-style:none;
-  font-family: courier new, monospace;
-  font-size:1em;
-  overflow-y: auto;
-  outline:0;
+
+.modal-textarea {
+	text-align: left;
+	width: 100%;
+	height: 250px;
+	padding: 1em;
+	box-sizing: border-box;
+	margin: 0;
+	background: #efefef;
+	border-style: none;
+	font-family: courier new, monospace;
+	font-size: 1em;
+	overflow-y: auto;
+	outline: 0;
 }
+
 #export-modal {
-  display: none;
-}
-#import-modal {
-  display: none;
-}
-#camera-modal{
-  display:none;
-}
-.modal-textarea:focus{
-  border-bottom:#4271ae; 
+	display: none;
 }
 
-/*# sourceMappingURL=main.css.map */
+#import-modal {
+	display: none;
+}
+
+#camera-modal {
+	display: none;
+}
+
+.modal-textarea:focus {
+	border-bottom: #4271ae;
+}
+
+.tooltip {
+	display: none;
+	opacity: 0;
+	transition: opacity .15s;
+	pointer-events: none;
+	padding: 4px;
+	z-index: 10000;
+	.tooltip-content {
+		background: black;
+		color: white;
+		border-radius: 10px;
+		padding: 5px 10px 4px;
+	}
+	&.tooltip-open-transitionend {
+		display: block;
+	}
+	&.tooltip-after-open {
+		opacity: 1;
+	}
+}

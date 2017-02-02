@@ -4,11 +4,27 @@ var Api = require("./api.js");
 var Vue = require("vue");
 var fabric = require("fabric-webpack").fabric;
 var $ = require("jquery");
+var Tooltip = require("tether-tooltip");
 
 var Events = new Vue({});
 
 var globalTabCounter = 2;
 var globalTabIdCounter = 1;
+var positions = [
+	'top-left',
+	'left-top',
+	'left-middle',
+	'left-bottom',
+	'bottom-left',
+	'bottom-center',
+	'bottom-right',
+	'right-bottom',
+	'right-middle',
+	'right-top',
+	'top-right',
+	'top-center'
+];
+
 
 var getJsonOutput = function (objectsList) {
 	for (var i = 0; i < objectsList.length; i++) {
@@ -23,7 +39,8 @@ var getJsonOutput = function (objectsList) {
 	return JSON.stringify(objectsList);
 };
 
-Vue.component('cost-info', {
+
+var costInfo = Vue.component('cost-info', {
 	template: "<div id='circuit-cost' v-html='html'></div>",
 	props: ["objects"],
 	computed: {
@@ -33,6 +50,44 @@ Vue.component('cost-info', {
 	},
 
 });
+
+function destroyTooltip (el) {
+	if (el._tooltip) {
+		el._tooltip.destroy();
+		delete el._tooltip;
+	}
+}
+
+function createTooltip (el, content, position) {
+	el._tooltip = new Tooltip({
+		target: el,
+		position: position,
+		content: content,
+		tetherOptions: {
+	  		constraints: [{
+	      		to: 'window',
+	      		attachment: 'together',
+	      		pin: true,
+	    	}]
+		}
+	});
+}
+
+Vue.directive('tooltip', {
+	bind: function (el, binding) {
+		var position = "top-center";
+		console.log(binding.modifiers);
+		for (var key in positions)
+			if (binding.modifiers[positions[key]])
+				position = positions[key];
+		position = position.replace("-", " ");
+		createTooltip(el, binding.value, position);
+	},
+	unbind (el) {
+		destroyToolTip(el);
+	}
+});
+
 
 Vue.component('truth-table-content', {
 	template: "<div id='truth-table-content' v-html='html'></div>",
@@ -52,7 +107,7 @@ Vue.component('truth-button', {
 	props: ["name"],
 	computed: {
 		icon: function () {
-			switch(this.name) {
+			switch (this.name) {
 				case "export":
 					return "el el-download-alt";
 				case "import":

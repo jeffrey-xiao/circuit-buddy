@@ -59,12 +59,12 @@ button {
 .canvas-container {
   background: #282a2e;
   border-style: none;
-  margin: 10px;
+  margin: 15px;
   vertical-align: top;
   display: inline-block; }
 
 #truth-table {
-  margin-top: 10px;
+  margin-top: 15px;
   padding: 10px;
   box-sizing: border-box;
   text-align: center;
@@ -161,12 +161,13 @@ div.active {
 .modal-button {
   font-size: 18px;
   padding: 10px 20px;
+  margin: 0 0 0 5px;
   background: #282a2e;
   border-style: none;
   font-family: 'Overpass Mono', monospace;
   color: #c5c8c6;
   vertical-align: top;
-  margin: -4px 0 0 0;
+  margin: -7px 0 0 0;
   box-sizing: border-box;
   display: inline-block; }
 
@@ -190,9 +191,33 @@ div.active {
   overflow-y: auto;
   outline: 0; }
 
+#export-modal {
+  display: none; }
+
+#import-modal {
+  display: none; }
+
+#camera-modal {
+  display: none; }
+
 .modal-textarea:focus {
   border-bottom: #4271ae; }
 
-/*# sourceMappingURL=main.css.map */
+.tooltip {
+  display: none;
+  opacity: 0;
+  transition: opacity .15s;
+  pointer-events: none;
+  padding: 4px;
+  z-index: 10000; }
+  .tooltip .tooltip-content {
+    background: black;
+    color: white;
+    border-radius: 10px;
+    padding: 5px 10px 4px; }
+  .tooltip.tooltip-open-transitionend {
+    display: block; }
+  .tooltip.tooltip-after-open {
+    opacity: 1; }
 
 /*# sourceMappingURL=main.css.map */

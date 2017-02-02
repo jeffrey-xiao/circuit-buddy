@@ -169,7 +169,7 @@ module.exports = {
 			var id = options.target.id;
 			if (isDeleting) {
 				removeObject(Main.objects[id], 0);
-				
+				Main.updateOutputs();
 			} else if (Main.objects[id]) {
 				if (Main.objects[id].type == Constants.TYPES.INPUT_GATE)
 					$('#current-hovered-element').text("Hovered: Input Gate: " + getInputId(id) + ".");
