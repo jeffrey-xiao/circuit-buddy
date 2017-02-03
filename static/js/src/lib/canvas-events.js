@@ -128,7 +128,7 @@ var getOutputId = function (id) {
 };
 
 var removeObject = function (element, depth) {
-	if (!element || !element.element || (depth != 0 && Main.isGate(element.type))
+	if (!element || !element.element || (depth != 0 && Main.isGate(element.type)))
 		return;
 
 	for (var i = 0; i < element.inputs.length; i++) {
