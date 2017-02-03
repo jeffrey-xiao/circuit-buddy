@@ -25,7 +25,6 @@
 		computed: {
 			tableObject: function () {
 				console.log(Main.getTruthTable(this.objects));
-				return Main.getTruthTable(this.objects);
 			}
 		}
 	}

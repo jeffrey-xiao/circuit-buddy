@@ -64,7 +64,6 @@ function createTooltip (el, content, position) {
 Vue.directive('tooltip', {
 	bind: function (el, binding) {
 		var position = "top-center";
-		console.log(binding.modifiers);
 		for (var key in positions)
 			if (binding.modifiers[positions[key]])
 				position = positions[key];

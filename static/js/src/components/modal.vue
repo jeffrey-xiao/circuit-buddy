@@ -66,7 +66,6 @@
 				if (ref.name == "export")
 					ref.textAreaContent = getJsonOutput(ref.objectsList);
 				ref.isVisible = true;
-				console.log(ref.isVisible);
 			});
 		}
 	};

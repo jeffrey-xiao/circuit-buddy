@@ -46,12 +46,12 @@
 
 	"use strict";
 
-	var $ = __webpack_require__(3);
-	var Main = __webpack_require__(4);
-	var Api = __webpack_require__(54);
-	var CanvasEvents = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"./lib/canvas-events.js\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
-	var Constants = __webpack_require__(7);
-	var Ui = __webpack_require__(59);
+	var $ = __webpack_require__(8);
+	var Main = __webpack_require__(9);
+	var Api = __webpack_require__(59);
+	var CanvasEvents = __webpack_require__(63);
+	var Constants = __webpack_require__(12);
+	var Ui = __webpack_require__(64);
 
 	$(function () {
 		$(this).keydown(CanvasEvents.onKeyDown);
@@ -71,7 +71,12 @@
 /***/ },
 /* 1 */,
 /* 2 */,
-/* 3 */
+/* 3 */,
+/* 4 */,
+/* 5 */,
+/* 6 */,
+/* 7 */,
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -10297,14 +10302,14 @@
 
 
 /***/ },
-/* 4 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 
-	var Vue = __webpack_require__(5);
-	var Constants = __webpack_require__(7);
-	var fabric = __webpack_require__(8).fabric;
+	var Vue = __webpack_require__(10);
+	var Constants = __webpack_require__(12);
+	var fabric = __webpack_require__(13).fabric;
 
 	var ret = {};
 	ret.currObjectId = Constants.OPTS.initialObjectId;
@@ -10565,7 +10570,7 @@
 	module.exports = ret;
 
 /***/ },
-/* 5 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process, global) {/*!
@@ -19137,10 +19142,10 @@
 
 	module.exports = Vue$3;
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6), (function() { return this; }())))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11), (function() { return this; }())))
 
 /***/ },
-/* 6 */
+/* 11 */
 /***/ function(module, exports) {
 
 	// shim for using process in browser
@@ -19326,7 +19331,7 @@
 
 
 /***/ },
-/* 7 */
+/* 12 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -19405,7 +19410,7 @@
 	module.exports = ret;
 
 /***/ },
-/* 8 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer, process) {/* build: `node build.js modules=ALL exclude=json,gestures minifier=uglifyjs` */
@@ -19424,7 +19429,7 @@
 	}
 	else {
 	  // assume we're running under node.js when document/window are not present
-	  fabric.document = __webpack_require__(13)
+	  fabric.document = __webpack_require__(18)
 	    .jsdom("<!DOCTYPE html><html><head></head><body></body></html>");
 
 	  if (fabric.document.createWindow) {
@@ -20161,7 +20166,7 @@
 	     */
 	    createImage: function() {
 	      return fabric.isLikelyNode
-	        ? new (__webpack_require__(14).Image)()
+	        ? new (__webpack_require__(19).Image)()
 	        : fabric.document.createElement('img');
 	    },
 
@@ -43591,13 +43596,13 @@
 	    return;
 	  }
 
-	  var DOMParser = __webpack_require__(15).DOMParser,
-	      URL = __webpack_require__(16),
-	      HTTP = __webpack_require__(23),
-	      HTTPS = __webpack_require__(52),
+	  var DOMParser = __webpack_require__(20).DOMParser,
+	      URL = __webpack_require__(21),
+	      HTTP = __webpack_require__(28),
+	      HTTPS = __webpack_require__(57),
 
-	      Canvas = __webpack_require__(14),
-	      Image = __webpack_require__(14).Image;
+	      Canvas = __webpack_require__(19),
+	      Image = __webpack_require__(19).Image;
 
 	  /** @private */
 	  function request(url, encoding, callback) {
@@ -43645,7 +43650,7 @@
 
 	  /** @private */
 	  function requestFs(path, callback) {
-	    var fs = __webpack_require__(53);
+	    var fs = __webpack_require__(58);
 	    fs.readFile(path, function (err, data) {
 	      if (err) {
 	        fabric.log(err);
@@ -43790,10 +43795,10 @@
 	})();
 
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9).Buffer, __webpack_require__(6)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(14).Buffer, __webpack_require__(11)))
 
 /***/ },
-/* 9 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/*!
@@ -43806,9 +43811,9 @@
 
 	'use strict'
 
-	var base64 = __webpack_require__(10)
-	var ieee754 = __webpack_require__(11)
-	var isArray = __webpack_require__(12)
+	var base64 = __webpack_require__(15)
+	var ieee754 = __webpack_require__(16)
+	var isArray = __webpack_require__(17)
 
 	exports.Buffer = Buffer
 	exports.SlowBuffer = SlowBuffer
@@ -45589,7 +45594,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 10 */
+/* 15 */
 /***/ function(module, exports) {
 
 	'use strict'
@@ -45709,7 +45714,7 @@
 
 
 /***/ },
-/* 11 */
+/* 16 */
 /***/ function(module, exports) {
 
 	exports.read = function (buffer, offset, isLE, mLen, nBytes) {
@@ -45799,7 +45804,7 @@
 
 
 /***/ },
-/* 12 */
+/* 17 */
 /***/ function(module, exports) {
 
 	var toString = {}.toString;
@@ -45810,25 +45815,25 @@
 
 
 /***/ },
-/* 13 */
+/* 18 */
 /***/ function(module, exports) {
 
 	/* (ignored) */
 
 /***/ },
-/* 14 */
+/* 19 */
 /***/ function(module, exports) {
 
 	/* (ignored) */
 
 /***/ },
-/* 15 */
+/* 20 */
 /***/ function(module, exports) {
 
 	/* (ignored) */
 
 /***/ },
-/* 16 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -45854,8 +45859,8 @@
 
 	'use strict';
 
-	var punycode = __webpack_require__(17);
-	var util = __webpack_require__(19);
+	var punycode = __webpack_require__(22);
+	var util = __webpack_require__(24);
 
 	exports.parse = urlParse;
 	exports.resolve = urlResolve;
@@ -45930,7 +45935,7 @@
 	      'gopher:': true,
 	      'file:': true
 	    },
-	    querystring = __webpack_require__(20);
+	    querystring = __webpack_require__(25);
 
 	function urlParse(url, parseQueryString, slashesDenoteHost) {
 	  if (url && util.isObject(url) && url instanceof Url) return url;
@@ -46566,7 +46571,7 @@
 
 
 /***/ },
-/* 17 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module, global) {/*! https://mths.be/punycode v1.3.2 by @mathias */
@@ -47098,10 +47103,10 @@
 
 	}(this));
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(18)(module), (function() { return this; }())))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)(module), (function() { return this; }())))
 
 /***/ },
-/* 18 */
+/* 23 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
@@ -47117,7 +47122,7 @@
 
 
 /***/ },
-/* 19 */
+/* 24 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -47139,17 +47144,17 @@
 
 
 /***/ },
-/* 20 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	exports.decode = exports.parse = __webpack_require__(21);
-	exports.encode = exports.stringify = __webpack_require__(22);
+	exports.decode = exports.parse = __webpack_require__(26);
+	exports.encode = exports.stringify = __webpack_require__(27);
 
 
 /***/ },
-/* 21 */
+/* 26 */
 /***/ function(module, exports) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -47235,7 +47240,7 @@
 
 
 /***/ },
-/* 22 */
+/* 27 */
 /***/ function(module, exports) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -47305,13 +47310,13 @@
 
 
 /***/ },
-/* 23 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {var ClientRequest = __webpack_require__(24)
-	var extend = __webpack_require__(50)
-	var statusCodes = __webpack_require__(51)
-	var url = __webpack_require__(16)
+	/* WEBPACK VAR INJECTION */(function(global) {var ClientRequest = __webpack_require__(29)
+	var extend = __webpack_require__(55)
+	var statusCodes = __webpack_require__(56)
+	var url = __webpack_require__(21)
 
 	var http = exports
 
@@ -47390,14 +47395,14 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 24 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer, global, process) {var capability = __webpack_require__(25)
-	var inherits = __webpack_require__(26)
-	var response = __webpack_require__(27)
-	var stream = __webpack_require__(28)
-	var toArrayBuffer = __webpack_require__(49)
+	/* WEBPACK VAR INJECTION */(function(Buffer, global, process) {var capability = __webpack_require__(30)
+	var inherits = __webpack_require__(31)
+	var response = __webpack_require__(32)
+	var stream = __webpack_require__(33)
+	var toArrayBuffer = __webpack_require__(54)
 
 	var IncomingMessage = response.IncomingMessage
 	var rStates = response.readyStates
@@ -47688,10 +47693,10 @@
 		'via'
 	]
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9).Buffer, (function() { return this; }()), __webpack_require__(6)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(14).Buffer, (function() { return this; }()), __webpack_require__(11)))
 
 /***/ },
-/* 25 */
+/* 30 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {exports.fetch = isFunction(global.fetch) && isFunction(global.ReadableStream)
@@ -47767,7 +47772,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 26 */
+/* 31 */
 /***/ function(module, exports) {
 
 	if (typeof Object.create === 'function') {
@@ -47796,12 +47801,12 @@
 
 
 /***/ },
-/* 27 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process, Buffer, global) {var capability = __webpack_require__(25)
-	var inherits = __webpack_require__(26)
-	var stream = __webpack_require__(28)
+	/* WEBPACK VAR INJECTION */(function(process, Buffer, global) {var capability = __webpack_require__(30)
+	var inherits = __webpack_require__(31)
+	var stream = __webpack_require__(33)
 
 	var rStates = exports.readyStates = {
 		UNSENT: 0,
@@ -47982,33 +47987,33 @@
 		}
 	}
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6), __webpack_require__(9).Buffer, (function() { return this; }())))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11), __webpack_require__(14).Buffer, (function() { return this; }())))
 
 /***/ },
-/* 28 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {var Stream = (function (){
 	  try {
-	    return __webpack_require__(29); // hack to fix a circular dependency issue when used with browserify
+	    return __webpack_require__(34); // hack to fix a circular dependency issue when used with browserify
 	  } catch(_){}
 	}());
-	exports = module.exports = __webpack_require__(40);
+	exports = module.exports = __webpack_require__(45);
 	exports.Stream = Stream || exports;
 	exports.Readable = exports;
-	exports.Writable = __webpack_require__(32);
-	exports.Duplex = __webpack_require__(39);
-	exports.Transform = __webpack_require__(46);
-	exports.PassThrough = __webpack_require__(48);
+	exports.Writable = __webpack_require__(37);
+	exports.Duplex = __webpack_require__(44);
+	exports.Transform = __webpack_require__(51);
+	exports.PassThrough = __webpack_require__(53);
 
 	if (!process.browser && process.env.READABLE_STREAM === 'disable' && Stream) {
 	  module.exports = Stream;
 	}
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 29 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -48034,15 +48039,15 @@
 
 	module.exports = Stream;
 
-	var EE = __webpack_require__(30).EventEmitter;
-	var inherits = __webpack_require__(26);
+	var EE = __webpack_require__(35).EventEmitter;
+	var inherits = __webpack_require__(31);
 
 	inherits(Stream, EE);
-	Stream.Readable = __webpack_require__(28);
-	Stream.Writable = __webpack_require__(31);
-	Stream.Duplex = __webpack_require__(44);
-	Stream.Transform = __webpack_require__(45);
-	Stream.PassThrough = __webpack_require__(47);
+	Stream.Readable = __webpack_require__(33);
+	Stream.Writable = __webpack_require__(36);
+	Stream.Duplex = __webpack_require__(49);
+	Stream.Transform = __webpack_require__(50);
+	Stream.PassThrough = __webpack_require__(52);
 
 	// Backwards-compat with node 0.4.x
 	Stream.Stream = Stream;
@@ -48141,7 +48146,7 @@
 
 
 /***/ },
-/* 30 */
+/* 35 */
 /***/ function(module, exports) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -48449,14 +48454,14 @@
 
 
 /***/ },
-/* 31 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(32)
+	module.exports = __webpack_require__(37)
 
 
 /***/ },
-/* 32 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process, setImmediate) {// A bit simpler than readable streams.
@@ -48468,7 +48473,7 @@
 	module.exports = Writable;
 
 	/*<replacement>*/
-	var processNextTick = __webpack_require__(35);
+	var processNextTick = __webpack_require__(40);
 	/*</replacement>*/
 
 	/*<replacement>*/
@@ -48482,13 +48487,13 @@
 	Writable.WritableState = WritableState;
 
 	/*<replacement>*/
-	var util = __webpack_require__(36);
-	util.inherits = __webpack_require__(26);
+	var util = __webpack_require__(41);
+	util.inherits = __webpack_require__(31);
 	/*</replacement>*/
 
 	/*<replacement>*/
 	var internalUtil = {
-	  deprecate: __webpack_require__(37)
+	  deprecate: __webpack_require__(42)
 	};
 	/*</replacement>*/
 
@@ -48496,16 +48501,16 @@
 	var Stream;
 	(function () {
 	  try {
-	    Stream = __webpack_require__(29);
+	    Stream = __webpack_require__(34);
 	  } catch (_) {} finally {
-	    if (!Stream) Stream = __webpack_require__(30).EventEmitter;
+	    if (!Stream) Stream = __webpack_require__(35).EventEmitter;
 	  }
 	})();
 	/*</replacement>*/
 
-	var Buffer = __webpack_require__(9).Buffer;
+	var Buffer = __webpack_require__(14).Buffer;
 	/*<replacement>*/
-	var bufferShim = __webpack_require__(38);
+	var bufferShim = __webpack_require__(43);
 	/*</replacement>*/
 
 	util.inherits(Writable, Stream);
@@ -48520,7 +48525,7 @@
 	}
 
 	function WritableState(options, stream) {
-	  Duplex = Duplex || __webpack_require__(39);
+	  Duplex = Duplex || __webpack_require__(44);
 
 	  options = options || {};
 
@@ -48654,7 +48659,7 @@
 	}
 
 	function Writable(options) {
-	  Duplex = Duplex || __webpack_require__(39);
+	  Duplex = Duplex || __webpack_require__(44);
 
 	  // Writable ctor is applied to Duplexes, too.
 	  // `realHasInstance` is necessary because using plain `instanceof`
@@ -49013,10 +49018,10 @@
 	    }
 	  };
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6), __webpack_require__(33).setImmediate))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11), __webpack_require__(38).setImmediate))
 
 /***/ },
-/* 33 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var apply = Function.prototype.apply;
@@ -49069,13 +49074,13 @@
 	};
 
 	// setimmediate attaches itself to the global object
-	__webpack_require__(34);
+	__webpack_require__(39);
 	exports.setImmediate = setImmediate;
 	exports.clearImmediate = clearImmediate;
 
 
 /***/ },
-/* 34 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, process) {(function (global, undefined) {
@@ -49265,10 +49270,10 @@
 	    attachTo.clearImmediate = clearImmediate;
 	}(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
 
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(6)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(11)))
 
 /***/ },
-/* 35 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -49315,10 +49320,10 @@
 	  }
 	}
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 36 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {// Copyright Joyent, Inc. and other Node contributors.
@@ -49429,10 +49434,10 @@
 	  return Object.prototype.toString.call(o);
 	}
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(14).Buffer))
 
 /***/ },
-/* 37 */
+/* 42 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {
@@ -49506,12 +49511,12 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 38 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {'use strict';
 
-	var buffer = __webpack_require__(9);
+	var buffer = __webpack_require__(14);
 	var Buffer = buffer.Buffer;
 	var SlowBuffer = buffer.SlowBuffer;
 	var MAX_LEN = buffer.kMaxLength || 2147483647;
@@ -49621,7 +49626,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 39 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// a duplex stream is just a stream that is both readable and writable.
@@ -49644,16 +49649,16 @@
 	module.exports = Duplex;
 
 	/*<replacement>*/
-	var processNextTick = __webpack_require__(35);
+	var processNextTick = __webpack_require__(40);
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var util = __webpack_require__(36);
-	util.inherits = __webpack_require__(26);
+	var util = __webpack_require__(41);
+	util.inherits = __webpack_require__(31);
 	/*</replacement>*/
 
-	var Readable = __webpack_require__(40);
-	var Writable = __webpack_require__(32);
+	var Readable = __webpack_require__(45);
+	var Writable = __webpack_require__(37);
 
 	util.inherits(Duplex, Readable);
 
@@ -49701,7 +49706,7 @@
 	}
 
 /***/ },
-/* 40 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -49709,11 +49714,11 @@
 	module.exports = Readable;
 
 	/*<replacement>*/
-	var processNextTick = __webpack_require__(35);
+	var processNextTick = __webpack_require__(40);
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var isArray = __webpack_require__(12);
+	var isArray = __webpack_require__(17);
 	/*</replacement>*/
 
 	/*<replacement>*/
@@ -49723,7 +49728,7 @@
 	Readable.ReadableState = ReadableState;
 
 	/*<replacement>*/
-	var EE = __webpack_require__(30).EventEmitter;
+	var EE = __webpack_require__(35).EventEmitter;
 
 	var EElistenerCount = function (emitter, type) {
 	  return emitter.listeners(type).length;
@@ -49734,25 +49739,25 @@
 	var Stream;
 	(function () {
 	  try {
-	    Stream = __webpack_require__(29);
+	    Stream = __webpack_require__(34);
 	  } catch (_) {} finally {
-	    if (!Stream) Stream = __webpack_require__(30).EventEmitter;
+	    if (!Stream) Stream = __webpack_require__(35).EventEmitter;
 	  }
 	})();
 	/*</replacement>*/
 
-	var Buffer = __webpack_require__(9).Buffer;
+	var Buffer = __webpack_require__(14).Buffer;
 	/*<replacement>*/
-	var bufferShim = __webpack_require__(38);
+	var bufferShim = __webpack_require__(43);
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var util = __webpack_require__(36);
-	util.inherits = __webpack_require__(26);
+	var util = __webpack_require__(41);
+	util.inherits = __webpack_require__(31);
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var debugUtil = __webpack_require__(41);
+	var debugUtil = __webpack_require__(46);
 	var debug = void 0;
 	if (debugUtil && debugUtil.debuglog) {
 	  debug = debugUtil.debuglog('stream');
@@ -49761,7 +49766,7 @@
 	}
 	/*</replacement>*/
 
-	var BufferList = __webpack_require__(42);
+	var BufferList = __webpack_require__(47);
 	var StringDecoder;
 
 	util.inherits(Readable, Stream);
@@ -49781,7 +49786,7 @@
 	}
 
 	function ReadableState(options, stream) {
-	  Duplex = Duplex || __webpack_require__(39);
+	  Duplex = Duplex || __webpack_require__(44);
 
 	  options = options || {};
 
@@ -49843,14 +49848,14 @@
 	  this.decoder = null;
 	  this.encoding = null;
 	  if (options.encoding) {
-	    if (!StringDecoder) StringDecoder = __webpack_require__(43).StringDecoder;
+	    if (!StringDecoder) StringDecoder = __webpack_require__(48).StringDecoder;
 	    this.decoder = new StringDecoder(options.encoding);
 	    this.encoding = options.encoding;
 	  }
 	}
 
 	function Readable(options) {
-	  Duplex = Duplex || __webpack_require__(39);
+	  Duplex = Duplex || __webpack_require__(44);
 
 	  if (!(this instanceof Readable)) return new Readable(options);
 
@@ -49953,7 +49958,7 @@
 
 	// backwards compatibility.
 	Readable.prototype.setEncoding = function (enc) {
-	  if (!StringDecoder) StringDecoder = __webpack_require__(43).StringDecoder;
+	  if (!StringDecoder) StringDecoder = __webpack_require__(48).StringDecoder;
 	  this._readableState.decoder = new StringDecoder(enc);
 	  this._readableState.encoding = enc;
 	  return this;
@@ -50645,23 +50650,23 @@
 	  }
 	  return -1;
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 41 */
+/* 46 */
 /***/ function(module, exports) {
 
 	/* (ignored) */
 
 /***/ },
-/* 42 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Buffer = __webpack_require__(9).Buffer;
+	var Buffer = __webpack_require__(14).Buffer;
 	/*<replacement>*/
-	var bufferShim = __webpack_require__(38);
+	var bufferShim = __webpack_require__(43);
 	/*</replacement>*/
 
 	module.exports = BufferList;
@@ -50723,7 +50728,7 @@
 	};
 
 /***/ },
-/* 43 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -50747,7 +50752,7 @@
 	// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 	// USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-	var Buffer = __webpack_require__(9).Buffer;
+	var Buffer = __webpack_require__(14).Buffer;
 
 	var isBufferEncoding = Buffer.isEncoding
 	  || function(encoding) {
@@ -50950,21 +50955,21 @@
 
 
 /***/ },
-/* 44 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(39)
+	module.exports = __webpack_require__(44)
 
 
 /***/ },
-/* 45 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(46)
+	module.exports = __webpack_require__(51)
 
 
 /***/ },
-/* 46 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// a transform stream is a readable/writable stream where you do
@@ -51013,11 +51018,11 @@
 
 	module.exports = Transform;
 
-	var Duplex = __webpack_require__(39);
+	var Duplex = __webpack_require__(44);
 
 	/*<replacement>*/
-	var util = __webpack_require__(36);
-	util.inherits = __webpack_require__(26);
+	var util = __webpack_require__(41);
+	util.inherits = __webpack_require__(31);
 	/*</replacement>*/
 
 	util.inherits(Transform, Duplex);
@@ -51151,14 +51156,14 @@
 	}
 
 /***/ },
-/* 47 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(48)
+	module.exports = __webpack_require__(53)
 
 
 /***/ },
-/* 48 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// a passthrough stream.
@@ -51169,11 +51174,11 @@
 
 	module.exports = PassThrough;
 
-	var Transform = __webpack_require__(46);
+	var Transform = __webpack_require__(51);
 
 	/*<replacement>*/
-	var util = __webpack_require__(36);
-	util.inherits = __webpack_require__(26);
+	var util = __webpack_require__(41);
+	util.inherits = __webpack_require__(31);
 	/*</replacement>*/
 
 	util.inherits(PassThrough, Transform);
@@ -51189,10 +51194,10 @@
 	};
 
 /***/ },
-/* 49 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Buffer = __webpack_require__(9).Buffer
+	var Buffer = __webpack_require__(14).Buffer
 
 	module.exports = function (buf) {
 		// If the buffer is backed by a Uint8Array, a faster version will work
@@ -51222,7 +51227,7 @@
 
 
 /***/ },
-/* 50 */
+/* 55 */
 /***/ function(module, exports) {
 
 	module.exports = extend
@@ -51247,7 +51252,7 @@
 
 
 /***/ },
-/* 51 */
+/* 56 */
 /***/ function(module, exports) {
 
 	module.exports = {
@@ -51317,10 +51322,10 @@
 
 
 /***/ },
-/* 52 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var http = __webpack_require__(23);
+	var http = __webpack_require__(28);
 
 	var https = module.exports;
 
@@ -51337,27 +51342,27 @@
 
 
 /***/ },
-/* 53 */
+/* 58 */
 /***/ function(module, exports) {
 
 	/* (ignored) */
 
 /***/ },
-/* 54 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 
-	var _stringify = __webpack_require__(55);
+	var _stringify = __webpack_require__(60);
 
 	var _stringify2 = _interopRequireDefault(_stringify);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var Constants = __webpack_require__(7);
-	var Main = __webpack_require__(4);
-	var fabric = __webpack_require__(8).fabric;
-	var $ = __webpack_require__(3);
+	var Constants = __webpack_require__(12);
+	var Main = __webpack_require__(9);
+	var fabric = __webpack_require__(13).fabric;
+	var $ = __webpack_require__(8);
 
 	// initial gate id counter when building the circuit tree
 	var initialGateId = 100;
@@ -51621,50 +51626,596 @@
 	module.exports = ret;
 
 /***/ },
-/* 55 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = { "default": __webpack_require__(56), __esModule: true };
+	module.exports = { "default": __webpack_require__(61), __esModule: true };
 
 /***/ },
-/* 56 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var core  = __webpack_require__(57)
+	var core  = __webpack_require__(62)
 	  , $JSON = core.JSON || (core.JSON = {stringify: JSON.stringify});
 	module.exports = function stringify(it){ // eslint-disable-line no-unused-vars
 	  return $JSON.stringify.apply($JSON, arguments);
 	};
 
 /***/ },
-/* 57 */
+/* 62 */
 /***/ function(module, exports) {
 
 	var core = module.exports = {version: '2.4.0'};
 	if(typeof __e == 'number')__e = core; // eslint-disable-line no-undef
 
 /***/ },
-/* 58 */,
-/* 59 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 
-	var Constants = __webpack_require__(7);
-	var Main = __webpack_require__(4);
-	var Api = __webpack_require__(54);
-	var Vue = __webpack_require__(5);
-	var fabric = __webpack_require__(8).fabric;
-	var $ = __webpack_require__(3);
-	var Tooltip = __webpack_require__(60);
+	var Constants = __webpack_require__(12);
+	var Main = __webpack_require__(9);
+	var fabric = __webpack_require__(13).fabric;
+	var $ = __webpack_require__(8);
+	var Vue = __webpack_require__(10);
 
-	var AddTab = __webpack_require__(73);
-	var CostInfo = __webpack_require__(63);
-	var Modal = __webpack_require__(76);
-	var Tab = __webpack_require__(79);
-	var TabsBar = __webpack_require__(82);
-	var TruthButton = __webpack_require__(86);
-	var TruthTableContent = __webpack_require__(66);
+	var hline1, hline2, vline, startComponentId;
+	var initialX, initialY;
+	var mouseDownTime;
+	var isDrawingFromInput = false,
+	    isDrawingFromOutput = false,
+	    creatingLine = false,
+	    isDeleting = false;
+	var selectableIndicator = [];
+
+	var propagateInputMovement = function propagateInputMovement(dx, dy, element, depth, prevX, prevY) {
+		if (depth == 2 || !element) return;
+		for (var i = 0; i < element.inputs.length; i++) {
+			var input = Main.objects[element.inputs[i]];
+			var nextPrevX = input.element.x2;
+			var nextPrevY = input.element.y2;
+			if (input.type == Constants.TYPES.HORIZONTAL_LINE) {
+				if (Math.abs(input.element.x2 - prevX) < 1e-6) {
+					input.element.set({
+						y1: input.element.y1 + dy,
+						y2: input.element.y2 + dy,
+						x2: input.element.x2 + dx
+					});
+					input.element.setCoords();
+				} else {
+					input.element.set({
+						y1: input.element.y1 + dy,
+						y2: input.element.y2 + dy,
+						x1: input.element.x1 + dx
+					});
+					input.element.setCoords();
+				}
+			} else if (input.type == Constants.TYPES.VERTICAL_LINE) {
+				if (Math.abs(input.element.y2 - prevY) < 1e-6) {
+					input.element.set({
+						y2: input.element.y2 + dy
+					});
+					input.y1 = input.element.y1;
+					input.y2 = input.element.y2;
+					input.element.setCoords();
+				} else {
+					input.element.set({
+						y1: input.element.y1 + dy
+					});
+					input.y1 = input.element.y1;
+					input.y2 = input.element.y2;
+					input.element.setCoords();
+				}
+			}
+			propagateInputMovement(dx, dy, input, depth + 1, nextPrevX, nextPrevY);
+		}
+	};
+
+	var propagateOutputMovement = function propagateOutputMovement(dx, dy, element, depth, prevX, prevY) {
+		if (depth == 2 || !element) return;
+		for (var i = 0; i < element.outputs.length; i++) {
+			var output = Main.objects[element.outputs[i]];
+			var nextPrevX = output.element.x2;
+			var nextPrevY = output.element.y2;
+			if (output.type == Constants.TYPES.HORIZONTAL_LINE) {
+				if (Math.abs(output.element.x2 - prevX) < 1e-6) {
+					output.element.set({
+						y1: output.element.y1 + dy,
+						y2: output.element.y2 + dy,
+						x2: output.element.x2 + dx
+					});
+					output.element.setCoords();
+				} else {
+					output.element.set({
+						y1: output.element.y1 + dy,
+						y2: output.element.y2 + dy,
+						x1: output.element.x1 + dx
+					});
+					output.element.setCoords();
+				}
+			} else if (output.type == Constants.TYPES.VERTICAL_LINE) {
+				if (Math.abs(output.element.y2 - prevY) < 1e-6) {
+					output.element.set({
+						y2: output.element.y2 + dy
+					});
+					output.y1 = output.element.y1;
+					output.y2 = output.element.y2;
+					output.element.setCoords();
+				} else {
+					output.element.set({
+						y1: output.element.y1 + dy
+					});
+					output.y1 = output.element.y1;
+					output.y2 = output.element.y2;
+					output.element.setCoords();
+				}
+			}
+			propagateOutputMovement(dx, dy, output, depth + 1, nextPrevX, nextPrevY);
+		}
+	};
+
+	var getInputId = function getInputId(id) {
+		var ids = [];
+
+		for (var key in Main.objects) {
+			if (Main.objects[key].type == Constants.TYPES.INPUT_GATE) ids.push(Main.objects[key].element.id);
+		}ids.sort();
+
+		for (var i = 0; i < ids.length; i++) {
+			if (ids[i] == id) return String.fromCharCode(65 + i);
+		}
+	};
+
+	var getOutputId = function getOutputId(id) {
+		var ids = [];
+
+		for (var key in Main.objects) {
+			if (Main.objects[key].type == Constants.TYPES.OUTPUT_GATE) ids.push(Main.objects[key].element.id);
+		}ids.sort();
+
+		for (var i = 0; i < ids.length; i++) {
+			if (ids[i] == id) return String.fromCharCode(88 + i);
+		}
+	};
+
+	var removeObject = function removeObject(element, depth) {
+		if (!element || !element.element || depth != 0 && Main.isGate(element.type)) return;
+
+		for (var i = 0; i < element.inputs.length; i++) {
+			var nextInputElement = Main.objects[element.inputs[i]];
+			var index = nextInputElement.outputs.indexOf(element.element.id);
+			nextInputElement.outputs.splice(index);
+			removeObject(nextInputElement, depth + 1);
+		}
+
+		for (var i = 0; i < element.outputs.length; i++) {
+			var nextOutputElement = Main.objects[element.outputs[i]];
+			var index = nextOutputElement.inputs.indexOf(element.element.id);
+			nextOutputElement.inputs.splice(index);
+			removeObject(nextOutputElement, depth + 1);
+		}
+
+		Main.canvas.remove(element.element);
+		Vue.delete(Main.objects, element.element.id);
+	};
+
+	module.exports = {
+		onKeyDown: function onKeyDown(e) {
+			var key = e.keyCode ? e.keyCode : e.which;
+			if (key == 8) isDeleting = true;
+		},
+
+		onKeyUp: function onKeyUp(e) {
+			var key = e.keyCode ? e.keyCode : e.which;
+			if (key == 8) isDeleting = false;
+		},
+
+		// displaying the name of the component when hovering over
+		onMouseOver: function onMouseOver(options) {
+			if (options.target && Main.isEditableObject(options.target.id)) {
+				var id = options.target.id;
+				if (isDeleting) {
+					removeObject(Main.objects[id], 0);
+					Main.updateOutputs();
+				} else if (Main.objects[id]) {
+					if (Main.objects[id].type == Constants.TYPES.INPUT_GATE) $('#current-hovered-element').text("Hovered: Input Gate: " + getInputId(id) + ".");else if (Main.objects[id].type == Constants.TYPES.OUTPUT_GATE) $('#current-hovered-element').text("Hovered: Output Gate: " + getOutputId(id) + ".");else $('#current-hovered-element').text("Hovered: " + Main.getGate(Main.objects[id].type) + ".");
+				}
+			} else {
+				$('#current-hovered-element').text("Hovered: No element.");
+			}
+		},
+
+		onMouseUp: function onMouseUp(options) {
+			// handling clicks
+			if (new Date().getTime() - mouseDownTime < 100) {
+				// creating new editable gate
+				if (options.target && options.target.isToolbox) {
+					var currGate = Constants.GATES[options.target.id];
+					fabric.Image.fromURL(currGate.url, function (oImage) {
+						Main.canvas.add(oImage);
+						Vue.set(Main.objects, oImage.id, {
+							element: oImage,
+							type: currGate.type,
+							outputs: [],
+							inputs: [],
+							top: currGate.id * Constants.OPTS.gridSize,
+							left: Constants.OPTS.gridSize,
+							width: Constants.OPTS.gridSize,
+							height: Constants.OPTS.gridSize,
+							state: Constants.STATES.INPUT_OFF
+						});
+					}, {
+						id: Main.currObjectId++,
+						top: currGate.id * Constants.OPTS.gridSize,
+						left: Constants.OPTS.gridSize,
+						height: Constants.OPTS.gridSize,
+						width: Constants.OPTS.gridSize,
+						hasBorders: false,
+						hasControls: false,
+						hasRotatingPoint: false
+					});
+				}
+				// changing input
+				else if (options.target && Main.objects[options.target.id] && Main.objects[options.target.id].type == Constants.TYPES.INPUT_GATE) {
+
+						var currGate = Main.objects[options.target.id];
+						currGate.state = currGate.state == Constants.STATES.INPUT_ON ? Constants.STATES.INPUT_OFF : Constants.STATES.INPUT_ON;
+
+						currGate.element.setSrc(currGate.state, function () {
+							Main.canvas.renderAll();
+						});
+
+						Main.updateOutputs();
+					}
+			}
+
+			// finishing wire connection
+			if (hline1 && hline2 && vline && creatingLine) {
+				var x = hline2.element.x2;
+				var y = hline2.element.y2;
+				var connected = false;
+				Vue.set(Main.objects, hline1.element.id, hline1);
+				Vue.set(Main.objects, hline2.element.id, hline2);
+				Vue.set(Main.objects, vline.element.id, vline);
+
+				for (var key in Main.objects) {
+					var currGate = Main.objects[key];
+					if (Main.isGate(currGate.type) && currGate.element.left - 10 <= x && x <= currGate.element.left + 10 && currGate.element.top <= y && y <= currGate.element.top + 50) {
+						if (currGate.type == Constants.TYPES.INPUT_GATE) continue;
+						if (isDrawingFromOutput) continue;
+						if (currGate.element.id == startComponentId) continue;
+						hline2.outputs.push(currGate.element.id);
+						currGate.inputs.push(hline2.element.id);
+
+						hline2.element.set({
+							x2: currGate.element.left
+						});
+						hline2.element.setCoords();
+
+						connected = true;
+
+						Main.updateOutputs();
+						Main.canvas.renderAll();
+					}
+					if (Main.isGate(currGate.type) && currGate.element.left + 40 <= x && x <= currGate.element.left + 60 && currGate.element.top + 20 <= y && y <= currGate.element.top + 30) {
+						if (currGate.type == Constants.TYPES.OUTPUT_GATE) continue;
+						if (isDrawingFromInput) continue;
+						if (currGate.element.id == startComponentId) continue;
+						hline2.inputs.push(currGate.element.id);
+						if (hline2.outputs.length == 1) {
+							if (Math.abs(Main.objects[hline2.outputs[0]].element.y1 - hline2.element.y2) < 1e-6) {
+								Main.objects[hline2.outputs[0]].element.set({
+									y1: currGate.element.top + 25
+								});
+								Main.objects[hline2.outputs[0]].element.setCoords();
+							}
+							if (Math.abs(Main.objects[hline2.outputs[0]].element.y2 - hline2.element.y2) < 1e-6) {
+								Main.objects[hline2.outputs[0]].element.set({
+									y2: currGate.element.top + 25
+								});
+								Main.objects[hline2.outputs[0]].element.setCoords();
+							}
+						}
+						currGate.outputs.push(hline2.element.id);
+
+						hline2.element.set({
+							x2: currGate.element.left + 50,
+							y1: currGate.element.top + 25,
+							y2: currGate.element.top + 25
+						});
+						hline2.element.setCoords();
+
+						connected = true;
+
+						Main.updateOutputs();
+						Main.canvas.renderAll();
+					}
+				}
+
+				if (!connected) {
+					for (var i = 0; i < hline1.inputs.length; i++) {
+						if (Main.objects[hline1.inputs[i]].outputs.length == 1 && Main.objects[Main.objects[hline1.inputs[i]].outputs[0]] == hline1) Main.objects[hline1.inputs[i]].outputs = [];
+					}if (hline1.outputs.length == 1) {
+						Main.objects[hline1.outputs[0]].inputs = Main.objects[hline1.outputs[0]].inputs.filter(function (el) {
+							return Main.objects[el].element.id != hline1.element.id;
+						});
+					}
+					Main.canvas.remove(hline1.element);
+					Main.canvas.remove(hline2.element);
+					Main.canvas.remove(vline.element);
+					Vue.delete(Main.objects, hline1.element.id);
+					Vue.delete(Main.objects, hline2.element.id);
+					Vue.delete(Main.objects, vline.element.id);
+				}
+
+				hline1 = null;
+				hline2 = null;
+				vline = null;
+				startComponentId = null;
+			}
+
+			creatingLine = false;
+			isDrawingFromInput = false;
+			isDrawingFromOutput = false;
+		},
+
+		onObjectMoving: function onObjectMoving(options) {
+			if (Main.isGate(Main.objects[options.target.id].type)) {
+				var startX = Main.objects[options.target.id].left;
+				var startY = Main.objects[options.target.id].top;
+				var finalX = Math.round(options.target.left / Constants.OPTS.gridSize) * Constants.OPTS.gridSize;
+				var finalY = Math.round(options.target.top / Constants.OPTS.gridSize) * Constants.OPTS.gridSize;
+
+				options.target.set({
+					left: finalX,
+					top: finalY
+				});
+
+				options.target.setCoords();
+
+				Main.objects[options.target.id].left = finalX;
+				Main.objects[options.target.id].top = finalY;
+
+				propagateInputMovement(finalX - startX, finalY - startY, Main.objects[options.target.id], 0, startX, startY);
+				propagateOutputMovement(finalX - startX, finalY - startY, Main.objects[options.target.id], 0, startX + 50, startY);
+
+				Main.canvas.renderAll();
+			} else {
+				var y1 = Main.objects[options.target.id].y1;
+				var y2 = Main.objects[options.target.id].y2;
+
+				var element = Main.objects[options.target.id];
+				var inputElement = Main.objects[Main.objects[element.inputs[0]].element.id];
+				var outputElement = Main.objects[Main.objects[element.outputs[0]].element.id];
+
+				var xcoords = [inputElement.element.x1, inputElement.element.x2, outputElement.element.x1, outputElement.element.x2];
+				var jointX;
+				for (var i = 0; i < 3; i++) {
+					if (xcoords[i] == xcoords[i + 1]) jointX = xcoords[i];
+				}if (Math.abs(inputElement.element.x1 - jointX) < 1e-6) inputElement.element.set({ x1: options.target.left });else inputElement.element.set({ x2: options.target.left });
+
+				if (Math.abs(outputElement.element.x1 - jointX) < 1e-6) outputElement.element.set({ x1: options.target.left });else outputElement.element.set({ x2: options.target.left });
+
+				element.element.set({
+					y1: y1,
+					y2: y2,
+					x1: options.target.left,
+					x2: options.target.left
+				});
+
+				inputElement.element.setCoords();
+				outputElement.element.setCoords();
+				element.element.setCoords();
+
+				Main.canvas.renderAll();
+			}
+		},
+
+		onMouseMove: function onMouseMove(options) {
+			if (creatingLine) {
+				var pointer = Main.canvas.getPointer(options.e);
+				var finalX = pointer.x;
+				var finalY = pointer.y;
+
+				hline1.element.set({
+					x1: initialX,
+					x2: (finalX + initialX) / 2.0,
+					y1: initialY,
+					y2: initialY
+				});
+
+				vline.element.set({
+					x1: (finalX + initialX) / 2.0,
+					x2: (finalX + initialX) / 2.0,
+					y1: initialY,
+					y2: finalY
+				});
+
+				hline2.element.set({
+					x1: (finalX + initialX) / 2.0,
+					x2: finalX,
+					y1: finalY,
+					y2: finalY
+				});
+
+				vline.y1 = vline.element.y1;
+				vline.y2 = vline.element.y2;
+
+				hline1.element.setCoords();
+				hline2.element.setCoords();
+				vline.element.setCoords();
+
+				Main.canvas.renderAll();
+			}
+
+			var pointer = Main.canvas.getPointer(options.e);
+			var x = pointer.x;
+			var y = pointer.y;
+
+			while (selectableIndicator.length > 0) {
+				Main.canvas.remove(selectableIndicator.pop());
+			}for (var key in Main.objects) {
+				var obj = Main.objects[key].element;
+				var connectedInput = obj.left - 15 <= x && x <= obj.left && obj.top + 5 <= y && y <= obj.top + 45;
+				var connectedOutput = obj.left + 50 <= x && x <= obj.left + 65 && obj.top <= y && y <= obj.top + 50;
+
+				if (connectedOutput && Main.objects[key].type != Constants.TYPES.OUTPUT_GATE && Main.isGate(Main.objects[key].type)) {
+					var centerX = obj.left;
+					var centerY = obj.top + 25;
+					var currObject = new fabric.Circle({
+						radius: 5,
+						top: centerY - 3.5,
+						left: centerX + 48,
+						fill: "#81a2be",
+						opacity: 0.8,
+						selectable: false
+					});
+					selectableIndicator.push(currObject);
+					Main.canvas.add(currObject);
+				} else if (connectedInput && Main.objects[key].type != Constants.TYPES.INPUT_GATE && Main.isGate(Main.objects[key].type)) {
+					var centerX = obj.left;
+					var centerY = y;
+					var currObject = new fabric.Circle({
+						radius: 5,
+						top: centerY - 3.5,
+						left: centerX - 6,
+						fill: "#81a2be",
+						opacity: 0.8,
+						selectable: false
+					});
+					selectableIndicator.push(currObject);
+					Main.canvas.add(currObject);
+				}
+			}
+		},
+
+		onMouseDown: function onMouseDown(options) {
+			mouseDownTime = new Date().getTime();
+			if (!creatingLine) {
+				for (var key in Main.objects) {
+					var obj = Main.objects[key].element;
+
+					var pointer = Main.canvas.getPointer(options.e);
+					var x = pointer.x;
+					var y = pointer.y;
+
+					if (Main.isGate(Main.objects[key].type)) {
+						var connectedInput = obj.left - 10 <= x && x <= obj.left && obj.top <= y && y <= obj.top + obj.height;
+						var connectedOutput = obj.left + 50 <= x && x <= obj.left + 60 && obj.top + 20 <= y && y <= obj.top + 30;
+
+						if (connectedInput || connectedOutput) {
+							if (connectedOutput && Main.objects[key].type == Constants.TYPES.OUTPUT_GATE) continue;
+							if (connectedInput && Main.objects[key].type == Constants.TYPES.INPUT_GATE) continue;
+							if (connectedOutput && Main.objects[key].type == Constants.TYPES.INPUT_GATE) isDrawingFromInput = true;
+							if (connectedInput && Main.objects[key].type == Constants.TYPES.OUTPUT_GATE) isDrawingFromOutput = true;
+							creatingLine = true;
+							startComponentId = key;
+
+							initialX = obj.left;
+							initialY = y;
+
+							if (connectedOutput) {
+								initialX = obj.left + 50;
+								initialY = obj.top + 25;
+							}
+
+							var hlineElement1 = new fabric.Line([initialX, initialY, initialX, initialY], {
+								stroke: '#81a2be',
+								id: Main.currObjectId++,
+								selectable: false,
+								strokeWidth: 3
+							});
+
+							var hlineElement2 = new fabric.Line([initialX, initialY, initialX, initialY], {
+								stroke: '#81a2be',
+								id: Main.currObjectId++,
+								selectable: false,
+								strokeWidth: 3
+							});
+
+							var vlineElement = new fabric.Line([initialX, initialY, initialX, initialY], {
+								stroke: '#81a2be',
+								id: Main.currObjectId++,
+								selectable: true,
+								hasControls: false,
+								strokeWidth: 3
+							});
+
+							hline1 = {
+								element: hlineElement1,
+								type: Constants.TYPES.HORIZONTAL_LINE,
+								outputs: [],
+								inputs: []
+							};
+
+							hline2 = {
+								element: hlineElement2,
+								type: Constants.TYPES.HORIZONTAL_LINE,
+								outputs: [],
+								inputs: []
+							};
+
+							vline = {
+								element: vlineElement,
+								type: Constants.TYPES.VERTICAL_LINE,
+								y1: initialY,
+								y2: initialY,
+								outputs: [],
+								inputs: []
+							};
+
+							Main.canvas.add(hlineElement1);
+							Main.canvas.add(hlineElement2);
+							Main.canvas.add(vlineElement);
+
+							if (connectedOutput) {
+								hline1.inputs.push(Main.objects[key].element.id);
+								hline1.outputs = [vline.element.id];
+
+								vline.inputs.push(hline1.element.id);
+								vline.outputs = [hline2.element.id];
+
+								hline2.inputs.push(vline.element.id);
+
+								Main.objects[key].outputs.push(hline1.element.id);
+							} else {
+								hline1.outputs = [Main.objects[key].element.id];
+								vline.outputs = [hline1.element.id];
+								hline2.outputs = [vline.element.id];
+
+								Main.objects[key].inputs.push(hline1.element.id);
+								hline1.inputs.push(vline.element.id);
+								vline.inputs.push(hline2.element.id);
+							}
+						}
+					}
+				}
+			}
+		}
+	};
+
+/***/ },
+/* 64 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var Constants = __webpack_require__(12);
+	var Main = __webpack_require__(9);
+	var Api = __webpack_require__(59);
+	var Vue = __webpack_require__(10);
+	var fabric = __webpack_require__(13).fabric;
+	var $ = __webpack_require__(8);
+	var Tooltip = __webpack_require__(65);
+
+	var AddTab = __webpack_require__(68);
+	var CostInfo = __webpack_require__(71);
+	var Modal = __webpack_require__(74);
+	var Tab = __webpack_require__(77);
+	var TabsBar = __webpack_require__(80);
+	var TruthButton = __webpack_require__(83);
+	var TruthTableContent = __webpack_require__(86);
 
 	Vue.component('add-tab', AddTab);
 	Vue.component('cost-info', CostInfo);
@@ -51703,7 +52254,6 @@
 	Vue.directive('tooltip', {
 		bind: function bind(el, binding) {
 			var position = "top-center";
-			console.log(binding.modifiers);
 			for (var key in positions) {
 				if (binding.modifiers[positions[key]]) position = positions[key];
 			}position = position.replace("-", " ");
@@ -51870,14 +52420,14 @@
 	module.exports = {};
 
 /***/ },
-/* 60 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! tether-tooltip 1.1.0 */
 
 	(function(root, factory) {
 	  if (true) {
-	    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(61),__webpack_require__(62)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(66),__webpack_require__(67)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 	  } else if (typeof exports === 'object') {
 	    module.exports = factory(require('tether-drop'), require('tether'));
 	  } else {
@@ -52014,14 +52564,14 @@
 
 
 /***/ },
-/* 61 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! tether-drop 1.4.1 */
 
 	(function(root, factory) {
 	  if (true) {
-	    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(62)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(67)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 	  } else if (typeof exports === 'object') {
 	    module.exports = factory(require('tether'));
 	  } else {
@@ -52580,7 +53130,7 @@
 
 
 /***/ },
-/* 62 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*! tether 1.4.0 */
@@ -54397,158 +54947,12 @@
 
 
 /***/ },
-/* 63 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __vue_script__, __vue_template__
-	__vue_script__ = __webpack_require__(64)
-	__vue_template__ = __webpack_require__(65)
-	module.exports = __vue_script__ || {}
-	if (module.exports.__esModule) module.exports = module.exports.default
-	if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
-	if (false) {(function () {  module.hot.accept()
-	  var hotAPI = require("vue-hot-reload-api")
-	  hotAPI.install(require("vue"), true)
-	  if (!hotAPI.compatible) return
-	  var id = "C:\\Users\\Jeffrey\\workspace\\GitHub\\Circuit-Analysis\\static\\js\\src\\components\\cost-info.vue"
-	  if (!module.hot.data) {
-	    hotAPI.createRecord(id, module.exports)
-	  } else {
-	    hotAPI.update(id, module.exports, __vue_template__)
-	  }
-	})()}
-
-/***/ },
-/* 64 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-
-	// <template>
-
-	// 	<div id="circuit-cost" v-html="html">		
-
-	// 	</div>
-
-	// </template>
-
-
-	// <script>
-	var Main = __webpack_require__(4);
-
-	module.exports = {
-		props: ["objects"],
-		computed: {
-			html: function html() {
-				return "Cost: " + Main.getCost(this.objects);
-			}
-		}
-	};
-	// </script>
-
-/***/ },
-/* 65 */
-/***/ function(module, exports) {
-
-	module.exports = "<div id=\"circuit-cost\" v-html=\"html\">\t\t\r\n\t</div>";
-
-/***/ },
-/* 66 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __vue_script__, __vue_template__
-	__vue_script__ = __webpack_require__(67)
-	__vue_template__ = __webpack_require__(68)
-	module.exports = __vue_script__ || {}
-	if (module.exports.__esModule) module.exports = module.exports.default
-	if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
-	if (false) {(function () {  module.hot.accept()
-	  var hotAPI = require("vue-hot-reload-api")
-	  hotAPI.install(require("vue"), true)
-	  if (!hotAPI.compatible) return
-	  var id = "C:\\Users\\Jeffrey\\workspace\\GitHub\\Circuit-Analysis\\static\\js\\src\\components\\truth-table-content.vue"
-	  if (!module.hot.data) {
-	    hotAPI.createRecord(id, module.exports)
-	  } else {
-	    hotAPI.update(id, module.exports, __vue_template__)
-	  }
-	})()}
-
-/***/ },
-/* 67 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-
-	// <template>
-
-	// 	<div id="truth-table-wrapper">
-
-	// 		<table id="truth-table-content">
-
-	// 			<thead><tr>
-
-	// 				<th v-for="i in tableObject.inputLength + tableObject.outputLength"
-
-	// 					v-bind:class="{'vertical-separator': i == tableObject.inputLength + 1}">
-
-	// 					{{i <= tableObject.inputLength ? String.fromCharCode(64 + i) : String.fromCharCode(87 + i - tableObject.inputLength)}}
-
-	// 				</th>
-
-	// 			</tr></thead>
-
-	// 			<tr v-for="(row, i) in tableObject.table">
-
-	// 				<td v-for="(cell, j) in row"
-
-	// 					v-bind:class="{'vertical-separator': j == tableObject.inputLength,
-
-	// 								   'horizontal-separator': i == 0}">
-
-	// 					{{cell}}
-
-	// 				</td>
-
-	// 			</tr>
-
-	// 		</table>
-
-	// 	</div>
-
-	// </template>
-
-	// <script>
-	var Main = __webpack_require__(4);
-
-	module.exports = {
-		props: ["objects"],
-		computed: {
-			tableObject: function tableObject() {
-				console.log(Main.getTruthTable(this.objects));
-				return Main.getTruthTable(this.objects);
-			}
-		}
-	};
-	// </script>
-
-/***/ },
 /* 68 */
-/***/ function(module, exports) {
-
-	module.exports = "<div id=\"truth-table-wrapper\">\r\n\t\t<table id=\"truth-table-content\">\r\n\t\t\t<thead><tr>\r\n\t\t\t\t<th v-for=\"i in tableObject.inputLength + tableObject.outputLength\"\r\n\t\t\t\t\tv-bind:class=\"{'vertical-separator': i == tableObject.inputLength + 1}\">\r\n\t\t\t\t\t{{i <= tableObject.inputLength ? String.fromCharCode(64 + i) : String.fromCharCode(87 + i - tableObject.inputLength)}}\r\n\t\t\t\t</th>\r\n\t\t\t</tr></thead>\r\n\t\t\t<tr v-for=\"(row, i) in tableObject.table\">\r\n\t\t\t\t<td v-for=\"(cell, j) in row\"\r\n\t\t\t\t\tv-bind:class=\"{'vertical-separator': j == tableObject.inputLength,\r\n\t\t\t\t\t\t\t\t   'horizontal-separator': i == 0}\">\r\n\t\t\t\t\t{{cell}}\r\n\t\t\t\t</td>\r\n\t\t\t</tr>\r\n\t\t</table>\r\n\t</div>";
-
-/***/ },
-/* 69 */,
-/* 70 */,
-/* 71 */,
-/* 72 */,
-/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __vue_script__, __vue_template__
-	__vue_script__ = __webpack_require__(74)
-	__vue_template__ = __webpack_require__(75)
+	__vue_script__ = __webpack_require__(69)
+	__vue_template__ = __webpack_require__(70)
 	module.exports = __vue_script__ || {}
 	if (module.exports.__esModule) module.exports = module.exports.default
 	if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
@@ -54565,7 +54969,7 @@
 	})()}
 
 /***/ },
-/* 74 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -54578,7 +54982,7 @@
 
 
 	// <script>
-	var Main = __webpack_require__(4);
+	var Main = __webpack_require__(9);
 
 	module.exports = {
 		methods: {
@@ -54590,18 +54994,74 @@
 	// </script>
 
 /***/ },
-/* 75 */
+/* 70 */
 /***/ function(module, exports) {
 
 	module.exports = "<button id=\"add-tab\" class=\"tab\" v-on:click=\"addTab\"><i class=\"el el-plus\"></i></button>";
 
 /***/ },
-/* 76 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __vue_script__, __vue_template__
-	__vue_script__ = __webpack_require__(77)
-	__vue_template__ = __webpack_require__(78)
+	__vue_script__ = __webpack_require__(72)
+	__vue_template__ = __webpack_require__(73)
+	module.exports = __vue_script__ || {}
+	if (module.exports.__esModule) module.exports = module.exports.default
+	if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
+	if (false) {(function () {  module.hot.accept()
+	  var hotAPI = require("vue-hot-reload-api")
+	  hotAPI.install(require("vue"), true)
+	  if (!hotAPI.compatible) return
+	  var id = "C:\\Users\\Jeffrey\\workspace\\GitHub\\Circuit-Analysis\\static\\js\\src\\components\\cost-info.vue"
+	  if (!module.hot.data) {
+	    hotAPI.createRecord(id, module.exports)
+	  } else {
+	    hotAPI.update(id, module.exports, __vue_template__)
+	  }
+	})()}
+
+/***/ },
+/* 72 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	// <template>
+
+	// 	<div id="circuit-cost" v-html="html">		
+
+	// 	</div>
+
+	// </template>
+
+
+	// <script>
+	var Main = __webpack_require__(9);
+
+	module.exports = {
+		props: ["objects"],
+		computed: {
+			html: function html() {
+				return "Cost: " + Main.getCost(this.objects);
+			}
+		}
+	};
+	// </script>
+
+/***/ },
+/* 73 */
+/***/ function(module, exports) {
+
+	module.exports = "<div id=\"circuit-cost\" v-html=\"html\">\t\t\r\n\t</div>";
+
+/***/ },
+/* 74 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __vue_script__, __vue_template__
+	__vue_script__ = __webpack_require__(75)
+	__vue_template__ = __webpack_require__(76)
 	module.exports = __vue_script__ || {}
 	if (module.exports.__esModule) module.exports = module.exports.default
 	if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
@@ -54618,12 +55078,12 @@
 	})()}
 
 /***/ },
-/* 77 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 
-	var _stringify = __webpack_require__(55);
+	var _stringify = __webpack_require__(60);
 
 	var _stringify2 = _interopRequireDefault(_stringify);
 
@@ -54653,7 +55113,7 @@
 
 
 	// <script>
-	var Main = __webpack_require__(4);
+	var Main = __webpack_require__(9);
 
 	var getJsonOutput = function getJsonOutput(objectsList) {
 		for (var i = 0; i < objectsList.length; i++) {
@@ -54705,25 +55165,24 @@
 			Main.Events.$on(this.name + ":clicked", function () {
 				if (ref.name == "export") ref.textAreaContent = getJsonOutput(ref.objectsList);
 				ref.isVisible = true;
-				console.log(ref.isVisible);
 			});
 		}
 	};
 	// </script>
 
 /***/ },
-/* 78 */
+/* 76 */
 /***/ function(module, exports) {
 
 	module.exports = "<div class=\"modal\" v-bind:id=\"name + '-modal'\" v-show=\"isVisible\">\r\n\t    <div class=\"modal-inner\">\r\n\t        <h1 class=\"modal-title\" v-html=\"title\"></h1>\r\n\t        <input v-if=\"hasFileInput\" class=\"modal-textarea\" name=\"file\" type=\"file\" @change=\"onFileChange\"></input>\r\n\t        <textarea v-if=\"hasTextArea\" class=\"modal-textarea\" v-model=\"textAreaContent\"></textarea>\r\n\t        <button class=\"modal-button\" v-on:click=\"exitAction\">Exit</button>\r\n\t        <button class=\"modal-button\" v-on:click=\"importAction\" v-if=\"name == 'camera' || name == 'import'\">Import</button>\r\n\t    </div>\r\n\t</div>";
 
 /***/ },
-/* 79 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __vue_script__, __vue_template__
-	__vue_script__ = __webpack_require__(80)
-	__vue_template__ = __webpack_require__(81)
+	__vue_script__ = __webpack_require__(78)
+	__vue_template__ = __webpack_require__(79)
 	module.exports = __vue_script__ || {}
 	if (module.exports.__esModule) module.exports = module.exports.default
 	if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
@@ -54740,7 +55199,7 @@
 	})()}
 
 /***/ },
-/* 80 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -54763,7 +55222,7 @@
 
 
 	// <script>
-	var Main = __webpack_require__(4);
+	var Main = __webpack_require__(9);
 
 	module.exports = {
 		props: ['tabId', 'currActive', 'name'],
@@ -54787,18 +55246,18 @@
 	// </script>
 
 /***/ },
-/* 81 */
+/* 79 */
 /***/ function(module, exports) {
 
 	module.exports = "<div v-bind:id=\"'tab-' + tabId\" class=\"tab\" v-bind:class=\"{active: isActive}\" v-on:click=\"setActive\">\r\n        <span>{{name}}</span>\r\n        <button v-bind:id=\"'delete-tab-' + tabId\" v-on:click=\"deleteTab\">\r\n            <i class=\"el el-remove\"></i>\r\n        </button>\r\n    </div>";
 
 /***/ },
-/* 82 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __vue_script__, __vue_template__
-	__vue_script__ = __webpack_require__(83)
-	__vue_template__ = __webpack_require__(84)
+	__vue_script__ = __webpack_require__(81)
+	__vue_template__ = __webpack_require__(82)
 	module.exports = __vue_script__ || {}
 	if (module.exports.__esModule) module.exports = module.exports.default
 	if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
@@ -54815,7 +55274,7 @@
 	})()}
 
 /***/ },
-/* 83 */
+/* 81 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -54842,19 +55301,18 @@
 	// </script>
 
 /***/ },
-/* 84 */
+/* 82 */
 /***/ function(module, exports) {
 
 	module.exports = "<div id=\"tabs-bar\">\r\n        <div id=\"tabs\">\r\n            <tab v-for=\"tab in tabs\" v-bind:tab-id=\"tab.id\" v-bind:name=\"tab.name\" v-bind:curr-active=\"activeTab\"></tab>\r\n        </div><add-tab></add-tab>\r\n    </div>";
 
 /***/ },
-/* 85 */,
-/* 86 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __vue_script__, __vue_template__
-	__vue_script__ = __webpack_require__(87)
-	__vue_template__ = __webpack_require__(88)
+	__vue_script__ = __webpack_require__(84)
+	__vue_template__ = __webpack_require__(85)
 	module.exports = __vue_script__ || {}
 	if (module.exports.__esModule) module.exports = module.exports.default
 	if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
@@ -54871,7 +55329,7 @@
 	})()}
 
 /***/ },
-/* 87 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -54888,7 +55346,7 @@
 
 
 	// <script>
-	var Main = __webpack_require__(4);
+	var Main = __webpack_require__(9);
 
 	module.exports = {
 		props: ["name"],
@@ -54915,10 +55373,95 @@
 	// </script>
 
 /***/ },
-/* 88 */
+/* 85 */
 /***/ function(module, exports) {
 
 	module.exports = "<button class=\"truth-button\" v-bind:id=\"name + '-button'\" v-on:click=\"onClick\">\r\n\t    <i v-bind:class=\"icon\"></i>\r\n\t</button>";
+
+/***/ },
+/* 86 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __vue_script__, __vue_template__
+	__vue_script__ = __webpack_require__(87)
+	__vue_template__ = __webpack_require__(88)
+	module.exports = __vue_script__ || {}
+	if (module.exports.__esModule) module.exports = module.exports.default
+	if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
+	if (false) {(function () {  module.hot.accept()
+	  var hotAPI = require("vue-hot-reload-api")
+	  hotAPI.install(require("vue"), true)
+	  if (!hotAPI.compatible) return
+	  var id = "C:\\Users\\Jeffrey\\workspace\\GitHub\\Circuit-Analysis\\static\\js\\src\\components\\truth-table-content.vue"
+	  if (!module.hot.data) {
+	    hotAPI.createRecord(id, module.exports)
+	  } else {
+	    hotAPI.update(id, module.exports, __vue_template__)
+	  }
+	})()}
+
+/***/ },
+/* 87 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	// <template>
+
+	// 	<div id="truth-table-wrapper">
+
+	// 		<table id="truth-table-content">
+
+	// 			<thead><tr>
+
+	// 				<th v-for="i in tableObject.inputLength + tableObject.outputLength"
+
+	// 					v-bind:class="{'vertical-separator': i == tableObject.inputLength + 1}">
+
+	// 					{{i <= tableObject.inputLength ? String.fromCharCode(64 + i) : String.fromCharCode(87 + i - tableObject.inputLength)}}
+
+	// 				</th>
+
+	// 			</tr></thead>
+
+	// 			<tr v-for="(row, i) in tableObject.table">
+
+	// 				<td v-for="(cell, j) in row"
+
+	// 					v-bind:class="{'vertical-separator': j == tableObject.inputLength,
+
+	// 								   'horizontal-separator': i == 0}">
+
+	// 					{{cell}}
+
+	// 				</td>
+
+	// 			</tr>
+
+	// 		</table>
+
+	// 	</div>
+
+	// </template>
+
+	// <script>
+	var Main = __webpack_require__(9);
+
+	module.exports = {
+		props: ["objects"],
+		computed: {
+			tableObject: function tableObject() {
+				console.log(Main.getTruthTable(this.objects));
+			}
+		}
+	};
+	// </script>
+
+/***/ },
+/* 88 */
+/***/ function(module, exports) {
+
+	module.exports = "<div id=\"truth-table-wrapper\">\r\n\t\t<table id=\"truth-table-content\">\r\n\t\t\t<thead><tr>\r\n\t\t\t\t<th v-for=\"i in tableObject.inputLength + tableObject.outputLength\"\r\n\t\t\t\t\tv-bind:class=\"{'vertical-separator': i == tableObject.inputLength + 1}\">\r\n\t\t\t\t\t{{i <= tableObject.inputLength ? String.fromCharCode(64 + i) : String.fromCharCode(87 + i - tableObject.inputLength)}}\r\n\t\t\t\t</th>\r\n\t\t\t</tr></thead>\r\n\t\t\t<tr v-for=\"(row, i) in tableObject.table\">\r\n\t\t\t\t<td v-for=\"(cell, j) in row\"\r\n\t\t\t\t\tv-bind:class=\"{'vertical-separator': j == tableObject.inputLength,\r\n\t\t\t\t\t\t\t\t   'horizontal-separator': i == 0}\">\r\n\t\t\t\t\t{{cell}}\r\n\t\t\t\t</td>\r\n\t\t\t</tr>\r\n\t\t</table>\r\n\t</div>";
 
 /***/ }
 /******/ ]);

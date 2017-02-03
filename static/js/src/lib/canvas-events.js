@@ -395,7 +395,7 @@ module.exports = {
 		}
 	},
 
-	on`: function (options) {
+	onMouseMove: function (options) {
 		if (creatingLine) {
 			var pointer = Main.canvas.getPointer(options.e);
 			var finalX = pointer.x;
