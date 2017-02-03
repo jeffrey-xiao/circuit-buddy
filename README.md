@@ -10,7 +10,7 @@ Features:
  - Circuit simplification with the Quine–McCluskey algorithm
 
 The backend is a simple flask server that handles the endpoints for openCV and the Quine-McCluskey algorithm. The frontend
-is mainly vanilla javascript built on [FabricJS](http://fabricjs.com/) and jQuery for the tabs.
+is vanilla javascript built on [FabricJS](http://fabricjs.com/) and Vue for most of the UI components.
 
 Try it now: http://circuit-buddy.herokuapp.com/s/index.html
 
@@ -23,3 +23,8 @@ To run it locally:
 ## Structure
 Logic for the quine-mcluskey algorithm is handled in [qm.py](/qm.py) and openCV in [openCv.py](/openCv.py). The structure and logic for the circuit builder
 is located under [main.js](/static/js/main.js).
+
+## Todo:
+ - Deletion for lines
+ - Custom components
+
