@@ -128,7 +128,7 @@ var getOutputId = function (id) {
 };
 
 var removeObject = function (element, depth) {
-	if (depth == 4 || !element || !element.element)
+	if (!element || !element.element || (depth != 0 && Main.isGate(element.type))
 		return;
 
 	for (var i = 0; i < element.inputs.length; i++) {
@@ -395,7 +395,7 @@ module.exports = {
 		}
 	},
 
-	onMouseMove: function (options) {
+	on`: function (options) {
 		if (creatingLine) {
 			var pointer = Main.canvas.getPointer(options.e);
 			var finalX = pointer.x;

@@ -54,7 +54,7 @@ ret.getGate = function (type) {
 };
 
 ret.isGate = function (type) {
-	return type <= 8;
+	return type <= 9;
 };
 
 ret.isEditableObject = function (id) {

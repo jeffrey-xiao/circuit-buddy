@@ -103,6 +103,7 @@ $(document).ready(function () {
 		mounted: function () {
 			Main.objects = this.objectsList[0];
 			var ref = this;
+			
 			Main.Events.$on('tabs:add-tab', this.addTab);
 			Main.Events.$on('tabs:set-active', function (event, tabId) {
 				ref.activeTab = tabId;

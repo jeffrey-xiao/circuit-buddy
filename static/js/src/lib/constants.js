@@ -10,8 +10,9 @@ ret.TYPES = {
 	XOR_GATE: 6,
 	NXOR_GATE: 7,
 	NOT_GATE: 8,
-	HORIZONTAL_LINE: 9,
-	VERTICAL_LINE: 10
+	CUSTOM_GATE: 9,
+	HORIZONTAL_LINE: 10,
+	VERTICAL_LINE: 11
 };
 
 ret.TYPE_NAMES = ["Input Gate", "Output Gate", "And Gate", "Nand Gate", "Or Gate", 
@@ -21,7 +22,7 @@ ret.OPTS = {
 	height: Math.round((window.innerHeight - 160) / 50.0) * 50,
 	width: Math.round((window.outerWidth- 360) / 50.0) * 50,
 	gridSize: 50,
-	initialObjectId: 11
+	initialObjectId: 12
 };
 
 ret.STATES = {

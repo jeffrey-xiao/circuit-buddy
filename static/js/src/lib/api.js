@@ -5,6 +5,9 @@ var $ = require("jquery");
 
 // initial gate id counter when building the circuit tree
 var initialGateId = 100;
+var horizontalStart = 500;
+var verticalStart = 0;
+var maxDepth = 100;
 
 // INPUTS:
 //  - str 		string representation of circuit
@@ -141,8 +144,8 @@ var createObjects = function (map, id, depths, depth, objects) {
 	if (objects[objectId].element || map[id].depth != depth)
 		return;
 	
-	var left = 500 - depth * 100;
-	var top = 0 + depths[depth] * 50;
+	var left = horizontalStart - depth * Constants.OPTS.gridSize * 2;
+	var top = verticalStart + depths[depth] * Constants.OPTS.gridSize;
 
 	objects[objectId].top = top;
 	objects[objectId].left = left;
@@ -156,7 +159,7 @@ var createObjects = function (map, id, depths, depth, objects) {
 		top: top,
 		left: left,
 		height: Constants.OPTS.gridSize,
-		width: 50,
+		width: Constants.OPTS.gridSize,
 		hasBorders: false,
 		hasControls: false,
 		hasRotatingPoint: false
@@ -193,7 +196,7 @@ ret.parseString = function (str, callback) {
 	var generatedObjects = {}
 	var depths = [];
 	
-	for (var i = 0; i < 100; i++)
+	for (var i = 0; i < maxDepth; i++)
 		depths.push(0);
 	
 	var outputGate = buildCircuitTree(str, map, generatedObjects);
@@ -207,18 +210,18 @@ ret.parseString = function (str, callback) {
 			type: Constants.TYPES.OUTPUT_GATE,
 			outputs: [],
 			inputs: [],
-			top: 50,
-			left: 600,
+			top: verticalStart,
+			left: horizontalStart + Constants.OPTS.gridSize,
 			state: Constants.STATES.OFF
 		};
 		Main.wireObjects(oImage.id, map[outputGate].id, generatedObjects, 1);
 		callback(generatedObjects);
 	}, {
 		id: Main.currObjectId++,
-		top: 50,
-		left: 600,
-		height: 50,
-		width: 50,
+		top: verticalStart,
+		left: horizontalStart + Constants.OPTS.gridSize,
+		height: Constants.OPTS.gridSize,
+		width: Constants.OPTS.gridSize,
 		hasBorders: false,
 		hasControls: false,
 		hasRotatingPoint: false
