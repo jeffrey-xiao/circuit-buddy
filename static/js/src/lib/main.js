@@ -1,6 +1,8 @@
 var Vue = require("vue");
 var Constants = require("./constants.js");
 var fabric = require("fabric-webpack").fabric;
+var Set = require("collections/set");
+var SortedMap = require("collections/sorted-map");
 
 var ret = {};
 ret.currObjectId = Constants.OPTS.initialObjectId;
@@ -61,16 +63,17 @@ ret.isEditableObject = function (id) {
 	return id >= Constants.OPTS.initialObjectId
 };
 
+// gets the previous gate of a wire
 ret.getPreviousGate = function (id) {
 	if (ret.objects[id].inputs.length == 0)
 		return null;
-	var currId = ret.objects[id].inputs[0];
+	var currId = ret.objects[id].inputs[0].id;
 	if (!ret.objects[currId])
 		return null;
 	while (!ret.isGate(ret.objects[currId].type)) {
 		if (ret.objects[currId].inputs.length == 0)
 			return null;
-		currId = ret.objects[currId].inputs[0];
+		currId = ret.objects[currId].inputs[0].id;
 		if (!ret.objects[currId])
 			return null;
 	}
@@ -153,67 +156,99 @@ ret.wireObjects = function (objId1, objId2, objects, outputInputLength) {
 	};
 
 	hline1.outputs.push(objId1);
-	hline1.inputs.push(vline.element.id);
+	hline1.inputs.push({
+		id: vline.element.id,
+		inputIndex: 0,
+		outputIndex: 0
+	});
 
 	vline.outputs.push(hline1.element.id);
-	vline.inputs.push(hline2.element.id);
+	vline.inputs.push({
+		id: hline2.element.id,
+		inputIndex: 0,
+		outputIndex: 0
+	});
 
 	hline2.outputs.push(vline.element.id);
-	hline2.inputs.push(objId2);
+	hline2.inputs.push({
+		id: objId2,
+		inputIndex: 0,
+		outputIndex: 0 
+	});
 
-	objects[objId1].inputs.push(hline1.element.id);
 	objects[objId2].outputs.push(hline2.element.id);
+	objects[objId1].inputs.push({
+		id: hline1.element.id,
+		inputIndex: 0,
+		outputIndex: 0
+	});
 
-	// maybe not necessary
 	Vue.set(objects, hline1.element.id, hline1);
 	Vue.set(objects, hline2.element.id, hline2);
 	Vue.set(objects, vline.element.id, vline);
 };
 
-ret.getOutput = function (currGate, inputMap, objects) {
-	if (!currGate)
-		return 0;
-	if (currGate.type == Constants.TYPES.INPUT_GATE) {
-		if (inputMap)
-			return inputMap[currGate.element.id];
-		return currGate.state == Constants.STATES.INPUT_ON;
-	}
-	if (currGate.inputs.length == 0)
-		return 0;
-	if (currGate.type == Constants.TYPES.HORIZONTAL_LINE || currGate.type == Constants.TYPES.VERTICAL_LINE) {
-		var output = ret.getOutput(objects[currGate.inputs[0]], inputMap, objects);
-		if (!inputMap)
-			currGate.element.setStroke(output ? "#22A80C" : "#81a2be");
-	} else if (currGate.type == Constants.TYPES.AND_GATE || currGate.type == Constants.TYPES.NAND_GATE) {
-		var output = 1;
-		for (var i = 0; i < currGate.inputs.length; i++)
-			output &= ret.getOutput(objects[currGate.inputs[i]], inputMap, objects);
-		if (currGate.type == Constants.TYPES.NAND_GATE) output = !output;
-	} else if (currGate.type == Constants.TYPES.OR_GATE || currGate.type == Constants.TYPES.NOR_GATE) {
-		var output = 0;
-		for (var i = 0; i < currGate.inputs.length; i++)
-			output |= ret.getOutput(objects[currGate.inputs[i]], inputMap, objects);
-		if (currGate.type == Constants.TYPES.NOR_GATE) output = !output;
-	} else if (currGate.type == Constants.TYPES.XOR_GATE || currGate.type == Constants.TYPES.NXOR_GATE) {
-		var output = 0;
-		for (var i = 0; i < currGate.inputs.length; i++)
-			output ^= ret.getOutput(objects[currGate.inputs[i]], inputMap, objects);
-		if (currGate.type == Constants.TYPES.NXOR_GATE) output = !output;
-	} else if (currGate.type == Constants.TYPES.NOT_GATE) {
-		var output = 0;
-		if (currGate.inputs.length > 0)
-			output = !ret.getOutput(objects[currGate.inputs[0]], inputMap, objects);
-	}
-	return output;
+ret.containsInput = function (inputs, id) {
+	for (var i = 0; i < inputs.length; i++)
+		if (inputs[i].id == id)
+			return true;
+	return false;
 };
 
+ret.topSort = function topSort (vis, sorted, key) {
+	vis.add(key);
+	for (var i = 0; i < ret.objects[key].inputs.length; i++) {
+		var nextKey = ret.objects[key].inputs[i].id;
+		if (vis.has(nextKey))
+			continue;
+		topSort(vis, sorted, nextKey);
+	}
+	sorted.add(ret.objects[key]);
+};
+
+ret.getOutputs = function (inputMap) {
+	var vis = new Set();
+	var sorted = [];
+
+	for (var key in ret.objects)
+		if (!vis.has(key))
+			ret.topSort(vis, sorted, key);
+
+	var computedOutputs = [];
+	var outputMap = new SortedMap();
+
+	for (var i = 0; i < sorted.length; i++) {
+		computedOutputs.push(0);
+
+		var inputs = [];
+
+		if (sorted[i].type == Constants.TYPES.INPUT_GATE)
+			inputs = inputMap ? [inputMap[sorted[i].element.id]] : [sorted[i].state == Constants.STATES.INPUT_ON];
+		else
+			for (var j = 0; j < i; j++)
+				if (ret.containsInput(sorted[i].inputs, sorted[j].element.id))
+					inputs.push(computedOutputs[j]);
+
+		computedOutputs[i] = sorted[i].getOutput(inputs);
+
+		if (sorted[i].type == Constants.TYPES.OUTPUT_GATE)
+			outputMap.set(""+sorted[i].element.id, computedOutputs[i]);
+		if (!ret.isGate(sorted[i].type) && !inputMap)
+			sorted[i].element.setStroke(computedOutputs[i] ? "#22A80C" : "#81a2be");
+
+	}
+
+	return outputMap;
+};
+
+
 ret.updateOutputs = function () {
+	var outputMap = ret.getOutputs(null);
+
 	for (var key in ret.objects) {
 		var currGate = ret.objects[key];
 		if (currGate.type == Constants.TYPES.OUTPUT_GATE) {
-			var currState = Constants.STATES.OUTPUT_OFF;
-			if (currGate.inputs.length > 0)
-				currState = ret.getOutput(ret.objects[currGate.inputs[0]], null, ret.objects) == 1 ? Constants.STATES.OUTPUT_ON : Constants.STATES.OUTPUT_OFF;
+			var currState = outputMap.get(currGate.element.id) == 1 ? Constants.STATES.OUTPUT_ON : Constants.STATES.OUTPUT_OFF;
 			currGate.element.setSrc(currState, function () {
 				ret.canvas.renderAll();
 			});
@@ -250,12 +285,10 @@ ret.getTruthTable = function (objects) {
 			truthTable[i][j] = (i & 1 << j) > 0 ? 1 : 0;
 		}
 
-		for (var j = 0; j < outputIds.length; j++) {
-			if (objects[outputIds[j]].inputs.length == 0)
-				truthTable[i][inputIds.length + j] = 0;
-			else 
-				truthTable[i][inputIds.length + j] = ret.getOutput(objects[objects[outputIds[j]].inputs[0]], inputMap, objects);
-		}
+		var outputMap = ret.getOutputs(inputMap);
+
+		for (var j = 0; j < outputIds.length; j++) 
+			truthTable[i][inputIds.length + j] = outputMap.get(outputIds[j]);
 	}
 
 	return {

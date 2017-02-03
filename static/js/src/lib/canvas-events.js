@@ -14,7 +14,7 @@ var propagateInputMovement = function (dx, dy, element, depth, prevX, prevY) {
 	if (depth == 2 || !element)
 		return;
 	for (var i = 0; i < element.inputs.length; i++) {
-		var input = Main.objects[element.inputs[i]];
+		var input = Main.objects[element.inputs[i].id];
 		var nextPrevX = input.element.x2;
 		var nextPrevY = input.element.y2;
 		if (input.type == Constants.TYPES.HORIZONTAL_LINE) {
@@ -132,7 +132,7 @@ var removeObject = function (element, depth) {
 		return;
 
 	for (var i = 0; i < element.inputs.length; i++) {
-		var nextInputElement = Main.objects[element.inputs[i]];
+		var nextInputElement = Main.objects[element.inputs[i].id];
 		var index = nextInputElement.outputs.indexOf(element.element.id);
 		nextInputElement.outputs.splice(index);
 		removeObject(nextInputElement, depth + 1);
@@ -140,7 +140,7 @@ var removeObject = function (element, depth) {
 
 	for (var i = 0; i < element.outputs.length; i++) {
 		var nextOutputElement = Main.objects[element.outputs[i]];
-		var index = nextOutputElement.inputs.indexOf(element.element.id);
+		var index = nextOutputElement.inputs.findIndex(obj => obj.id = element.element.id);
 		nextOutputElement.inputs.splice(index);
 		removeObject(nextOutputElement, depth + 1);
 	}
@@ -200,7 +200,8 @@ module.exports = {
 						left: Constants.OPTS.gridSize,
 						width: Constants.OPTS.gridSize,
 						height: Constants.OPTS.gridSize,
-						state: Constants.STATES.INPUT_OFF
+						state: Constants.STATES.INPUT_OFF,
+						getOutput: Constants.TYPE_OUTPUTS[currGate.type]
 					});
 					
 					
@@ -252,7 +253,11 @@ module.exports = {
 					if (currGate.element.id == startComponentId)
 						continue;
 					hline2.outputs.push(currGate.element.id);
-					currGate.inputs.push(hline2.element.id);
+					currGate.inputs.push({
+						id: hline2.element.id,
+						inputIndex: 0,
+						outputIndex: 0
+					});
 
 					hline2.element.set({
 						x2: currGate.element.left
@@ -273,7 +278,11 @@ module.exports = {
 						continue;
 					if (currGate.element.id == startComponentId)
 						continue;
-					hline2.inputs.push(currGate.element.id);
+					hline2.inputs.push({
+						id: currGate.element.id,
+						inputIndex: 0,
+						outputIndex: 0
+					});
 					if (hline2.outputs.length == 1) {
 						if (Math.abs(Main.objects[hline2.outputs[0]].element.y1 - hline2.element.y2) < 1e-6) {
 							Main.objects[hline2.outputs[0]].element.set({
@@ -308,11 +317,11 @@ module.exports = {
 			
 			if (!connected) {
 				for (var i = 0; i < hline1.inputs.length; i++)
-					if (Main.objects[hline1.inputs[i]].outputs.length == 1 && Main.objects[Main.objects[hline1.inputs[i]].outputs[0]] == hline1)
-						Main.objects[hline1.inputs[i]].outputs = [];
+					if (Main.objects[hline1.inputs[i].id].outputs.length == 1 && Main.objects[Main.objects[hline1.inputs[i].id].outputs[0]] == hline1)
+						Main.objects[hline1.inputs[i].id].outputs = [];
 				if (hline1.outputs.length == 1) {
 					Main.objects[hline1.outputs[0]].inputs = Main.objects[hline1.outputs[0]].inputs.filter(function (el) {
-						return Main.objects[el].element.id != hline1.element.id;
+						return Main.objects[el.id].element.id != hline1.element.id;
 					});
 				}
 				Main.canvas.remove(hline1.element);
@@ -361,7 +370,7 @@ module.exports = {
 			var y2 = Main.objects[options.target.id].y2;
 
 			var element = Main.objects[options.target.id];
-			var inputElement = Main.objects[Main.objects[element.inputs[0]].element.id];
+			var inputElement = Main.objects[Main.objects[element.inputs[0].id].element.id];
 			var outputElement = Main.objects[Main.objects[element.outputs[0]].element.id];
 			
 			var xcoords = [inputElement.element.x1, inputElement.element.x2, outputElement.element.x1, outputElement.element.x2];
@@ -535,14 +544,16 @@ module.exports = {
 							element: hlineElement1,
 							type: Constants.TYPES.HORIZONTAL_LINE,
 							outputs: [],
-							inputs: []
+							inputs: [],
+							getOutput: Constants.TYPE_OUTPUTS[Constants.TYPES.HORIZONTAL_LINE]
 						}; 
 
 						hline2 = {
 							element: hlineElement2,
 							type: Constants.TYPES.HORIZONTAL_LINE,
 							outputs: [],
-							inputs: []
+							inputs: [],
+							getOutput: Constants.TYPE_OUTPUTS[Constants.TYPES.HORIZONTAL_LINE]
 						}
 
 						vline = {
@@ -551,7 +562,8 @@ module.exports = {
 							y1: initialY,
 							y2: initialY,
 							outputs: [],
-							inputs: []
+							inputs: [],
+							getOutput: Constants.TYPE_OUTPUTS[Constants.TYPES.VERTICAL_LINE]
 						}; 
 
 						Main.canvas.add(hlineElement1);
@@ -559,13 +571,25 @@ module.exports = {
 						Main.canvas.add(vlineElement);
 
 						if (connectedOutput) {
-							hline1.inputs.push(Main.objects[key].element.id);
+							hline1.inputs.push({
+								id: Main.objects[key].element.id,
+								inputIndex: 0,
+								outputIndex: 0
+							});
 							hline1.outputs = [vline.element.id];
 
-							vline.inputs.push(hline1.element.id);
+							vline.inputs.push({
+								id: hline1.element.id,
+								inputIndex: 0,
+								outputIndex: 0
+							});
 							vline.outputs = [hline2.element.id];
 
-							hline2.inputs.push(vline.element.id);
+							hline2.inputs.push({
+								id: vline.element.id,
+								inputIndex: 0,
+								outputIndex: 0,
+							});
 
 							Main.objects[key].outputs.push(hline1.element.id);
 						} else {
@@ -573,9 +597,21 @@ module.exports = {
 							vline.outputs = [hline1.element.id];
 							hline2.outputs = [vline.element.id];
 
-							Main.objects[key].inputs.push(hline1.element.id);
-							hline1.inputs.push(vline.element.id);
-							vline.inputs.push(hline2.element.id);
+							Main.objects[key].inputs.push({
+								id: hline1.element.id,
+								inputIndex: 0,
+								outputIndex: 0
+							});
+							hline1.inputs.push({
+								id: vline.element.id,
+								inputIndex: 0,
+								outputIndex: 0
+							});
+							vline.inputs.push({
+								id: hline2.element.id,
+								inputIndex: 0,
+								outputIndex: 0
+							});
 						}
 						
 					}

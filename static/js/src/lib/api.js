@@ -15,7 +15,7 @@ var maxDepth = 100;
 // OUTPUTS:
 //  - objects   objects to be mutated to create the circuit elements 
 var buildCircuitTree = function (str, map, objects) {
-	var currGateType, prevInputId;
+	var currGateType, prevInput;
 	var stack = [];
 	var gateIdCounter = initialGateId;
 	for (var i = 0; i < str.length; i++) {
@@ -51,7 +51,7 @@ var buildCircuitTree = function (str, map, objects) {
 					if (!map[negateId]) {
 						map[negateId] = {
 							id: Main.currObjectId,
-							inputs: [prevInput]
+							inputs: [{prevInput}]
 						};
 
 						objects[Main.currObjectId] = {
@@ -192,6 +192,7 @@ var ret = {};
 //  - str 		string representation of circuit
 //  - callback	function to be called. The newly generated objects is passed as an argument.
 ret.parseString = function (str, callback) {	
+	console.log(str);
 	var map = {}	
 	var generatedObjects = {}
 	var depths = [];

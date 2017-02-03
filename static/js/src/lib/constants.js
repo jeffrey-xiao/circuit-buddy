@@ -18,6 +18,95 @@ ret.TYPES = {
 ret.TYPE_NAMES = ["Input Gate", "Output Gate", "And Gate", "Nand Gate", "Or Gate", 
 			  	  "Nor Gate", "Xor Gate", "Nxor Gate", "Not Gate", "Horizontal Line", "Vertical Line"];
 
+// inputs are an array of binary
+ret.TYPE_OUTPUTS = [
+	// input gate
+	function (inputs) {
+		return inputs[0];
+	},
+
+	// output gate
+	function (inputs) {
+		if (inputs.length == 0)
+			return 0;
+		return inputs[0];
+	},
+
+	// and gate
+	function (inputs) {
+		var ret = 1;
+		for (var i = 0; i < inputs.length; i++)
+			ret &= inputs[i];
+		return ret & (inputs.length > 0);
+	},
+
+	// nand gate
+	function (inputs) {
+		var ret = 1;
+		for (var i = 0; i < inputs.length; i++)
+			ret &= inputs[i];
+		return !ret & (inputs.length > 0);
+	},
+
+	// or gate
+	function (inputs) {
+		var ret = 0;
+		for (var i = 0; i < inputs.length; i++)
+			ret |= inputs[i];
+		return ret & (inputs.length > 0);
+	},
+
+	// nor gate
+	function (inputs) {
+		var ret = 0;
+		for (var i = 0; i < inputs.length; i++)
+			ret |= inputs[i];
+		return !ret & (inputs.length > 0);
+	},
+
+	// xor gate
+	function (inputs) {
+		var ret = 0;
+		for (var i = 0; i < inputs.length; i++)
+			ret ^= inputs[i];
+		return ret & (inputs.length > 0);
+	},
+
+	// nxor gate
+	function (inputs) {
+		var ret = 0;
+		for (var i = 0; i < inputs.length; i++)
+			ret ^= inputs[i];
+		return !ret & (inputs.length > 0);
+	},
+
+	// not gate
+	function (inputs) {
+		if (inputs.length == 0)
+			return 0;
+		return !inputs[0];
+	},
+
+	// custom gate
+	function (inputs) {
+		console.log("ERROR HAVE TO IMPLEMENT");
+	},
+
+	// horizontal line
+	function (inputs) {
+		if (inputs.length == 0)
+			return 0;
+		return inputs[0];
+	},
+
+	// vertical line
+	function (inputs) {
+		if (inputs.length == 0)
+			return 0;
+		return inputs[0];
+	}
+];
+
 ret.OPTS = {
 	height: Math.round((window.innerHeight - 160) / 50.0) * 50,
 	width: Math.round((window.outerWidth- 360) / 50.0) * 50,

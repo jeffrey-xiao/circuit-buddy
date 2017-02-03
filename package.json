@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.16.0",
+    "collections": "^5.0.6",
     "express": "^4.14.0",
     "fabric-webpack": "^1.6.0-rc.1",
     "immutable": "^3.8.1",

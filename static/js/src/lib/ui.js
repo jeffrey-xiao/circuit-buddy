@@ -194,12 +194,11 @@ $(document).ready(function () {
 
 				globalTabCounter = 1;
 				Main.objects = ref.objectsList[0];
-
+				
 				setTimeout(function () {
 					Main.addAllCanvasObjects();
 					Main.updateOutputs();
-					
-				});
+				}, 500);
 			});
 			Main.Events.$on('simplify:clicked', function () {
 				var index = ref.tabs.findIndex(tab => tab.id == ref.activeTab);
