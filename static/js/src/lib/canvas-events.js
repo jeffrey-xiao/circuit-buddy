@@ -104,7 +104,7 @@ var getInputId = function (id) {
 	
 	for (var key in Main.objects)
 		if (Main.objects[key].type == Constants.TYPES.INPUT_GATE)
-			ids.push(Main.objects[key].element.id);
+			ids.push(Main.objects[key].id);
 
 	ids.sort();
 
@@ -118,7 +118,7 @@ var getOutputId = function (id) {
 	
 	for (var key in Main.objects)
 		if (Main.objects[key].type == Constants.TYPES.OUTPUT_GATE)
-			ids.push(Main.objects[key].element.id);
+			ids.push(Main.objects[key].id);
 
 	ids.sort();
 
@@ -130,23 +130,31 @@ var getOutputId = function (id) {
 var removeObject = function (element, depth) {
 	if (!element || !element.element || (depth != 0 && Main.isGate(element.type)))
 		return;
-
-	for (var i = 0; i < element.inputs.length; i++) {
-		var nextInputElement = Main.objects[element.inputs[i].id];
-		var index = nextInputElement.outputs.indexOf(element.element.id);
-		nextInputElement.outputs.splice(index);
-		removeObject(nextInputElement, depth + 1);
+	if (depth >= 0) {
+		for (var i = element.inputs.length - 1; i >= 0; i--) {
+			var nextInputElement = Main.objects[element.inputs[i].id];
+			var index = nextInputElement.outputs.indexOf(element.id);
+			nextInputElement.outputs.splice(index, 1);
+			removeObject(nextInputElement, depth + 1);
+		}
+		for (var i = element.inputs.length - 1; i >= 0; i--) {
+			removeObject(nextInputElement, depth + 1);
+		}
 	}
 
-	for (var i = 0; i < element.outputs.length; i++) {
-		var nextOutputElement = Main.objects[element.outputs[i]];
-		var index = nextOutputElement.inputs.findIndex(obj => obj.id = element.element.id);
-		nextOutputElement.inputs.splice(index);
-		removeObject(nextOutputElement, depth + 1);
+	if (depth <= 0) {
+		for (var i = element.outputs.length - 1; i >= 0; i--) {
+			var nextOutputElement = Main.objects[element.outputs[i]];
+			var index = nextOutputElement.inputs.findIndex(obj => obj.id == element.id);
+			nextOutputElement.inputs.splice(index, 1);
+		}
+		for (var i = element.outputs.length - 1; i >= 0; i--) {
+			removeObject(nextOutputElement, depth - 1);
+		}
 	}
 
 	Main.canvas.remove(element.element);
-	Vue.delete(Main.objects, element.element.id);
+	Vue.delete(Main.objects, element.id);
 };
 
 module.exports = {
@@ -188,33 +196,56 @@ module.exports = {
 		if (new Date().getTime() - mouseDownTime < 100) {
 			// creating new editable gate
 			if (options.target && options.target.isToolbox) {
-				var currGate = Constants.GATES[options.target.id];
-				fabric.Image.fromURL(currGate.url, function (oImage) {
-					Main.canvas.add(oImage);
-					Vue.set(Main.objects, oImage.id, {
-						element: oImage,
-						type: currGate.type,
-						outputs: [],
-						inputs: [],
+				if (Main.isCustomGate(options.target.type)) {
+					Main.createCustomGate(options.target.id, false, function (element) {
+						var customGateId = element.id;
+						element.id = Main.currObjectId++;
+						Vue.set(Main.objects, element.id, {
+							id: element.id,
+							element: element,
+							type: Constants.TYPES.CUSTOM_GATE,
+							inputLength: Main.customObjects[customGateId].inputLength,
+							outputLength: Main.customObjects[customGateId].outputLength,
+							outputs: [],
+							inputs: [],
+							top: element.top,
+							left: element.left,
+							width: element.width,
+							height: element.height,
+							state: Constants.STATES.INPUT_OFF,
+							getOutput: Main.customObjects[customGateId].getOutput
+						});
+					});
+				} else {
+					var currGate = Constants.GATES[options.target.id];
+					fabric.Image.fromURL(currGate.url, function (oImage) {
+						Main.canvas.add(oImage);
+						Vue.set(Main.objects, oImage.id, {
+							id: oImage.id,
+							element: oImage,
+							type: currGate.type,
+							outputs: [],
+							inputs: [],
+							top: currGate.id * Constants.OPTS.gridSize,
+							left: Constants.OPTS.gridSize,
+							width: Constants.OPTS.gridSize,
+							height: Constants.OPTS.gridSize,
+							state: Constants.STATES.INPUT_OFF,
+							getOutput: Constants.TYPE_OUTPUTS[currGate.type]
+						});
+						
+						
+					}, {
+						id: Main.currObjectId++,
 						top: currGate.id * Constants.OPTS.gridSize,
 						left: Constants.OPTS.gridSize,
-						width: Constants.OPTS.gridSize,
 						height: Constants.OPTS.gridSize,
-						state: Constants.STATES.INPUT_OFF,
-						getOutput: Constants.TYPE_OUTPUTS[currGate.type]
+						width: Constants.OPTS.gridSize,
+						hasBorders: false,
+						hasControls: false,
+						hasRotatingPoint: false
 					});
-					
-					
-				}, {
-					id: Main.currObjectId++,
-					top: currGate.id * Constants.OPTS.gridSize,
-					left: Constants.OPTS.gridSize,
-					height: Constants.OPTS.gridSize,
-					width: Constants.OPTS.gridSize,
-					hasBorders: false,
-					hasControls: false,
-					hasRotatingPoint: false
-				});
+				}
 			} 
 			// changing input
 			else if (options.target && Main.objects[options.target.id] && 
@@ -238,9 +269,10 @@ module.exports = {
 			var x = hline2.element.x2;
 			var y = hline2.element.y2;
 			var connected = false;
-			Vue.set(Main.objects, hline1.element.id, hline1);
-			Vue.set(Main.objects, hline2.element.id, hline2);
-			Vue.set(Main.objects, vline.element.id, vline);
+
+			Vue.set(Main.objects, hline1.id, hline1);
+			Vue.set(Main.objects, hline2.id, hline2);
+			Vue.set(Main.objects, vline.id, vline);
 
 			for (var key in Main.objects) {
 				var currGate = Main.objects[key];
@@ -250,11 +282,11 @@ module.exports = {
 						continue;
 					if (isDrawingFromOutput)
 						continue;
-					if (currGate.element.id == startComponentId)
+					if (currGate.id == startComponentId)
 						continue;
-					hline2.outputs.push(currGate.element.id);
+					hline2.outputs.push(currGate.id);
 					currGate.inputs.push({
-						id: hline2.element.id,
+						id: hline2.id,
 						inputIndex: 0,
 						outputIndex: 0
 					});
@@ -276,10 +308,10 @@ module.exports = {
 						continue;
 					if (isDrawingFromInput)
 						continue;
-					if (currGate.element.id == startComponentId)
+					if (currGate.id == startComponentId)
 						continue;
 					hline2.inputs.push({
-						id: currGate.element.id,
+						id: currGate.id,
 						inputIndex: 0,
 						outputIndex: 0
 					});
@@ -297,7 +329,7 @@ module.exports = {
 							Main.objects[hline2.outputs[0]].element.setCoords();
 						}
 					}
-					currGate.outputs.push(hline2.element.id);
+					currGate.outputs.push(hline2.id);
 
 					hline2.element.set({
 						x2: currGate.element.left + 50,
@@ -321,15 +353,15 @@ module.exports = {
 						Main.objects[hline1.inputs[i].id].outputs = [];
 				if (hline1.outputs.length == 1) {
 					Main.objects[hline1.outputs[0]].inputs = Main.objects[hline1.outputs[0]].inputs.filter(function (el) {
-						return Main.objects[el.id].element.id != hline1.element.id;
+						return Main.objects[el.id].id != hline1.id;
 					});
 				}
 				Main.canvas.remove(hline1.element);
 				Main.canvas.remove(hline2.element);
 				Main.canvas.remove(vline.element);
-				Vue.delete(Main.objects, hline1.element.id);
-				Vue.delete(Main.objects, hline2.element.id);
-				Vue.delete(Main.objects, vline.element.id);
+				Vue.delete(Main.objects, hline1.id);
+				Vue.delete(Main.objects, hline2.id);
+				Vue.delete(Main.objects, vline.id);
 			}
 
 			hline1 = null;
@@ -370,8 +402,8 @@ module.exports = {
 			var y2 = Main.objects[options.target.id].y2;
 
 			var element = Main.objects[options.target.id];
-			var inputElement = Main.objects[Main.objects[element.inputs[0].id].element.id];
-			var outputElement = Main.objects[Main.objects[element.outputs[0]].element.id];
+			var inputElement = Main.objects[Main.objects[element.inputs[0].id].id];
+			var outputElement = Main.objects[Main.objects[element.outputs[0]].id];
 			
 			var xcoords = [inputElement.element.x1, inputElement.element.x2, outputElement.element.x1, outputElement.element.x2];
 			var jointX;
@@ -449,37 +481,41 @@ module.exports = {
 			Main.canvas.remove(selectableIndicator.pop());
 
 		for (var key in Main.objects) {
-			var obj = Main.objects[key].element;
-			var connectedInput = obj.left - 15 <= x && x <= obj.left && obj.top + 5 <= y && y <= obj.top + 45;
-			var connectedOutput = obj.left + 50 <= x && x <= obj.left + 65 && obj.top <= y && y <= obj.top + 50;
+			if (Main.isCustomGate(Main.objects[key].type)) {
 
-			if (connectedOutput && Main.objects[key].type != Constants.TYPES.OUTPUT_GATE && Main.isGate(Main.objects[key].type)) {
-				var centerX = obj.left;
-				var centerY = obj.top + 25;
-				var currObject = new fabric.Circle({
-					radius: 5,
-					top: centerY - 3.5,
-					left: centerX + 48,
-					fill: "#81a2be",
-					opacity: 0.8,
-					selectable: false
-				});
-				selectableIndicator.push(currObject);
-				Main.canvas.add(currObject);
-			} else if (connectedInput && Main.objects[key].type != Constants.TYPES.INPUT_GATE && Main.isGate(Main.objects[key].type)) {
-				var centerX = obj.left;
-				var centerY = y;
-				var currObject = new fabric.Circle({
-					radius: 5,
-					top: centerY - 3.5,
-					left: centerX - 6,
-					fill: "#81a2be",
-					opacity: 0.8,
-					selectable: false
-				});
-				selectableIndicator.push(currObject);
-				Main.canvas.add(currObject);
-			}			
+			} else {
+				var obj = Main.objects[key].element;
+				var connectedInput = obj.left - 10 <= x && x <= obj.left && obj.top <= y && y <= obj.top + 50;
+				var connectedOutput = obj.left + 50 <= x && x <= obj.left + 60 && obj.top + 20 <= y && y <= obj.top + 30;
+
+				if (connectedOutput && Main.objects[key].type != Constants.TYPES.OUTPUT_GATE && Main.isGate(Main.objects[key].type)) {
+					var centerX = obj.left;
+					var centerY = obj.top + 25;
+					var currObject = new fabric.Circle({
+						radius: 5,
+						top: centerY - 3.5,
+						left: centerX + 48,
+						fill: "#81a2be",
+						opacity: 0.8,
+						selectable: false
+					});
+					selectableIndicator.push(currObject);
+					Main.canvas.add(currObject);
+				} else if (connectedInput && Main.objects[key].type != Constants.TYPES.INPUT_GATE && Main.isGate(Main.objects[key].type)) {
+					var centerX = obj.left;
+					var centerY = y;
+					var currObject = new fabric.Circle({
+						radius: 5,
+						top: centerY - 3.5,
+						left: centerX - 6,
+						fill: "#81a2be",
+						opacity: 0.8,
+						selectable: false
+					});
+					selectableIndicator.push(currObject);
+					Main.canvas.add(currObject);
+				}	
+			}		
 		}
 	},
 
@@ -519,28 +555,29 @@ module.exports = {
 						}
 
 						var hlineElement1 = new fabric.Line([initialX, initialY, initialX, initialY], {
-							stroke: '#81a2be',
 							id: Main.currObjectId++,
+							stroke: '#81a2be',
 							selectable: false,
 							strokeWidth: 3
 						});
 
 						var hlineElement2 = new fabric.Line([initialX, initialY, initialX, initialY], {
-							stroke: '#81a2be',
 							id: Main.currObjectId++,
+							stroke: '#81a2be',
 							selectable: false,
 							strokeWidth: 3
 						});
 
 						var vlineElement = new fabric.Line([initialX, initialY, initialX, initialY], {
-							stroke: '#81a2be',
 							id: Main.currObjectId++,
+							stroke: '#81a2be',
 							selectable: true,
 							hasControls: false,
-							strokeWidth: 3
+							strokeWidth: 3,
 						});
 
 						hline1 = {
+							id: hlineElement1.id,
 							element: hlineElement1,
 							type: Constants.TYPES.HORIZONTAL_LINE,
 							outputs: [],
@@ -549,6 +586,7 @@ module.exports = {
 						}; 
 
 						hline2 = {
+							id: hlineElement2.id,
 							element: hlineElement2,
 							type: Constants.TYPES.HORIZONTAL_LINE,
 							outputs: [],
@@ -557,6 +595,7 @@ module.exports = {
 						}
 
 						vline = {
+							id: vlineElement.id,
 							element: vlineElement,
 							type: Constants.TYPES.VERTICAL_LINE,
 							y1: initialY,
@@ -572,48 +611,47 @@ module.exports = {
 
 						if (connectedOutput) {
 							hline1.inputs.push({
-								id: Main.objects[key].element.id,
+								id: Main.objects[key].id,
 								inputIndex: 0,
 								outputIndex: 0
 							});
-							hline1.outputs = [vline.element.id];
+							hline1.outputs = [vline.id];
 
 							vline.inputs.push({
-								id: hline1.element.id,
+								id: hline1.id,
 								inputIndex: 0,
 								outputIndex: 0
 							});
-							vline.outputs = [hline2.element.id];
+							vline.outputs = [hline2.id];
 
 							hline2.inputs.push({
-								id: vline.element.id,
+								id: vline.id,
 								inputIndex: 0,
 								outputIndex: 0,
 							});
 
-							Main.objects[key].outputs.push(hline1.element.id);
+							Main.objects[key].outputs.push(hline1.id);
 						} else {
-							hline1.outputs = [Main.objects[key].element.id];
-							vline.outputs = [hline1.element.id];
-							hline2.outputs = [vline.element.id];
+							hline1.outputs = [Main.objects[key].id];
+							vline.outputs = [hline1.id];
+							hline2.outputs = [vline.id];
 
 							Main.objects[key].inputs.push({
-								id: hline1.element.id,
+								id: hline1.id,
 								inputIndex: 0,
 								outputIndex: 0
 							});
 							hline1.inputs.push({
-								id: vline.element.id,
+								id: vline.id,
 								inputIndex: 0,
 								outputIndex: 0
 							});
 							vline.inputs.push({
-								id: hline2.element.id,
+								id: hline2.id,
 								inputIndex: 0,
 								outputIndex: 0
 							});
 						}
-						
 					}
 				}
 			}

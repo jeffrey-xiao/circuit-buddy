@@ -22,14 +22,14 @@ ret.TYPE_NAMES = ["Input Gate", "Output Gate", "And Gate", "Nand Gate", "Or Gate
 ret.TYPE_OUTPUTS = [
 	// input gate
 	function (inputs) {
-		return inputs[0];
+		return [inputs[0]];
 	},
 
 	// output gate
 	function (inputs) {
 		if (inputs.length == 0)
-			return 0;
-		return inputs[0];
+			return [0];
+		return [inputs[0]];
 	},
 
 	// and gate
@@ -37,7 +37,7 @@ ret.TYPE_OUTPUTS = [
 		var ret = 1;
 		for (var i = 0; i < inputs.length; i++)
 			ret &= inputs[i];
-		return ret & (inputs.length > 0);
+		return [ret & (inputs.length > 0)];
 	},
 
 	// nand gate
@@ -45,7 +45,7 @@ ret.TYPE_OUTPUTS = [
 		var ret = 1;
 		for (var i = 0; i < inputs.length; i++)
 			ret &= inputs[i];
-		return !ret & (inputs.length > 0);
+		return [!ret & (inputs.length > 0)];
 	},
 
 	// or gate
@@ -53,7 +53,7 @@ ret.TYPE_OUTPUTS = [
 		var ret = 0;
 		for (var i = 0; i < inputs.length; i++)
 			ret |= inputs[i];
-		return ret & (inputs.length > 0);
+		return [ret & (inputs.length > 0)];
 	},
 
 	// nor gate
@@ -61,7 +61,7 @@ ret.TYPE_OUTPUTS = [
 		var ret = 0;
 		for (var i = 0; i < inputs.length; i++)
 			ret |= inputs[i];
-		return !ret & (inputs.length > 0);
+		return [!ret & (inputs.length > 0)];
 	},
 
 	// xor gate
@@ -69,7 +69,7 @@ ret.TYPE_OUTPUTS = [
 		var ret = 0;
 		for (var i = 0; i < inputs.length; i++)
 			ret ^= inputs[i];
-		return ret & (inputs.length > 0);
+		return [ret & (inputs.length > 0)];
 	},
 
 	// nxor gate
@@ -77,14 +77,14 @@ ret.TYPE_OUTPUTS = [
 		var ret = 0;
 		for (var i = 0; i < inputs.length; i++)
 			ret ^= inputs[i];
-		return !ret & (inputs.length > 0);
+		return [!ret & (inputs.length > 0)];
 	},
 
 	// not gate
 	function (inputs) {
 		if (inputs.length == 0)
-			return 0;
-		return !inputs[0];
+			return [0];
+		return [!inputs[0]];
 	},
 
 	// custom gate
@@ -95,21 +95,21 @@ ret.TYPE_OUTPUTS = [
 	// horizontal line
 	function (inputs) {
 		if (inputs.length == 0)
-			return 0;
-		return inputs[0];
+			return [0];
+		return [inputs[0]];
 	},
 
 	// vertical line
 	function (inputs) {
 		if (inputs.length == 0)
-			return 0;
-		return inputs[0];
+			return [0];
+		return [inputs[0]];
 	}
 ];
 
 ret.OPTS = {
 	height: Math.round((window.innerHeight - 160) / 50.0) * 50,
-	width: Math.round((window.outerWidth- 360) / 50.0) * 50,
+	width: Math.round((window.outerWidth - 450) / 50.0) * 50,
 	gridSize: 50,
 	initialObjectId: 12
 };
@@ -166,6 +166,11 @@ ret.GATES = [
 		url: 'img/not_gate.png',
 		id: ret.TYPES.NOT_GATE,
 		type: ret.TYPES.NOT_GATE
+	},
+	{
+		url: 'img/custom_gate.png',
+		id: ret.TYPES.CUSTOM_GATE,
+		type: ret.TYPES.CUSTOM_GATE
 	}
 ];
 

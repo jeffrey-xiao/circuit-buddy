@@ -20,6 +20,8 @@
 						return "el el-cogs";
 					case "camera":
 						return "el el-camera";
+					case "custom-object":
+						return "el el-plus-sign";
 				}
 			}
 		},

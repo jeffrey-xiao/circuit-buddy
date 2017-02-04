@@ -9,6 +9,7 @@ ret.currObjectId = Constants.OPTS.initialObjectId;
 ret.currTab = 0;
 ret.canvas = null;
 ret.objects = {};
+ret.customObjects = [];
 ret.Events = new Vue({});
 
 ret.initApp = function () {
@@ -35,12 +36,13 @@ ret.initApp = function () {
 		}))
 	}
 
-	// initialize 'toolbox'
-	for (var i = 0; i < Constants.GATES.length; i++) {
+	// initialize 'toolbox'; Excludes the custom gate object because it must be initialized by user
+	for (var i = 0; i < Constants.GATES.length - 1; i++) {
 		var currGate = Constants.GATES[i];
 		fabric.Image.fromURL(currGate.url, function (oImage) {
 			ret.canvas.add(oImage);
 		}, {
+			type: i,
 			id: currGate.id,
 			selectable: false,
 			isToolbox: true,
@@ -57,6 +59,10 @@ ret.getGate = function (type) {
 
 ret.isGate = function (type) {
 	return type <= 9;
+};
+
+ret.isCustomGate = function (type) {
+	return type == 9;
 };
 
 ret.isEditableObject = function (id) {
@@ -96,6 +102,42 @@ ret.getCost = function (objects) {
 	return cost;
 };
 
+ret.createCustomGate = function (customGateId, isToolbox, callback) {
+	fabric.Image.fromURL(Constants.GATES[Constants.TYPES.CUSTOM_GATE].url, function (oImage) {
+		var leftText = new fabric.Text("" + ret.customObjects[customGateId].inputLength, {
+			fontFamily: 'monospace',
+			left: 10,
+			top: 15,
+			fontSize: 20,
+			fill: '#0000FF'
+		});
+		var rightText = new fabric.Text("" + ret.customObjects[customGateId].outputLength, {
+			fontFamily: 'monospace',
+			left: 30,
+			top: 15,
+			fontSize: 20,
+			fill: '#0000FF'
+		});
+		var element = new fabric.Group([oImage, leftText, rightText], {
+			// NOTE THAT THIS ID IS NOT THE SAME AS THE OTHER TOOL BOXES ID; SHOULD CHANGE TO ACTUAL OBJECT ID IF ISTOOLBOX IS FALSE
+			id: customGateId, 
+			top: (Constants.GATES.length - 1 + customGateId) * Constants.OPTS.gridSize,
+			left: isToolbox ? 0 : Constants.OPTS.gridSize,
+			height: Constants.OPTS.gridSize,
+			width: Constants.OPTS.gridSize,
+			hasBorders: false,
+			hasControls: false,
+			hasRotatingPoint: false,
+			selectable: !isToolbox,
+			isToolbox: isToolbox,
+			type: Constants.TYPES.CUSTOM_GATE
+		});
+
+		ret.canvas.add(element);
+
+		callback(element);
+	});
+};
 
 ret.wireObjects = function (objId1, objId2, objects, outputInputLength) {
 	var obj1 = objects[objId1];
@@ -111,28 +153,29 @@ ret.wireObjects = function (objId1, objId2, objects, outputInputLength) {
 	var y2 = obj2.top + Constants.OPTS.gridSize / 2;
 
 	var hlineElement1 = new fabric.Line([x1, y1, (x1 + x2) / 2.0, y1], {
+		id: ret.currObjectId++,
 		stroke: '#81a2be',
 		selectable: false,
-		id: ret.currObjectId++,
 		strokeWidth: 3
 	});
 
 	var vlineElement = new fabric.Line([(x1 + x2) / 2.0, y1, (x1 + x2) / 2.0, y2], {
+		id: ret.currObjectId++,
 		stroke: '#81a2be',
 		selectable: true,
 		hasControls: false,
-		id: ret.currObjectId++,
 		strokeWidth: 3
 	});
 
 	var hlineElement2 = new fabric.Line([x2, y2, (x1 + x2) / 2.0, y2], {
+		id: ret.currObjectId++,
 		stroke: '#81a2be',
 		selectable: false,
-		id: ret.currObjectId++,
 		strokeWidth: 3
 	});
 
 	var hline1 = {
+		id: hlineElement1.id,
 		element: hlineElement1,
 		type: Constants.TYPES.HORIZONTAL_LINE,
 		outputs: [],
@@ -140,6 +183,7 @@ ret.wireObjects = function (objId1, objId2, objects, outputInputLength) {
 	};
 
 	var hline2 = {
+		id: hlineElement2.id,
 		element: hlineElement2,
 		type: Constants.TYPES.HORIZONTAL_LINE,
 		outputs: [],
@@ -147,6 +191,7 @@ ret.wireObjects = function (objId1, objId2, objects, outputInputLength) {
 	};
 
 	var vline = {
+		id: vlineElement.id,
 		element: vlineElement,
 		type: Constants.TYPES.VERTICAL_LINE,
 		y1: y1,
@@ -157,35 +202,35 @@ ret.wireObjects = function (objId1, objId2, objects, outputInputLength) {
 
 	hline1.outputs.push(objId1);
 	hline1.inputs.push({
-		id: vline.element.id,
+		id: vline.id,
 		inputIndex: 0,
 		outputIndex: 0
 	});
 
-	vline.outputs.push(hline1.element.id);
+	vline.outputs.push(hline1.id);
 	vline.inputs.push({
-		id: hline2.element.id,
+		id: hline2.id,
 		inputIndex: 0,
 		outputIndex: 0
 	});
 
-	hline2.outputs.push(vline.element.id);
+	hline2.outputs.push(vline.id);
 	hline2.inputs.push({
 		id: objId2,
 		inputIndex: 0,
 		outputIndex: 0 
 	});
 
-	objects[objId2].outputs.push(hline2.element.id);
+	objects[objId2].outputs.push(hline2.id);
 	objects[objId1].inputs.push({
-		id: hline1.element.id,
+		id: hline1.id,
 		inputIndex: 0,
 		outputIndex: 0
 	});
 
-	Vue.set(objects, hline1.element.id, hline1);
-	Vue.set(objects, hline2.element.id, hline2);
-	Vue.set(objects, vline.element.id, vline);
+	Vue.set(objects, hline1.id, hline1);
+	Vue.set(objects, hline2.id, hline2);
+	Vue.set(objects, vline.id, vline);
 };
 
 ret.containsInput = function (inputs, id) {
@@ -218,23 +263,35 @@ ret.getOutputs = function (inputMap) {
 	var outputMap = new SortedMap();
 
 	for (var i = 0; i < sorted.length; i++) {
-		computedOutputs.push(0);
+		computedOutputs.push([]);
 
 		var inputs = [];
 
 		if (sorted[i].type == Constants.TYPES.INPUT_GATE)
-			inputs = inputMap ? [inputMap[sorted[i].element.id]] : [sorted[i].state == Constants.STATES.INPUT_ON];
-		else
+			inputs = inputMap ? [inputMap[sorted[i].id]] : [sorted[i].state == Constants.STATES.INPUT_ON];
+		else if (!ret.isCustomGate(sorted[i].type)) {
 			for (var j = 0; j < i; j++)
-				if (ret.containsInput(sorted[i].inputs, sorted[j].element.id))
-					inputs.push(computedOutputs[j]);
+				for (var k = 0; k < sorted[i].inputs.length; k++)
+					if (sorted[i].inputs[k].id == sorted[j].id) {
+						inputs.push(computedOutputs[j][sorted[i].inputs[k].inputIndex]);
+					}
+		}
+		else {
+			for (var j = 0; j < sorted[i].inputLength; j++)
+				inputs.push(0);
+			for (var j = 0; j < i; j++)
+				for (var k = 0; k < sorted[i].inputs.length; k++)
+					if (sorted[i].inputs[k].id == sorted[j].id)
+						inputs[sorted[i].inputs[k].outputIndex] = computedOutputs[j][sorted[i].inputs[k].inputIndex];
+		}
 
 		computedOutputs[i] = sorted[i].getOutput(inputs);
 
-		if (sorted[i].type == Constants.TYPES.OUTPUT_GATE)
-			outputMap.set(""+sorted[i].element.id, computedOutputs[i]);
+		if (sorted[i].type == Constants.TYPES.OUTPUT_GATE) {
+			outputMap.set(""+sorted[i].id, computedOutputs[i][0]);
+		}
 		if (!ret.isGate(sorted[i].type) && !inputMap)
-			sorted[i].element.setStroke(computedOutputs[i] ? "#22A80C" : "#81a2be");
+			sorted[i].element.setStroke(computedOutputs[i][0] ? "#22A80C" : "#81a2be");
 
 	}
 
@@ -248,7 +305,7 @@ ret.updateOutputs = function () {
 	for (var key in ret.objects) {
 		var currGate = ret.objects[key];
 		if (currGate.type == Constants.TYPES.OUTPUT_GATE) {
-			var currState = outputMap.get(currGate.element.id) == 1 ? Constants.STATES.OUTPUT_ON : Constants.STATES.OUTPUT_OFF;
+			var currState = outputMap.get(""+currGate.id) == 1 ? Constants.STATES.OUTPUT_ON : Constants.STATES.OUTPUT_OFF;
 			currGate.element.setSrc(currState, function () {
 				ret.canvas.renderAll();
 			});
@@ -297,6 +354,37 @@ ret.getTruthTable = function (objects) {
 		outputLength: outputIds.length
 	};	
 };
+
+ret.addCustomObject = function () {
+	var customObject = {};
+	customObject.type = Constants.TYPES.CUSTOM_GATE;
+	customObject.id = ret.customObjects.length;
+
+	customObject.getOutput = (function () {
+		var truthTable = ret.getTruthTable();
+		var lut = {};
+		for (var i = 0; i < truthTable.table.length; i++) {
+			var bitstring = 0;
+			for (var j = 0; j < truthTable.table[i].length; j++)
+				bitstring = (bitstring << 1) | truthTable.table[i][j];
+			lut[bitstring >> truthTable.outputLength] = bitstring & ((1 << truthTable.inputLength) - 1); 
+		}
+
+		customObject.inputLength = truthTable.inputLength;
+		customObject.outputLength = truthTable.outputLength;
+
+		return function (input) {
+			var bitInput = 0;
+			for (var i = 0; i < input.length; i++)
+				bitInput = (bitInput << 1) | input[i];
+			return lut[bitInput];
+		};
+	})();
+
+	ret.customObjects.push(customObject);
+	ret.createCustomGate(customObject.id, true, function (element) {});
+};
+
 
 ret.removeAllCanvasObjects = function () {
 	for (var key in ret.objects)

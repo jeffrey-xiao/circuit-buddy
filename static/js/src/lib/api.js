@@ -55,6 +55,7 @@ var buildCircuitTree = function (str, map, objects) {
 						};
 
 						objects[Main.currObjectId] = {
+							id: Main.currObjectId,
 							element: null,
 							type: Constants.TYPES.NOT_GATE,
 							outputs: [],
@@ -81,6 +82,7 @@ var buildCircuitTree = function (str, map, objects) {
 							};
 
 							objects[Main.currObjectId] = {
+								id: Main.currObjectId,
 								element: null,
 								type: Constants.TYPES.INPUT_GATE,
 								outputs: [],
@@ -207,6 +209,7 @@ ret.parseString = function (str, callback) {
 
 	fabric.Image.fromURL(Constants.GATES[Constants.TYPES.OUTPUT_GATE].url, function (oImage) {
 		generatedObjects[oImage.id] = {
+			id: oImage.id,
 			element: oImage,
 			type: Constants.TYPES.OUTPUT_GATE,
 			outputs: [],

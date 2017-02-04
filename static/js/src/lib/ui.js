@@ -147,6 +147,7 @@ $(document).ready(function () {
 					for (var key in ref.objectsList[i]) {
 						var tab = i;
 						var element = ref.objectsList[tab][key].element;
+						ref.objectsList[tab][key].getOutput = eval("(" + ref.objectsList[tab][key].getOutput + ")");
 						if (element.type == "image") {
 							var src = ref.objectsList[tab][key].type == Constants.TYPES.INPUT_GATE ? Constants.STATES.INPUT_OFF : element.src;
 							fabric.Image.fromURL(src, function (oImage) {
@@ -194,7 +195,7 @@ $(document).ready(function () {
 
 				globalTabCounter = 1;
 				Main.objects = ref.objectsList[0];
-				
+
 				setTimeout(function () {
 					Main.addAllCanvasObjects();
 					Main.updateOutputs();
@@ -218,6 +219,10 @@ $(document).ready(function () {
 					Main.addAllCanvasObjects();
 					Main.updateOutputs();
 				});
+			});
+			Main.Events.$on('custom-object:clicked', function () {
+				console.log("CUSTOM OBJECT CLICKED");
+				Main.addCustomObject();
 			});
 		}
 	});
