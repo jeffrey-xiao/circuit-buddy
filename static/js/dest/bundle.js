@@ -10411,16 +10411,16 @@
 			var leftText = new fabric.Text("" + ret.customObjects[customGateId].inputLength, {
 				fontFamily: 'monospace',
 				left: 10,
-				top: 15,
+				top: 13,
 				fontSize: 20,
-				fill: '#0000FF'
+				fill: '#18abe2'
 			});
 			var rightText = new fabric.Text("" + ret.customObjects[customGateId].outputLength, {
 				fontFamily: 'monospace',
-				left: 30,
-				top: 15,
+				left: 28,
+				top: 13,
 				fontSize: 20,
-				fill: '#0000FF'
+				fill: '#18abe2'
 			});
 			var element = new fabric.Group([oImage, leftText, rightText], {
 				// NOTE THAT THIS ID IS NOT THE SAME AS THE OTHER TOOL BOXES ID; SHOULD CHANGE TO ACTUAL OBJECT ID IF ISTOOLBOX IS FALSE
@@ -10646,37 +10646,39 @@
 		};
 	};
 
+	ret.getCustomObjectOutputFunction = function (customObject) {
+		var lut = {};
+		for (var i = 0; i < customObject.table.length; i++) {
+			var bitstring = 0;
+			for (var j = 0; j < customObject.table[i].length; j++) {
+				bitstring = bitstring << 1 | customObject.table[i][j];
+			}lut[bitstring >> customObject.outputLength] = bitstring & (1 << customObject.outputLength) - 1;
+		}
+
+		return function (input) {
+			var bitInput = 0;
+			for (var i = 0; i < customObject.inputLength; i++) {
+				bitInput = bitInput << 1 | input[i];
+			}var bitOutput = lut[bitInput];
+			var output = [];
+			for (var i = 0; i < customObject.outputLength; i++) {
+				output.push(bitOutput & 1);
+				bitOutput >>= 1;
+			}
+			return output;
+		};
+	};
+
 	ret.addCustomObject = function () {
 		var customObject = {};
+		var truthTableObject = ret.getTruthTable();
+
 		customObject.type = Constants.TYPES.CUSTOM_GATE;
 		customObject.id = ret.customObjects.length;
-
-		customObject.getOutput = function () {
-			var truthTable = ret.getTruthTable();
-			var lut = {};
-			for (var i = 0; i < truthTable.table.length; i++) {
-				var bitstring = 0;
-				for (var j = 0; j < truthTable.table[i].length; j++) {
-					bitstring = bitstring << 1 | truthTable.table[i][j];
-				}lut[bitstring >> truthTable.outputLength] = bitstring & (1 << truthTable.outputLength) - 1;
-			}
-
-			customObject.inputLength = truthTable.inputLength;
-			customObject.outputLength = truthTable.outputLength;
-
-			return function (input) {
-				var bitInput = 0;
-				for (var i = 0; i < customObject.inputLength; i++) {
-					bitInput = bitInput << 1 | input[i];
-				}var bitOutput = lut[bitInput];
-				var output = [];
-				for (var i = 0; i < customObject.outputLength; i++) {
-					output.push(bitOutput & 1);
-					bitOutput >>= 1;
-				}
-				return output;
-			};
-		}();
+		customObject.table = truthTableObject.table;
+		customObject.inputLength = truthTableObject.inputLength;
+		customObject.outputLength = truthTableObject.outputLength;
+		customObject.getOutput = ret.getCustomObjectOutputFunction(customObject);
 
 		ret.customObjects.push(customObject);
 		ret.createCustomGate(customObject.id, true, function (element) {});
@@ -43303,6 +43305,7 @@
 	var fabric = __webpack_require__(15).fabric;
 	var $ = __webpack_require__(8);
 	var Vue = __webpack_require__(63);
+	var FastSet = __webpack_require__(113);
 
 	var hline1, hline2, vline, startComponentId;
 	var initialX, initialY;
@@ -43313,8 +43316,10 @@
 	    isDeleting = false;
 	var selectableIndicator = [];
 
-	var propagateInputMovement = function propagateInputMovement(dx, dy, element, depth, prevX, prevY) {
+	var propagateInputMovement = function propagateInputMovement(dx, dy, element, depth, prevX, prevY, vis) {
 		if (depth == 2 || !element) return;
+		if (vis.has(parseInt(element.id))) return;
+		vis.add(parseInt(element.id));
 		for (var i = 0; i < element.inputs.length; i++) {
 			var input = Main.objects[element.inputs[i].id];
 			var nextPrevX = input.element.x2;
@@ -43352,12 +43357,14 @@
 					input.element.setCoords();
 				}
 			}
-			propagateInputMovement(dx, dy, input, depth + 1, nextPrevX, nextPrevY);
+			propagateInputMovement(dx, dy, input, depth + 1, nextPrevX, nextPrevY, vis);
 		}
 	};
 
-	var propagateOutputMovement = function propagateOutputMovement(dx, dy, element, depth, prevX, prevY) {
+	var propagateOutputMovement = function propagateOutputMovement(dx, dy, element, depth, prevX, prevY, vis) {
 		if (depth == 2 || !element) return;
+		if (vis.has(parseInt(element.id))) return;
+		vis.add(parseInt(element.id));
 		for (var i = 0; i < element.outputs.length; i++) {
 			var output = Main.objects[element.outputs[i]];
 			var nextPrevX = output.element.x2;
@@ -43395,7 +43402,7 @@
 					output.element.setCoords();
 				}
 			}
-			propagateOutputMovement(dx, dy, output, depth + 1, nextPrevX, nextPrevY);
+			propagateOutputMovement(dx, dy, output, depth + 1, nextPrevX, nextPrevY, vis);
 		}
 	};
 
@@ -43566,6 +43573,7 @@
 								type: Constants.TYPES.CUSTOM_GATE,
 								inputLength: Main.customObjects[customGateId].inputLength,
 								outputLength: Main.customObjects[customGateId].outputLength,
+								table: Main.customObjects[customGateId].table,
 								outputs: [],
 								inputs: [],
 								top: element.top,
@@ -43739,8 +43747,10 @@
 				Main.objects[options.target.id].left = finalX;
 				Main.objects[options.target.id].top = finalY;
 
-				propagateInputMovement(finalX - startX, finalY - startY, Main.objects[options.target.id], 0, startX, startY);
-				propagateOutputMovement(finalX - startX, finalY - startY, Main.objects[options.target.id], 0, startX + 50, startY);
+				var vis = new FastSet();
+				propagateInputMovement(finalX - startX, finalY - startY, Main.objects[options.target.id], 0, startX, startY, vis);
+				vis.clear();
+				propagateOutputMovement(finalX - startX, finalY - startY, Main.objects[options.target.id], 0, startX + 50, startY, vis);
 
 				Main.canvas.renderAll();
 			} else {
@@ -52733,8 +52743,10 @@
 					for (var i = 0; i < ref.objectsList.length; i++) {
 						for (var key in ref.objectsList[i]) {
 							var tab = i;
-							var element = ref.objectsList[tab][key].element;
-							ref.objectsList[tab][key].getOutput = eval("(" + ref.objectsList[tab][key].getOutput + ")");
+							var obj = ref.objectsList[tab][key];
+							var element = obj.element;
+
+							if (!Main.isCustomGate(obj.type)) obj.getOutput = Constants.TYPE_OUTPUTS[obj.type];else obj.getOutput = Main.getCustomObjectOutputFunction(obj);
 							if (element.type == "image") {
 								var src = ref.objectsList[tab][key].type == Constants.TYPES.INPUT_GATE ? Constants.STATES.INPUT_OFF : element.src;
 								fabric.Image.fromURL(src, function (oImage) {
@@ -55525,10 +55537,7 @@
 				objectsList[i][key].y2 = element.y2;
 			}
 		}
-		return (0, _stringify2.default)(objectsList, function (key, val) {
-			if (typeof val === 'function') return val + "";
-			return val;
-		});
+		return (0, _stringify2.default)(objectsList);
 	};
 
 	module.exports = {

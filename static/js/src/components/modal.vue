@@ -23,11 +23,7 @@
 				objectsList[i][key].y2 = element.y2;
 			}
 		}
-		return JSON.stringify(objectsList, function (key, val) {
-			if (typeof val === 'function')
-				return val + "";
-			return val;
-		});
+		return JSON.stringify(objectsList);
 	};
 
 	module.exports = {

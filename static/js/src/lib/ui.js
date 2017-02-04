@@ -146,8 +146,13 @@ $(document).ready(function () {
 				for (var i = 0; i < ref.objectsList.length; i++) {
 					for (var key in ref.objectsList[i]) {
 						var tab = i;
-						var element = ref.objectsList[tab][key].element;
-						ref.objectsList[tab][key].getOutput = eval("(" + ref.objectsList[tab][key].getOutput + ")");
+						var obj = ref.objectsList[tab][key];
+						var element = obj.element;
+
+						if (!Main.isCustomGate(obj.type))
+							obj.getOutput = Constants.TYPE_OUTPUTS[obj.type];
+						else
+							obj.getOutput = Main.getCustomObjectOutputFunction(obj);
 						if (element.type == "image") {
 							var src = ref.objectsList[tab][key].type == Constants.TYPES.INPUT_GATE ? Constants.STATES.INPUT_OFF : element.src;
 							fabric.Image.fromURL(src, function (oImage) {

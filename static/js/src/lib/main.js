@@ -107,16 +107,16 @@ ret.createCustomGate = function (customGateId, isToolbox, callback) {
 		var leftText = new fabric.Text("" + ret.customObjects[customGateId].inputLength, {
 			fontFamily: 'monospace',
 			left: 10,
-			top: 15,
+			top: 13,
 			fontSize: 20,
-			fill: '#0000FF'
+			fill: '#18abe2'
 		});
 		var rightText = new fabric.Text("" + ret.customObjects[customGateId].outputLength, {
 			fontFamily: 'monospace',
-			left: 30,
-			top: 15,
+			left: 28,
+			top: 13,
 			fontSize: 20,
-			fill: '#0000FF'
+			fill: '#18abe2'
 		});
 		var element = new fabric.Group([oImage, leftText, rightText], {
 			// NOTE THAT THIS ID IS NOT THE SAME AS THE OTHER TOOL BOXES ID; SHOULD CHANGE TO ACTUAL OBJECT ID IF ISTOOLBOX IS FALSE
@@ -355,37 +355,39 @@ ret.getTruthTable = function (objects) {
 	};	
 };
 
+ret.getCustomObjectOutputFunction = function (customObject) {
+	var lut = {};
+	for (var i = 0; i < customObject.table.length; i++) {
+		var bitstring = 0;
+		for (var j = 0; j < customObject.table[i].length; j++)
+			bitstring = (bitstring << 1) | customObject.table[i][j];
+		lut[bitstring >> customObject.outputLength] = bitstring & ((1 << customObject.outputLength) - 1); 
+	}
+
+	return function (input) {
+		var bitInput = 0;
+		for (var i = 0; i < customObject.inputLength; i++)
+			bitInput = (bitInput << 1) | input[i];
+		var bitOutput = lut[bitInput];
+		var output = [];
+		for (var i = 0; i < customObject.outputLength; i++) {
+			output.push(bitOutput & 1);
+			bitOutput >>= 1;
+		}
+		return output;
+	}
+}
+
 ret.addCustomObject = function () {
 	var customObject = {};
+	var truthTableObject = ret.getTruthTable();
+	
 	customObject.type = Constants.TYPES.CUSTOM_GATE;
 	customObject.id = ret.customObjects.length;
-
-	customObject.getOutput = (function () {
-		var truthTable = ret.getTruthTable();
-		var lut = {};
-		for (var i = 0; i < truthTable.table.length; i++) {
-			var bitstring = 0;
-			for (var j = 0; j < truthTable.table[i].length; j++)
-				bitstring = (bitstring << 1) | truthTable.table[i][j];
-			lut[bitstring >> truthTable.outputLength] = bitstring & ((1 << truthTable.outputLength) - 1); 
-		}
-
-		customObject.inputLength = truthTable.inputLength;
-		customObject.outputLength = truthTable.outputLength;
-
-		return function (input) {
-			var bitInput = 0;
-			for (var i = 0; i < customObject.inputLength; i++)
-				bitInput = (bitInput << 1) | input[i];
-			var bitOutput = lut[bitInput];
-			var output = [];
-			for (var i = 0; i < customObject.outputLength; i++) {
-				output.push(bitOutput & 1);
-				bitOutput >>= 1;
-			}
-			return output;
-		};
-	})();
+	customObject.table = truthTableObject.table;
+	customObject.inputLength = truthTableObject.inputLength;
+	customObject.outputLength = truthTableObject.outputLength;
+	customObject.getOutput = ret.getCustomObjectOutputFunction(customObject);
 
 	ret.customObjects.push(customObject);
 	ret.createCustomGate(customObject.id, true, function (element) {});

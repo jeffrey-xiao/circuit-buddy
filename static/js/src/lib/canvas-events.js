@@ -3,6 +3,7 @@ var Main = require("./main.js");
 var fabric = require("fabric-webpack").fabric;
 var $ = require("jquery");
 var Vue = require("vue");
+var FastSet = require("collections/fast-set");
 
 var hline1, hline2, vline, startComponentId;
 var initialX, initialY;
@@ -10,9 +11,12 @@ var mouseDownTime;
 var isDrawingFromInput = false, isDrawingFromOutput = false, creatingLine = false, isDeleting = false;
 var selectableIndicator = [];
 
-var propagateInputMovement = function (dx, dy, element, depth, prevX, prevY) {
+var propagateInputMovement = function (dx, dy, element, depth, prevX, prevY, vis) {
 	if (depth == 2 || !element)
 		return;
+	if (vis.has(parseInt(element.id)))
+		return;
+	vis.add(parseInt(element.id));
 	for (var i = 0; i < element.inputs.length; i++) {
 		var input = Main.objects[element.inputs[i].id];
 		var nextPrevX = input.element.x2;
@@ -51,13 +55,16 @@ var propagateInputMovement = function (dx, dy, element, depth, prevX, prevY) {
 				input.element.setCoords();
 			}
 		}
-		propagateInputMovement(dx, dy, input, depth + 1, nextPrevX, nextPrevY);
+		propagateInputMovement(dx, dy, input, depth + 1, nextPrevX, nextPrevY, vis);
 	}
 }
 
-var propagateOutputMovement = function (dx, dy, element, depth, prevX, prevY) {
+var propagateOutputMovement = function (dx, dy, element, depth, prevX, prevY, vis) {
 	if (depth == 2 || !element)
 		return;
+	if (vis.has(parseInt(element.id)))
+		return;
+	vis.add(parseInt(element.id));
 	for (var i = 0; i < element.outputs.length; i++) {
 		var output = Main.objects[element.outputs[i]];
 		var nextPrevX = output.element.x2;
@@ -95,7 +102,7 @@ var propagateOutputMovement = function (dx, dy, element, depth, prevX, prevY) {
 				output.element.setCoords();
 			}
 		}
-		propagateOutputMovement(dx, dy, output, depth + 1, nextPrevX, nextPrevY);
+		propagateOutputMovement(dx, dy, output, depth + 1, nextPrevX, nextPrevY, vis);
 	}
 }
 
@@ -277,6 +284,7 @@ module.exports = {
 							type: Constants.TYPES.CUSTOM_GATE,
 							inputLength: Main.customObjects[customGateId].inputLength,
 							outputLength: Main.customObjects[customGateId].outputLength,
+							table: Main.customObjects[customGateId].table,
 							outputs: [],
 							inputs: [],
 							top: element.top,
@@ -463,8 +471,10 @@ module.exports = {
 			Main.objects[options.target.id].left = finalX;
 			Main.objects[options.target.id].top = finalY;
 
-			propagateInputMovement(finalX - startX, finalY - startY, Main.objects[options.target.id], 0, startX, startY);
-			propagateOutputMovement(finalX - startX, finalY - startY, Main.objects[options.target.id], 0, startX + 50, startY);
+			var vis = new FastSet();
+			propagateInputMovement(finalX - startX, finalY - startY, Main.objects[options.target.id], 0, startX, startY, vis);
+			vis.clear();
+			propagateOutputMovement(finalX - startX, finalY - startY, Main.objects[options.target.id], 0, startX + 50, startY, vis);
 			
 			Main.canvas.renderAll();
 			
