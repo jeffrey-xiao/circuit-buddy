@@ -10567,19 +10567,25 @@
 
 			var inputs = [];
 
-			if (sorted[i].type == Constants.TYPES.INPUT_GATE) inputs = inputMap ? [inputMap[sorted[i].id]] : [sorted[i].state == Constants.STATES.INPUT_ON];else if (!ret.isCustomGate(sorted[i].type)) for (var j = 0; j < i; j++) {
-				for (var k = 0; k < sorted[i].inputs.length; k++) {
-					if (sorted[i].inputs[k].id == sorted[j].id) inputs.push(computedOutputs[j][sorted[i].inputs[k].inputIndex]);else {
-						for (var j = 0; j < sorted[i].inputLength; j++) {
-							inputs.push(0);
-						}for (var j = 0; j < i; j++) {
-							for (var k = 0; k < sorted[i].inputs.length; k++) {
-								if (sorted[i].inputs[k].id == sorted[j].id) inputs[sorted[i].inputs[k].outputIndex] = computedOutputs[j][sorted[i].inputs[k].inputIndex];
-							}
+			if (sorted[i].type == Constants.TYPES.INPUT_GATE) inputs = inputMap ? [inputMap[sorted[i].id]] : [sorted[i].state == Constants.STATES.INPUT_ON];else if (!ret.isCustomGate(sorted[i].type)) {
+				for (var j = 0; j < i; j++) {
+					for (var k = 0; k < sorted[i].inputs.length; k++) {
+						if (sorted[i].inputs[k].id == sorted[j].id) {
+							inputs.push(computedOutputs[j][sorted[i].inputs[k].inputIndex]);
 						}
 					}
 				}
-			}computedOutputs[i] = sorted[i].getOutput(inputs);
+			} else {
+				for (var j = 0; j < sorted[i].inputLength; j++) {
+					inputs.push(0);
+				}for (var j = 0; j < i; j++) {
+					for (var k = 0; k < sorted[i].inputs.length; k++) {
+						if (sorted[i].inputs[k].id == sorted[j].id) inputs[sorted[i].inputs[k].outputIndex] = computedOutputs[j][sorted[i].inputs[k].inputIndex];
+					}
+				}
+			}
+
+			computedOutputs[i] = sorted[i].getOutput(inputs);
 			if (sorted[i].type == Constants.TYPES.OUTPUT_GATE) outputMap.set(parseInt(sorted[i].id), computedOutputs[i][0]);
 			if (!ret.isGate(sorted[i].type) && !inputMap) sorted[i].element.setStroke(computedOutputs[i][0] ? "#22A80C" : "#81a2be");
 		}
@@ -43622,61 +43628,65 @@
 				Vue.set(Main.objects, hline1.id, hline1);
 				Vue.set(Main.objects, hline2.id, hline2);
 				Vue.set(Main.objects, vline.id, vline);
-
+				console.log(isDrawingFromOutput);
+				console.log(isDrawingFromInput);
 				for (var key in Main.objects) {
 					var currGate = Main.objects[key];
-					if (Main.isGate(currGate.type) && currGate.element.left - 10 <= x && x <= currGate.element.left + 10 && currGate.element.top <= y && y <= currGate.element.top + 50) {
-						if (currGate.type == Constants.TYPES.INPUT_GATE) continue;
-						if (isDrawingFromOutput) continue;
+
+					var connectionInfo;
+					if (Main.isCustomGate(Main.objects[key].type)) connectionInfo = getCustomGateConnection(key, x, y);else connectionInfo = getGateConnection(key, x, y);
+					console.log(connectionInfo.type);
+					if (connectionInfo.type == "input") {
+						if (isDrawingFromInput) continue;
 						if (currGate.id == startComponentId) continue;
 						hline2.outputs.push(currGate.id);
 						currGate.inputs.push({
 							id: hline2.id,
 							inputIndex: 0,
-							outputIndex: 0
+							outputIndex: connectionInfo.index
 						});
 
 						hline2.element.set({
-							x2: currGate.element.left
+							y1: connectionInfo.centerY,
+							y2: connectionInfo.centerY,
+							x2: connectionInfo.centerX
 						});
 						hline2.element.setCoords();
+						if (hline2.inputs.length == 1) {
+							Main.objects[hline2.inputs[0].id].element.set({
+								y2: connectionInfo.centerY
+							});
+							Main.objects[hline2.inputs[0].id].element.setCoords();
+						}
 
 						connected = true;
 
 						Main.updateOutputs();
 						Main.canvas.renderAll();
 					}
-					if (Main.isGate(currGate.type) && currGate.element.left + 40 <= x && x <= currGate.element.left + 60 && currGate.element.top + 20 <= y && y <= currGate.element.top + 30) {
-						if (currGate.type == Constants.TYPES.OUTPUT_GATE) continue;
-						if (isDrawingFromInput) continue;
+
+					if (connectionInfo.type == "output") {
+						if (isDrawingFromOutput) continue;
 						if (currGate.id == startComponentId) continue;
 						hline2.inputs.push({
 							id: currGate.id,
-							inputIndex: 0,
+							inputIndex: connectionInfo.index,
 							outputIndex: 0
 						});
-						if (hline2.outputs.length == 1) {
-							if (Math.abs(Main.objects[hline2.outputs[0]].element.y1 - hline2.element.y2) < 1e-6) {
-								Main.objects[hline2.outputs[0]].element.set({
-									y1: currGate.element.top + 25
-								});
-								Main.objects[hline2.outputs[0]].element.setCoords();
-							}
-							if (Math.abs(Main.objects[hline2.outputs[0]].element.y2 - hline2.element.y2) < 1e-6) {
-								Main.objects[hline2.outputs[0]].element.set({
-									y2: currGate.element.top + 25
-								});
-								Main.objects[hline2.outputs[0]].element.setCoords();
-							}
-						}
 						currGate.outputs.push(hline2.id);
 
 						hline2.element.set({
-							x2: currGate.element.left + 50,
-							y1: currGate.element.top + 25,
-							y2: currGate.element.top + 25
+							x2: connectionInfo.centerX,
+							y1: connectionInfo.centerY,
+							y2: connectionInfo.centerY
 						});
 						hline2.element.setCoords();
+						if (hline2.outputs.length == 1) {
+							Main.objects[hline2.outputs[0]].element.set({
+								y2: connectionInfo.centerY
+							});
+							Main.objects[hline2.outputs[0]].element.setCoords();
+						}
 
 						connected = true;
 
@@ -43887,8 +43897,8 @@
 					if (connectionInfo.type != "none") {
 						if (connectedOutput && Main.objects[key].type == Constants.TYPES.OUTPUT_GATE) continue;
 						if (connectedInput && Main.objects[key].type == Constants.TYPES.INPUT_GATE) continue;
-						if (connectionInfo.type == "input" && Main.objects[key].type == Constants.TYPES.INPUT_GATE) isDrawingFromInput = true;
-						if (connectionInfo.type == "output" && Main.objects[key].type == Constants.TYPES.OUTPUT_GATE) isDrawingFromOutput = true;
+						if (connectionInfo.type == "input") isDrawingFromInput = true;
+						if (connectionInfo.type == "output") isDrawingFromOutput = true;
 
 						creatingLine = true;
 						startComponentId = key;

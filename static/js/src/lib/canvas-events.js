@@ -344,14 +344,19 @@ module.exports = {
 			Vue.set(Main.objects, hline1.id, hline1);
 			Vue.set(Main.objects, hline2.id, hline2);
 			Vue.set(Main.objects, vline.id, vline);
-
+			console.log(isDrawingFromOutput);
+			console.log(isDrawingFromInput);
 			for (var key in Main.objects) {
 				var currGate = Main.objects[key];
-				if (Main.isGate(currGate.type) && currGate.element.left - 10 <= x && x <= currGate.element.left + 10 &&
-					currGate.element.top <= y && y <= currGate.element.top + 50) {
-					if (currGate.type == Constants.TYPES.INPUT_GATE)
-						continue;
-					if (isDrawingFromOutput)
+
+				var connectionInfo;
+				if (Main.isCustomGate(Main.objects[key].type))
+					connectionInfo = getCustomGateConnection(key, x, y);
+				else
+					connectionInfo = getGateConnection(key, x, y)
+				console.log(connectionInfo.type);
+				if (connectionInfo.type == "input") {
+					if (isDrawingFromInput)
 						continue;
 					if (currGate.id == startComponentId)
 						continue;
@@ -359,64 +364,59 @@ module.exports = {
 					currGate.inputs.push({
 						id: hline2.id,
 						inputIndex: 0,
-						outputIndex: 0
+						outputIndex: connectionInfo.index
 					});
 
 					hline2.element.set({
-						x2: currGate.element.left
+						y1: connectionInfo.centerY,
+						y2: connectionInfo.centerY,
+						x2: connectionInfo.centerX
 					});
 					hline2.element.setCoords();
+					if (hline2.inputs.length == 1) {
+						Main.objects[hline2.inputs[0].id].element.set({
+							y2: connectionInfo.centerY
+						});
+						Main.objects[hline2.inputs[0].id].element.setCoords();
+					}
 
 					connected = true;
 
 					Main.updateOutputs();
 					Main.canvas.renderAll();
-					
 				}
-				if (Main.isGate(currGate.type) && currGate.element.left + 40 <= x && x <= currGate.element.left + 60 &&
-					currGate.element.top + 20 <= y && y <= currGate.element.top + 30) {
-					if (currGate.type == Constants.TYPES.OUTPUT_GATE)
-						continue;
-					if (isDrawingFromInput)
+
+				if (connectionInfo.type == "output") {
+					if (isDrawingFromOutput)
 						continue;
 					if (currGate.id == startComponentId)
 						continue;
 					hline2.inputs.push({
 						id: currGate.id,
-						inputIndex: 0,
+						inputIndex: connectionInfo.index,
 						outputIndex: 0
 					});
-					if (hline2.outputs.length == 1) {
-						if (Math.abs(Main.objects[hline2.outputs[0]].element.y1 - hline2.element.y2) < 1e-6) {
-							Main.objects[hline2.outputs[0]].element.set({
-								y1: currGate.element.top + 25
-							});
-							Main.objects[hline2.outputs[0]].element.setCoords();
-						}
-						if (Math.abs(Main.objects[hline2.outputs[0]].element.y2 - hline2.element.y2) < 1e-6) {
-							Main.objects[hline2.outputs[0]].element.set({
-								y2: currGate.element.top + 25
-							});
-							Main.objects[hline2.outputs[0]].element.setCoords();
-						}
-					}
 					currGate.outputs.push(hline2.id);
 
 					hline2.element.set({
-						x2: currGate.element.left + 50,
-						y1: currGate.element.top + 25,
-						y2: currGate.element.top + 25
+						x2: connectionInfo.centerX,
+						y1: connectionInfo.centerY,
+						y2: connectionInfo.centerY
 					});
 					hline2.element.setCoords();
+					if (hline2.outputs.length == 1) {
+						Main.objects[hline2.outputs[0]].element.set({
+							y2: connectionInfo.centerY
+						});
+						Main.objects[hline2.outputs[0]].element.setCoords();
+					}
 
 					connected = true;
 					
 					Main.updateOutputs();
 					Main.canvas.renderAll();
-					
 				}
 			}
-
 			
 			if (!connected) {
 				for (var i = 0; i < hline1.inputs.length; i++)
@@ -637,9 +637,9 @@ module.exports = {
 						continue;
 					if (connectedInput && Main.objects[key].type == Constants.TYPES.INPUT_GATE)
 						continue;
-					if (connectionInfo.type == "input" && Main.objects[key].type == Constants.TYPES.INPUT_GATE)
+					if (connectionInfo.type == "input")
 						isDrawingFromInput = true;
-					if (connectionInfo.type == "output" && Main.objects[key].type == Constants.TYPES.OUTPUT_GATE)
+					if (connectionInfo.type == "output")
 						isDrawingFromOutput = true;
 
 					creatingLine = true;

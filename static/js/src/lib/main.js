@@ -271,12 +271,15 @@ ret.getOutputs = function (inputMap) {
 
 		if (sorted[i].type == Constants.TYPES.INPUT_GATE)
 			inputs = inputMap ? [inputMap[sorted[i].id]] : [sorted[i].state == Constants.STATES.INPUT_ON];
-		else if (!ret.isCustomGate(sorted[i].type))
-			for (var j = 0; j < i; j++)
-				for (var k = 0; k < sorted[i].inputs.length; k++)
-					if (sorted[i].inputs[k].id == sorted[j].id)
+		else if (!ret.isCustomGate(sorted[i].type)) {
+			for (var j = 0; j < i; j++) {
+				for (var k = 0; k < sorted[i].inputs.length; k++) {
+					if (sorted[i].inputs[k].id == sorted[j].id) {
 						inputs.push(computedOutputs[j][sorted[i].inputs[k].inputIndex]);
-		else {
+					}
+				}
+			}
+		} else {
 			for (var j = 0; j < sorted[i].inputLength; j++)
 				inputs.push(0);
 			for (var j = 0; j < i; j++)
