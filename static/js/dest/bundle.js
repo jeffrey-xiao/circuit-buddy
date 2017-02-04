@@ -10543,13 +10543,14 @@
 	};
 
 	ret.topSort = function topSort(vis, sorted, key) {
-		vis.add(key);
+		vis.add(parseInt(key));
+		if (!ret.objects[key]) return;
 		for (var i = 0; i < ret.objects[key].inputs.length; i++) {
 			var nextKey = ret.objects[key].inputs[i].id;
-			if (vis.has(nextKey)) continue;
+			if (vis.has(parseInt(nextKey))) continue;
 			topSort(vis, sorted, nextKey);
 		}
-		sorted.add(ret.objects[key]);
+		sorted.push(ret.objects[key]);
 	};
 
 	ret.getOutputs = function (inputMap) {
@@ -10557,7 +10558,7 @@
 		var sorted = [];
 
 		for (var key in ret.objects) {
-			if (!vis.has(key)) ret.topSort(vis, sorted, key);
+			if (!vis.has(parseInt(key))) ret.topSort(vis, sorted, key);
 		}var computedOutputs = [];
 		var outputMap = new SortedMap();
 
@@ -10566,29 +10567,20 @@
 
 			var inputs = [];
 
-			if (sorted[i].type == Constants.TYPES.INPUT_GATE) inputs = inputMap ? [inputMap[sorted[i].id]] : [sorted[i].state == Constants.STATES.INPUT_ON];else if (!ret.isCustomGate(sorted[i].type)) {
-				for (var j = 0; j < i; j++) {
-					for (var k = 0; k < sorted[i].inputs.length; k++) {
-						if (sorted[i].inputs[k].id == sorted[j].id) {
-							inputs.push(computedOutputs[j][sorted[i].inputs[k].inputIndex]);
+			if (sorted[i].type == Constants.TYPES.INPUT_GATE) inputs = inputMap ? [inputMap[sorted[i].id]] : [sorted[i].state == Constants.STATES.INPUT_ON];else if (!ret.isCustomGate(sorted[i].type)) for (var j = 0; j < i; j++) {
+				for (var k = 0; k < sorted[i].inputs.length; k++) {
+					if (sorted[i].inputs[k].id == sorted[j].id) inputs.push(computedOutputs[j][sorted[i].inputs[k].inputIndex]);else {
+						for (var j = 0; j < sorted[i].inputLength; j++) {
+							inputs.push(0);
+						}for (var j = 0; j < i; j++) {
+							for (var k = 0; k < sorted[i].inputs.length; k++) {
+								if (sorted[i].inputs[k].id == sorted[j].id) inputs[sorted[i].inputs[k].outputIndex] = computedOutputs[j][sorted[i].inputs[k].inputIndex];
+							}
 						}
 					}
 				}
-			} else {
-				for (var j = 0; j < sorted[i].inputLength; j++) {
-					inputs.push(0);
-				}for (var j = 0; j < i; j++) {
-					for (var k = 0; k < sorted[i].inputs.length; k++) {
-						if (sorted[i].inputs[k].id == sorted[j].id) inputs[sorted[i].inputs[k].outputIndex] = computedOutputs[j][sorted[i].inputs[k].inputIndex];
-					}
-				}
-			}
-
-			computedOutputs[i] = sorted[i].getOutput(inputs);
-
-			if (sorted[i].type == Constants.TYPES.OUTPUT_GATE) {
-				outputMap.set("" + sorted[i].id, computedOutputs[i][0]);
-			}
+			}computedOutputs[i] = sorted[i].getOutput(inputs);
+			if (sorted[i].type == Constants.TYPES.OUTPUT_GATE) outputMap.set(parseInt(sorted[i].id), computedOutputs[i][0]);
 			if (!ret.isGate(sorted[i].type) && !inputMap) sorted[i].element.setStroke(computedOutputs[i][0] ? "#22A80C" : "#81a2be");
 		}
 
@@ -10601,7 +10593,7 @@
 		for (var key in ret.objects) {
 			var currGate = ret.objects[key];
 			if (currGate.type == Constants.TYPES.OUTPUT_GATE) {
-				var currState = outputMap.get("" + currGate.id) == 1 ? Constants.STATES.OUTPUT_ON : Constants.STATES.OUTPUT_OFF;
+				var currState = outputMap.get(parseInt(currGate.id)) == 1 ? Constants.STATES.OUTPUT_ON : Constants.STATES.OUTPUT_OFF;
 				currGate.element.setSrc(currState, function () {
 					ret.canvas.renderAll();
 				});
@@ -10636,9 +10628,8 @@
 			}
 
 			var outputMap = ret.getOutputs(inputMap);
-
 			for (var j = 0; j < outputIds.length; j++) {
-				truthTable[i][inputIds.length + j] = outputMap.get(outputIds[j]);
+				truthTable[i][inputIds.length + j] = outputMap.get(parseInt(outputIds[j]));
 			}
 		}
 
@@ -10661,7 +10652,7 @@
 				var bitstring = 0;
 				for (var j = 0; j < truthTable.table[i].length; j++) {
 					bitstring = bitstring << 1 | truthTable.table[i][j];
-				}lut[bitstring >> truthTable.outputLength] = bitstring & (1 << truthTable.inputLength) - 1;
+				}lut[bitstring >> truthTable.outputLength] = bitstring & (1 << truthTable.outputLength) - 1;
 			}
 
 			customObject.inputLength = truthTable.inputLength;
@@ -10669,9 +10660,15 @@
 
 			return function (input) {
 				var bitInput = 0;
-				for (var i = 0; i < input.length; i++) {
+				for (var i = 0; i < customObject.inputLength; i++) {
 					bitInput = bitInput << 1 | input[i];
-				}return lut[bitInput];
+				}var bitOutput = lut[bitInput];
+				var output = [];
+				for (var i = 0; i < customObject.outputLength; i++) {
+					output.push(bitOutput & 1);
+					bitOutput >>= 1;
+				}
+				return output;
 			};
 		}();
 
@@ -11021,7 +11018,7 @@
 		VERTICAL_LINE: 11
 	};
 
-	ret.TYPE_NAMES = ["Input Gate", "Output Gate", "And Gate", "Nand Gate", "Or Gate", "Nor Gate", "Xor Gate", "Nxor Gate", "Not Gate", "Horizontal Line", "Vertical Line"];
+	ret.TYPE_NAMES = ["Input Gate", "Output Gate", "And Gate", "Nand Gate", "Or Gate", "Nor Gate", "Xor Gate", "Nxor Gate", "Not Gate", "Custom Gate", "Horizontal Line", "Vertical Line"];
 
 	// inputs are an array of binary
 	ret.TYPE_OUTPUTS = [
@@ -43427,9 +43424,9 @@
 				var nextInputElement = Main.objects[element.inputs[i].id];
 				var index = nextInputElement.outputs.indexOf(element.id);
 				nextInputElement.outputs.splice(index, 1);
-				removeObject(nextInputElement, depth + 1);
 			}
 			for (var i = element.inputs.length - 1; i >= 0; i--) {
+				var nextInputElement = Main.objects[element.inputs[i].id];
 				removeObject(nextInputElement, depth + 1);
 			}
 		}
@@ -43443,12 +43440,83 @@
 				nextOutputElement.inputs.splice(index, 1);
 			}
 			for (var i = element.outputs.length - 1; i >= 0; i--) {
+				var nextOutputElement = Main.objects[element.outputs[i]];
 				removeObject(nextOutputElement, depth - 1);
 			}
 		}
 
 		Main.canvas.remove(element.element);
 		Vue.delete(Main.objects, element.id);
+	};
+
+	var getCustomGateConnection = function getCustomGateConnection(key, x, y) {
+		var obj = Main.objects[key].element;
+		var inputGap = 50 / (Main.objects[key].inputLength + 1);
+		var outputGap = 50 / (Main.objects[key].outputLength + 1);
+		// checking if touching input
+		for (var i = 0; i < Main.objects[key].inputLength; i++) {
+			var centerX = obj.left;
+			var centerY = obj.top + inputGap * (i + 1);
+			var connected = centerX - 10 <= x && x <= centerX && centerY - inputGap / 2 <= y && y <= centerY + inputGap / 2;
+
+			if (connected) {
+				return {
+					type: "input",
+					centerX: centerX,
+					centerY: centerY,
+					index: i
+				};
+			}
+		}
+
+		// checking if touching output
+		for (var i = 0; i < Main.objects[key].outputLength; i++) {
+			var centerX = obj.left + 50;
+			var centerY = obj.top + outputGap * (i + 1);
+			var connected = centerX <= x && x <= centerX + 10 && centerY - outputGap / 2 <= y && y <= centerY + inputGap / 2;
+
+			if (connected) {
+				return {
+					type: "output",
+					centerX: centerX,
+					centerY: centerY,
+					index: i
+				};
+			}
+		}
+
+		return {
+			type: "none"
+		};
+	};
+
+	var getGateConnection = function getGateConnection(key, x, y) {
+		var obj = Main.objects[key].element;
+		var connectedInput = obj.left - 10 <= x && x <= obj.left && obj.top <= y && y <= obj.top + 50;
+		var connectedOutput = obj.left + 50 <= x && x <= obj.left + 60 && obj.top + 20 <= y && y <= obj.top + 30;
+
+		if (connectedOutput && Main.objects[key].type != Constants.TYPES.OUTPUT_GATE && Main.isGate(Main.objects[key].type)) {
+			var centerX = obj.left + 50;
+			var centerY = obj.top + 25;
+			return {
+				type: "output",
+				centerX: centerX,
+				centerY: centerY,
+				index: 0
+			};
+		} else if (connectedInput && Main.objects[key].type != Constants.TYPES.INPUT_GATE && Main.isGate(Main.objects[key].type)) {
+			var centerX = obj.left;
+			var centerY = y;
+			return {
+				type: "input",
+				centerX: centerX,
+				centerY: centerY,
+				index: 0
+			};
+		}
+		return {
+			type: "none"
+		};
 	};
 
 	module.exports = {
@@ -43674,6 +43742,7 @@
 				var outputElement = Main.objects[Main.objects[element.outputs[0]].id];
 
 				var xcoords = [inputElement.element.x1, inputElement.element.x2, outputElement.element.x1, outputElement.element.x2];
+				xcoords.sort();
 				var jointX;
 				for (var i = 0; i < 3; i++) {
 					if (xcoords[i] == xcoords[i + 1]) jointX = xcoords[i];
@@ -43740,31 +43809,52 @@
 			while (selectableIndicator.length > 0) {
 				Main.canvas.remove(selectableIndicator.pop());
 			}for (var key in Main.objects) {
-				if (Main.isCustomGate(Main.objects[key].type)) {} else {
-					var obj = Main.objects[key].element;
-					var connectedInput = obj.left - 10 <= x && x <= obj.left && obj.top <= y && y <= obj.top + 50;
-					var connectedOutput = obj.left + 50 <= x && x <= obj.left + 60 && obj.top + 20 <= y && y <= obj.top + 30;
-
-					if (connectedOutput && Main.objects[key].type != Constants.TYPES.OUTPUT_GATE && Main.isGate(Main.objects[key].type)) {
-						var centerX = obj.left;
-						var centerY = obj.top + 25;
+				if (Main.isCustomGate(Main.objects[key].type)) {
+					var connectionInfo = getCustomGateConnection(key, x, y);
+					if (connectionInfo.type == "input") {
 						var currObject = new fabric.Circle({
 							radius: 5,
-							top: centerY - 3.5,
-							left: centerX + 48,
+							top: connectionInfo.centerY - 2.5 - 1.0,
+							left: connectionInfo.centerX - 5.0,
+							fill: "#81a2be",
+							opacity: 0.8,
+							selectable: false
+						});
+
+						selectableIndicator.push(currObject);
+						Main.canvas.add(currObject);
+					} else if (connectionInfo.type == "output") {
+						var currObject = new fabric.Circle({
+							radius: 5,
+							top: connectionInfo.centerY - 2.5 - 1.0,
+							left: connectionInfo.centerX - 2.5,
+							fill: "#81a2be",
+							opacity: 0.8,
+							selectable: false
+						});
+
+						selectableIndicator.push(currObject);
+						Main.canvas.add(currObject);
+					}
+				} else {
+					var connectionInfo = getGateConnection(key, x, y);
+
+					if (connectionInfo.type == "output") {
+						var currObject = new fabric.Circle({
+							radius: 5,
+							top: connectionInfo.centerY - 2.5 - 1.0,
+							left: connectionInfo.centerX - 2.5,
 							fill: "#81a2be",
 							opacity: 0.8,
 							selectable: false
 						});
 						selectableIndicator.push(currObject);
 						Main.canvas.add(currObject);
-					} else if (connectedInput && Main.objects[key].type != Constants.TYPES.INPUT_GATE && Main.isGate(Main.objects[key].type)) {
-						var centerX = obj.left;
-						var centerY = y;
+					} else if (connectionInfo.type == "input") {
 						var currObject = new fabric.Circle({
 							radius: 5,
-							top: centerY - 3.5,
-							left: centerX - 6,
+							top: connectionInfo.centerY - 2.5 - 1.0,
+							left: connectionInfo.centerX - 5.0,
 							fill: "#81a2be",
 							opacity: 0.8,
 							selectable: false
@@ -43786,124 +43876,128 @@
 					var x = pointer.x;
 					var y = pointer.y;
 
-					if (Main.isGate(Main.objects[key].type)) {
-						var connectedInput = obj.left - 10 <= x && x <= obj.left && obj.top <= y && y <= obj.top + obj.height;
-						var connectedOutput = obj.left + 50 <= x && x <= obj.left + 60 && obj.top + 20 <= y && y <= obj.top + 30;
+					if (!Main.isGate(Main.objects[key].type)) continue;
 
-						if (connectedInput || connectedOutput) {
-							if (connectedOutput && Main.objects[key].type == Constants.TYPES.OUTPUT_GATE) continue;
-							if (connectedInput && Main.objects[key].type == Constants.TYPES.INPUT_GATE) continue;
-							if (connectedOutput && Main.objects[key].type == Constants.TYPES.INPUT_GATE) isDrawingFromInput = true;
-							if (connectedInput && Main.objects[key].type == Constants.TYPES.OUTPUT_GATE) isDrawingFromOutput = true;
-							creatingLine = true;
-							startComponentId = key;
+					var connectionInfo;
+					if (Main.isCustomGate(Main.objects[key].type)) connectionInfo = getCustomGateConnection(key, x, y);else connectionInfo = getGateConnection(key, x, y);
 
-							initialX = obj.left;
-							initialY = y;
+					var connectedInput = obj.left - 10 <= x && x <= obj.left && obj.top <= y && y <= obj.top + obj.height;
+					var connectedOutput = obj.left + 50 <= x && x <= obj.left + 60 && obj.top + 20 <= y && y <= obj.top + 30;
 
-							if (connectedOutput) {
-								initialX = obj.left + 50;
-								initialY = obj.top + 25;
-							}
+					if (connectionInfo.type != "none") {
+						if (connectedOutput && Main.objects[key].type == Constants.TYPES.OUTPUT_GATE) continue;
+						if (connectedInput && Main.objects[key].type == Constants.TYPES.INPUT_GATE) continue;
+						if (connectionInfo.type == "input" && Main.objects[key].type == Constants.TYPES.INPUT_GATE) isDrawingFromInput = true;
+						if (connectionInfo.type == "output" && Main.objects[key].type == Constants.TYPES.OUTPUT_GATE) isDrawingFromOutput = true;
 
-							var hlineElement1 = new fabric.Line([initialX, initialY, initialX, initialY], {
-								id: Main.currObjectId++,
-								stroke: '#81a2be',
-								selectable: false,
-								strokeWidth: 3
+						creatingLine = true;
+						startComponentId = key;
+
+						initialX = connectionInfo.centerX;
+						initialY = connectionInfo.centerY;
+
+						if (connectedOutput) {
+							initialX = obj.left + 50;
+							initialY = obj.top + 25;
+						}
+
+						var hlineElement1 = new fabric.Line([initialX, initialY, initialX, initialY], {
+							id: Main.currObjectId++,
+							stroke: '#81a2be',
+							selectable: false,
+							strokeWidth: 3
+						});
+
+						var hlineElement2 = new fabric.Line([initialX, initialY, initialX, initialY], {
+							id: Main.currObjectId++,
+							stroke: '#81a2be',
+							selectable: false,
+							strokeWidth: 3
+						});
+
+						var vlineElement = new fabric.Line([initialX, initialY, initialX, initialY], {
+							id: Main.currObjectId++,
+							stroke: '#81a2be',
+							selectable: true,
+							hasControls: false,
+							strokeWidth: 3
+						});
+
+						hline1 = {
+							id: hlineElement1.id,
+							element: hlineElement1,
+							type: Constants.TYPES.HORIZONTAL_LINE,
+							outputs: [],
+							inputs: [],
+							getOutput: Constants.TYPE_OUTPUTS[Constants.TYPES.HORIZONTAL_LINE]
+						};
+
+						hline2 = {
+							id: hlineElement2.id,
+							element: hlineElement2,
+							type: Constants.TYPES.HORIZONTAL_LINE,
+							outputs: [],
+							inputs: [],
+							getOutput: Constants.TYPE_OUTPUTS[Constants.TYPES.HORIZONTAL_LINE]
+						};
+
+						vline = {
+							id: vlineElement.id,
+							element: vlineElement,
+							type: Constants.TYPES.VERTICAL_LINE,
+							y1: initialY,
+							y2: initialY,
+							outputs: [],
+							inputs: [],
+							getOutput: Constants.TYPE_OUTPUTS[Constants.TYPES.VERTICAL_LINE]
+						};
+
+						Main.canvas.add(hlineElement1);
+						Main.canvas.add(hlineElement2);
+						Main.canvas.add(vlineElement);
+
+						if (connectionInfo.type == "output") {
+							hline1.inputs.push({
+								id: Main.objects[key].id,
+								inputIndex: connectionInfo.index,
+								outputIndex: 0
+							});
+							hline1.outputs = [vline.id];
+
+							vline.inputs.push({
+								id: hline1.id,
+								inputIndex: 0,
+								outputIndex: 0
+							});
+							vline.outputs = [hline2.id];
+
+							hline2.inputs.push({
+								id: vline.id,
+								inputIndex: 0,
+								outputIndex: 0
 							});
 
-							var hlineElement2 = new fabric.Line([initialX, initialY, initialX, initialY], {
-								id: Main.currObjectId++,
-								stroke: '#81a2be',
-								selectable: false,
-								strokeWidth: 3
+							Main.objects[key].outputs.push(hline1.id);
+						} else {
+							hline1.outputs = [Main.objects[key].id];
+							vline.outputs = [hline1.id];
+							hline2.outputs = [vline.id];
+
+							Main.objects[key].inputs.push({
+								id: hline1.id,
+								inputIndex: 0,
+								outputIndex: connectionInfo.index
 							});
-
-							var vlineElement = new fabric.Line([initialX, initialY, initialX, initialY], {
-								id: Main.currObjectId++,
-								stroke: '#81a2be',
-								selectable: true,
-								hasControls: false,
-								strokeWidth: 3
+							hline1.inputs.push({
+								id: vline.id,
+								inputIndex: 0,
+								outputIndex: 0
 							});
-
-							hline1 = {
-								id: hlineElement1.id,
-								element: hlineElement1,
-								type: Constants.TYPES.HORIZONTAL_LINE,
-								outputs: [],
-								inputs: [],
-								getOutput: Constants.TYPE_OUTPUTS[Constants.TYPES.HORIZONTAL_LINE]
-							};
-
-							hline2 = {
-								id: hlineElement2.id,
-								element: hlineElement2,
-								type: Constants.TYPES.HORIZONTAL_LINE,
-								outputs: [],
-								inputs: [],
-								getOutput: Constants.TYPE_OUTPUTS[Constants.TYPES.HORIZONTAL_LINE]
-							};
-
-							vline = {
-								id: vlineElement.id,
-								element: vlineElement,
-								type: Constants.TYPES.VERTICAL_LINE,
-								y1: initialY,
-								y2: initialY,
-								outputs: [],
-								inputs: [],
-								getOutput: Constants.TYPE_OUTPUTS[Constants.TYPES.VERTICAL_LINE]
-							};
-
-							Main.canvas.add(hlineElement1);
-							Main.canvas.add(hlineElement2);
-							Main.canvas.add(vlineElement);
-
-							if (connectedOutput) {
-								hline1.inputs.push({
-									id: Main.objects[key].id,
-									inputIndex: 0,
-									outputIndex: 0
-								});
-								hline1.outputs = [vline.id];
-
-								vline.inputs.push({
-									id: hline1.id,
-									inputIndex: 0,
-									outputIndex: 0
-								});
-								vline.outputs = [hline2.id];
-
-								hline2.inputs.push({
-									id: vline.id,
-									inputIndex: 0,
-									outputIndex: 0
-								});
-
-								Main.objects[key].outputs.push(hline1.id);
-							} else {
-								hline1.outputs = [Main.objects[key].id];
-								vline.outputs = [hline1.id];
-								hline2.outputs = [vline.id];
-
-								Main.objects[key].inputs.push({
-									id: hline1.id,
-									inputIndex: 0,
-									outputIndex: 0
-								});
-								hline1.inputs.push({
-									id: vline.id,
-									inputIndex: 0,
-									outputIndex: 0
-								});
-								vline.inputs.push({
-									id: hline2.id,
-									inputIndex: 0,
-									outputIndex: 0
-								});
-							}
+							vline.inputs.push({
+								id: hline2.id,
+								inputIndex: 0,
+								outputIndex: 0
+							});
 						}
 					}
 				}
@@ -55752,7 +55846,6 @@
 		props: ["objects"],
 		computed: {
 			tableObject: function tableObject() {
-				console.log(Main.getTruthTable(this.objects));
 				return Main.getTruthTable(this.objects);
 			}
 		}

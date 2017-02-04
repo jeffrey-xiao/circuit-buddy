@@ -135,9 +135,9 @@ var removeObject = function (element, depth) {
 			var nextInputElement = Main.objects[element.inputs[i].id];
 			var index = nextInputElement.outputs.indexOf(element.id);
 			nextInputElement.outputs.splice(index, 1);
-			removeObject(nextInputElement, depth + 1);
 		}
 		for (var i = element.inputs.length - 1; i >= 0; i--) {
+			var nextInputElement = Main.objects[element.inputs[i].id];
 			removeObject(nextInputElement, depth + 1);
 		}
 	}
@@ -149,6 +149,7 @@ var removeObject = function (element, depth) {
 			nextOutputElement.inputs.splice(index, 1);
 		}
 		for (var i = element.outputs.length - 1; i >= 0; i--) {
+			var nextOutputElement = Main.objects[element.outputs[i]];
 			removeObject(nextOutputElement, depth - 1);
 		}
 	}
@@ -156,6 +157,76 @@ var removeObject = function (element, depth) {
 	Main.canvas.remove(element.element);
 	Vue.delete(Main.objects, element.id);
 };
+
+var getCustomGateConnection = function (key, x, y) {
+	var obj = Main.objects[key].element;
+	var inputGap = 50 / (Main.objects[key].inputLength + 1);
+	var outputGap = 50 / (Main.objects[key].outputLength + 1);
+	// checking if touching input
+	for (var i = 0; i < Main.objects[key].inputLength; i++) {
+		var centerX = obj.left;
+		var centerY = obj.top + inputGap * (i + 1);
+		var connected = centerX - 10 <= x && x <= centerX && centerY - inputGap / 2 <= y && y <= centerY + inputGap / 2;
+
+		if (connected) {
+			return {
+				type: "input",
+				centerX: centerX,
+				centerY: centerY,
+				index: i
+			};
+		}
+	}
+
+	// checking if touching output
+	for (var i = 0; i < Main.objects[key].outputLength; i++) {
+		var centerX = obj.left + 50;
+		var centerY = obj.top + outputGap * (i + 1);
+		var connected = centerX <= x && x <= centerX + 10 && centerY - outputGap / 2 <= y && y <= centerY + inputGap / 2;
+	
+		if (connected) {
+			return {
+				type: "output",
+				centerX: centerX,
+				centerY: centerY,
+				index: i
+			}
+		}
+	}
+
+	return {
+		type: "none"
+	};
+};
+
+var getGateConnection = function (key, x, y) {
+	var obj = Main.objects[key].element;
+	var connectedInput = obj.left - 10 <= x && x <= obj.left && obj.top <= y && y <= obj.top + 50;
+	var connectedOutput = obj.left + 50 <= x && x <= obj.left + 60 && obj.top + 20 <= y && y <= obj.top + 30;
+
+	if (connectedOutput && Main.objects[key].type != Constants.TYPES.OUTPUT_GATE && Main.isGate(Main.objects[key].type)) {
+		var centerX = obj.left + 50;
+		var centerY = obj.top + 25;
+		return {
+			type: "output",
+			centerX: centerX,
+			centerY: centerY,
+			index: 0
+		};
+	} else if (connectedInput && Main.objects[key].type != Constants.TYPES.INPUT_GATE && Main.isGate(Main.objects[key].type)) {
+		var centerX = obj.left;
+		var centerY = y;
+		return {
+			type: "input",
+			centerX: centerX,
+			centerY: centerY,
+			index: 0
+		};
+	}	
+	return {
+		type: "none"
+	};
+}
 
 module.exports = {
 	onKeyDown: function (e) {
@@ -406,6 +477,7 @@ module.exports = {
 			var outputElement = Main.objects[Main.objects[element.outputs[0]].id];
 			
 			var xcoords = [inputElement.element.x1, inputElement.element.x2, outputElement.element.x1, outputElement.element.x2];
+			xcoords.sort();
 			var jointX;
 			for (var i = 0; i < 3; i++)
 				if (xcoords[i] == xcoords[i + 1])
@@ -482,32 +554,51 @@ module.exports = {
 
 		for (var key in Main.objects) {
 			if (Main.isCustomGate(Main.objects[key].type)) {
-
-			} else {
-				var obj = Main.objects[key].element;
-				var connectedInput = obj.left - 10 <= x && x <= obj.left && obj.top <= y && y <= obj.top + 50;
-				var connectedOutput = obj.left + 50 <= x && x <= obj.left + 60 && obj.top + 20 <= y && y <= obj.top + 30;
-
-				if (connectedOutput && Main.objects[key].type != Constants.TYPES.OUTPUT_GATE && Main.isGate(Main.objects[key].type)) {
-					var centerX = obj.left;
-					var centerY = obj.top + 25;
+				var connectionInfo = getCustomGateConnection(key, x, y);
+				if (connectionInfo.type == "input") {
 					var currObject = new fabric.Circle({
 						radius: 5,
-						top: centerY - 3.5,
-						left: centerX + 48,
+						top: connectionInfo.centerY - 2.5 - 1.0,
+						left: connectionInfo.centerX - 5.0,
+						fill: "#81a2be",
+						opacity: 0.8,
+						selectable: false
+					});
+
+					selectableIndicator.push(currObject);
+					Main.canvas.add(currObject);
+				} else if (connectionInfo.type == "output") {
+					var currObject = new fabric.Circle({
+						radius: 5,
+						top: connectionInfo.centerY - 2.5 - 1.0,
+						left: connectionInfo.centerX - 2.5,
+						fill: "#81a2be",
+						opacity: 0.8,
+						selectable: false
+					});
+
+					selectableIndicator.push(currObject);
+					Main.canvas.add(currObject);
+				}
+			} else {
+				var connectionInfo = getGateConnection(key, x, y);
+
+				if (connectionInfo.type == "output") {
+					var currObject = new fabric.Circle({
+						radius: 5,
+						top: connectionInfo.centerY - 2.5 - 1.0,
+						left: connectionInfo.centerX - 2.5,
 						fill: "#81a2be",
 						opacity: 0.8,
 						selectable: false
 					});
 					selectableIndicator.push(currObject);
 					Main.canvas.add(currObject);
-				} else if (connectedInput && Main.objects[key].type != Constants.TYPES.INPUT_GATE && Main.isGate(Main.objects[key].type)) {
-					var centerX = obj.left;
-					var centerY = y;
+				} else if (connectionInfo.type == "input") {
 					var currObject = new fabric.Circle({
 						radius: 5,
-						top: centerY - 3.5,
-						left: centerX - 6,
+						top: connectionInfo.centerY - 2.5 - 1.0,
+						left: connectionInfo.centerX - 5.0,
 						fill: "#81a2be",
 						opacity: 0.8,
 						selectable: false
@@ -529,129 +620,136 @@ module.exports = {
 				var x = pointer.x;
 				var y = pointer.y;
 
-				
-				if (Main.isGate(Main.objects[key].type)) {
-					var connectedInput = obj.left - 10 <= x && x <= obj.left && obj.top <= y && y <= obj.top + obj.height;
-					var connectedOutput = obj.left + 50 <= x && x <= obj.left + 60 && obj.top + 20 <= y && y <= obj.top + 30;
+				if (!Main.isGate(Main.objects[key].type))
+					continue;
 
-					if (connectedInput || connectedOutput) {
-						if (connectedOutput && Main.objects[key].type == Constants.TYPES.OUTPUT_GATE)
-							continue;
-						if (connectedInput && Main.objects[key].type == Constants.TYPES.INPUT_GATE)
-							continue;
-						if (connectedOutput && Main.objects[key].type == Constants.TYPES.INPUT_GATE)
-							isDrawingFromInput = true;
-						if (connectedInput && Main.objects[key].type == Constants.TYPES.OUTPUT_GATE)
-							isDrawingFromOutput = true;
-						creatingLine = true;
-						startComponentId = key;
+				var connectionInfo;
+				if (Main.isCustomGate(Main.objects[key].type))
+					connectionInfo = getCustomGateConnection(key, x, y);
+				else
+					connectionInfo = getGateConnection(key, x, y)
 
-						initialX = obj.left;
-						initialY = y;
+				var connectedInput = obj.left - 10 <= x && x <= obj.left && obj.top <= y && y <= obj.top + obj.height;
+				var connectedOutput = obj.left + 50 <= x && x <= obj.left + 60 && obj.top + 20 <= y && y <= obj.top + 30;
 
-						if (connectedOutput) {
-							initialX = obj.left + 50;
-							initialY = obj.top + 25;
-						}
+				if (connectionInfo.type != "none") {
+					if (connectedOutput && Main.objects[key].type == Constants.TYPES.OUTPUT_GATE)
+						continue;
+					if (connectedInput && Main.objects[key].type == Constants.TYPES.INPUT_GATE)
+						continue;
+					if (connectionInfo.type == "input" && Main.objects[key].type == Constants.TYPES.INPUT_GATE)
+						isDrawingFromInput = true;
+					if (connectionInfo.type == "output" && Main.objects[key].type == Constants.TYPES.OUTPUT_GATE)
+						isDrawingFromOutput = true;
 
-						var hlineElement1 = new fabric.Line([initialX, initialY, initialX, initialY], {
-							id: Main.currObjectId++,
-							stroke: '#81a2be',
-							selectable: false,
-							strokeWidth: 3
+					creatingLine = true;
+					startComponentId = key;
+
+					initialX = connectionInfo.centerX;
+					initialY = connectionInfo.centerY;
+
+					if (connectedOutput) {
+						initialX = obj.left + 50;
+						initialY = obj.top + 25;
+					}
+
+					var hlineElement1 = new fabric.Line([initialX, initialY, initialX, initialY], {
+						id: Main.currObjectId++,
+						stroke: '#81a2be',
+						selectable: false,
+						strokeWidth: 3
+					});
+
+					var hlineElement2 = new fabric.Line([initialX, initialY, initialX, initialY], {
+						id: Main.currObjectId++,
+						stroke: '#81a2be',
+						selectable: false,
+						strokeWidth: 3
+					});
+
+					var vlineElement = new fabric.Line([initialX, initialY, initialX, initialY], {
+						id: Main.currObjectId++,
+						stroke: '#81a2be',
+						selectable: true,
+						hasControls: false,
+						strokeWidth: 3,
+					});
+
+					hline1 = {
+						id: hlineElement1.id,
+						element: hlineElement1,
+						type: Constants.TYPES.HORIZONTAL_LINE,
+						outputs: [],
+						inputs: [],
+						getOutput: Constants.TYPE_OUTPUTS[Constants.TYPES.HORIZONTAL_LINE]
+					}; 
+
+					hline2 = {
+						id: hlineElement2.id,
+						element: hlineElement2,
+						type: Constants.TYPES.HORIZONTAL_LINE,
+						outputs: [],
+						inputs: [],
+						getOutput: Constants.TYPE_OUTPUTS[Constants.TYPES.HORIZONTAL_LINE]
+					}
+
+					vline = {
+						id: vlineElement.id,
+						element: vlineElement,
+						type: Constants.TYPES.VERTICAL_LINE,
+						y1: initialY,
+						y2: initialY,
+						outputs: [],
+						inputs: [],
+						getOutput: Constants.TYPE_OUTPUTS[Constants.TYPES.VERTICAL_LINE]
+					}; 
+
+					Main.canvas.add(hlineElement1);
+					Main.canvas.add(hlineElement2);
+					Main.canvas.add(vlineElement);
+
+					if (connectionInfo.type == "output") {
+						hline1.inputs.push({
+							id: Main.objects[key].id,
+							inputIndex: connectionInfo.index,
+							outputIndex: 0
+						});
+						hline1.outputs = [vline.id];
+
+						vline.inputs.push({
+							id: hline1.id,
+							inputIndex: 0,
+							outputIndex: 0
+						});
+						vline.outputs = [hline2.id];
+
+						hline2.inputs.push({
+							id: vline.id,
+							inputIndex: 0,
+							outputIndex: 0,
 						});
 
-						var hlineElement2 = new fabric.Line([initialX, initialY, initialX, initialY], {
-							id: Main.currObjectId++,
-							stroke: '#81a2be',
-							selectable: false,
-							strokeWidth: 3
+						Main.objects[key].outputs.push(hline1.id);
+					} else {
+						hline1.outputs = [Main.objects[key].id];
+						vline.outputs = [hline1.id];
+						hline2.outputs = [vline.id];
+
+						Main.objects[key].inputs.push({
+							id: hline1.id,
+							inputIndex: 0,
+							outputIndex: connectionInfo.index
 						});
-
-						var vlineElement = new fabric.Line([initialX, initialY, initialX, initialY], {
-							id: Main.currObjectId++,
-							stroke: '#81a2be',
-							selectable: true,
-							hasControls: false,
-							strokeWidth: 3,
+						hline1.inputs.push({
+							id: vline.id,
+							inputIndex: 0,
+							outputIndex: 0
 						});
-
-						hline1 = {
-							id: hlineElement1.id,
-							element: hlineElement1,
-							type: Constants.TYPES.HORIZONTAL_LINE,
-							outputs: [],
-							inputs: [],
-							getOutput: Constants.TYPE_OUTPUTS[Constants.TYPES.HORIZONTAL_LINE]
-						}; 
-
-						hline2 = {
-							id: hlineElement2.id,
-							element: hlineElement2,
-							type: Constants.TYPES.HORIZONTAL_LINE,
-							outputs: [],
-							inputs: [],
-							getOutput: Constants.TYPE_OUTPUTS[Constants.TYPES.HORIZONTAL_LINE]
-						}
-
-						vline = {
-							id: vlineElement.id,
-							element: vlineElement,
-							type: Constants.TYPES.VERTICAL_LINE,
-							y1: initialY,
-							y2: initialY,
-							outputs: [],
-							inputs: [],
-							getOutput: Constants.TYPE_OUTPUTS[Constants.TYPES.VERTICAL_LINE]
-						}; 
-
-						Main.canvas.add(hlineElement1);
-						Main.canvas.add(hlineElement2);
-						Main.canvas.add(vlineElement);
-
-						if (connectedOutput) {
-							hline1.inputs.push({
-								id: Main.objects[key].id,
-								inputIndex: 0,
-								outputIndex: 0
-							});
-							hline1.outputs = [vline.id];
-
-							vline.inputs.push({
-								id: hline1.id,
-								inputIndex: 0,
-								outputIndex: 0
-							});
-							vline.outputs = [hline2.id];
-
-							hline2.inputs.push({
-								id: vline.id,
-								inputIndex: 0,
-								outputIndex: 0,
-							});
-
-							Main.objects[key].outputs.push(hline1.id);
-						} else {
-							hline1.outputs = [Main.objects[key].id];
-							vline.outputs = [hline1.id];
-							hline2.outputs = [vline.id];
-
-							Main.objects[key].inputs.push({
-								id: hline1.id,
-								inputIndex: 0,
-								outputIndex: 0
-							});
-							hline1.inputs.push({
-								id: vline.id,
-								inputIndex: 0,
-								outputIndex: 0
-							});
-							vline.inputs.push({
-								id: hline2.id,
-								inputIndex: 0,
-								outputIndex: 0
-							});
-						}
+						vline.inputs.push({
+							id: hline2.id,
+							inputIndex: 0,
+							outputIndex: 0
+						});
 					}
 				}
 			}

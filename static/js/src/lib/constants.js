@@ -16,7 +16,7 @@ ret.TYPES = {
 };
 
 ret.TYPE_NAMES = ["Input Gate", "Output Gate", "And Gate", "Nand Gate", "Or Gate", 
-			  	  "Nor Gate", "Xor Gate", "Nxor Gate", "Not Gate", "Horizontal Line", "Vertical Line"];
+			  	  "Nor Gate", "Xor Gate", "Nxor Gate", "Not Gate", "Custom Gate", "Horizontal Line", "Vertical Line"];
 
 // inputs are an array of binary
 ret.TYPE_OUTPUTS = [

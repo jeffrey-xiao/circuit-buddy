@@ -241,14 +241,16 @@ ret.containsInput = function (inputs, id) {
 };
 
 ret.topSort = function topSort (vis, sorted, key) {
-	vis.add(key);
+	vis.add(parseInt(key));
+	if (!ret.objects[key])
+		return;
 	for (var i = 0; i < ret.objects[key].inputs.length; i++) {
 		var nextKey = ret.objects[key].inputs[i].id;
-		if (vis.has(nextKey))
+		if (vis.has(parseInt(nextKey)))
 			continue;
 		topSort(vis, sorted, nextKey);
 	}
-	sorted.add(ret.objects[key]);
+	sorted.push(ret.objects[key]);
 };
 
 ret.getOutputs = function (inputMap) {
@@ -256,7 +258,7 @@ ret.getOutputs = function (inputMap) {
 	var sorted = [];
 
 	for (var key in ret.objects)
-		if (!vis.has(key))
+		if (!vis.has(parseInt(key)))
 			ret.topSort(vis, sorted, key);
 
 	var computedOutputs = [];
@@ -269,13 +271,11 @@ ret.getOutputs = function (inputMap) {
 
 		if (sorted[i].type == Constants.TYPES.INPUT_GATE)
 			inputs = inputMap ? [inputMap[sorted[i].id]] : [sorted[i].state == Constants.STATES.INPUT_ON];
-		else if (!ret.isCustomGate(sorted[i].type)) {
+		else if (!ret.isCustomGate(sorted[i].type))
 			for (var j = 0; j < i; j++)
 				for (var k = 0; k < sorted[i].inputs.length; k++)
-					if (sorted[i].inputs[k].id == sorted[j].id) {
+					if (sorted[i].inputs[k].id == sorted[j].id)
 						inputs.push(computedOutputs[j][sorted[i].inputs[k].inputIndex]);
-					}
-		}
 		else {
 			for (var j = 0; j < sorted[i].inputLength; j++)
 				inputs.push(0);
@@ -284,12 +284,10 @@ ret.getOutputs = function (inputMap) {
 					if (sorted[i].inputs[k].id == sorted[j].id)
 						inputs[sorted[i].inputs[k].outputIndex] = computedOutputs[j][sorted[i].inputs[k].inputIndex];
 		}
-
+		
 		computedOutputs[i] = sorted[i].getOutput(inputs);
-
-		if (sorted[i].type == Constants.TYPES.OUTPUT_GATE) {
-			outputMap.set(""+sorted[i].id, computedOutputs[i][0]);
-		}
+		if (sorted[i].type == Constants.TYPES.OUTPUT_GATE)
+			outputMap.set(parseInt(sorted[i].id), computedOutputs[i][0]);
 		if (!ret.isGate(sorted[i].type) && !inputMap)
 			sorted[i].element.setStroke(computedOutputs[i][0] ? "#22A80C" : "#81a2be");
 
@@ -305,7 +303,7 @@ ret.updateOutputs = function () {
 	for (var key in ret.objects) {
 		var currGate = ret.objects[key];
 		if (currGate.type == Constants.TYPES.OUTPUT_GATE) {
-			var currState = outputMap.get(""+currGate.id) == 1 ? Constants.STATES.OUTPUT_ON : Constants.STATES.OUTPUT_OFF;
+			var currState = outputMap.get(parseInt(currGate.id)) == 1 ? Constants.STATES.OUTPUT_ON : Constants.STATES.OUTPUT_OFF;
 			currGate.element.setSrc(currState, function () {
 				ret.canvas.renderAll();
 			});
@@ -343,9 +341,8 @@ ret.getTruthTable = function (objects) {
 		}
 
 		var outputMap = ret.getOutputs(inputMap);
-
 		for (var j = 0; j < outputIds.length; j++) 
-			truthTable[i][inputIds.length + j] = outputMap.get(outputIds[j]);
+			truthTable[i][inputIds.length + j] = outputMap.get(parseInt(outputIds[j]));
 	}
 
 	return {
@@ -367,7 +364,7 @@ ret.addCustomObject = function () {
 			var bitstring = 0;
 			for (var j = 0; j < truthTable.table[i].length; j++)
 				bitstring = (bitstring << 1) | truthTable.table[i][j];
-			lut[bitstring >> truthTable.outputLength] = bitstring & ((1 << truthTable.inputLength) - 1); 
+			lut[bitstring >> truthTable.outputLength] = bitstring & ((1 << truthTable.outputLength) - 1); 
 		}
 
 		customObject.inputLength = truthTable.inputLength;
@@ -375,9 +372,15 @@ ret.addCustomObject = function () {
 
 		return function (input) {
 			var bitInput = 0;
-			for (var i = 0; i < input.length; i++)
+			for (var i = 0; i < customObject.inputLength; i++)
 				bitInput = (bitInput << 1) | input[i];
-			return lut[bitInput];
+			var bitOutput = lut[bitInput];
+			var output = [];
+			for (var i = 0; i < customObject.outputLength; i++) {
+				output.push(bitOutput & 1);
+				bitOutput >>= 1;
+			}
+			return output;
 		};
 	})();
 
