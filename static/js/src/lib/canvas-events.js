@@ -209,7 +209,6 @@ var getCustomGateConnection = function (key, x, y) {
 		var connected = centerX <= x && x <= centerX + 10 && centerY - outputGap / 2 <= y && y <= centerY + outputGap / 2;
 	
 		if (connected) {
-			console.log("CONNECTED TO " + centerY);
 			return {
 				type: "output",
 				centerX: centerX,
@@ -272,8 +271,6 @@ module.exports = {
 		if (options.target && Main.isEditableObject(options.target.id)) {
 			var id = options.target.id;
 			if (isDeleting) {
-				console.log("BEFORE REMOVE");
-				console.log(Main.objects);
 				removeObject(Main.objects[id], 0);
 				Main.updateOutputs();
 			} else if (Main.objects[id]) {
