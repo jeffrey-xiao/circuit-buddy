@@ -1,5 +1,7 @@
 var ret = {};
 
+ret.EPS = 1e-6;
+
 ret.TYPES = {
 	INPUT_GATE: 0,
 	OUTPUT_GATE: 1,

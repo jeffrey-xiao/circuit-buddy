@@ -11023,6 +11023,8 @@
 
 	var ret = {};
 
+	ret.EPS = 1e-6;
+
 	ret.TYPES = {
 		INPUT_GATE: 0,
 		OUTPUT_GATE: 1,
@@ -43343,7 +43345,7 @@
 			var nextPrevX = input.element.x2;
 			var nextPrevY = input.element.y2;
 			if (input.type == Constants.TYPES.HORIZONTAL_LINE) {
-				if (Math.abs(input.element.x2 - prevX) < 1e-6) {
+				if (Math.abs(input.element.x2 - prevX) < Constants.EPS) {
 					input.element.set({
 						y1: input.element.y1 + dy,
 						y2: input.element.y2 + dy,
@@ -43359,7 +43361,7 @@
 					input.element.setCoords();
 				}
 			} else if (input.type == Constants.TYPES.VERTICAL_LINE) {
-				if (Math.abs(input.element.y2 - prevY) < 1e-6) {
+				if (Math.abs(input.element.y2 - prevY) < Constants.EPS) {
 					input.element.set({
 						y2: input.element.y2 + dy
 					});
@@ -43388,7 +43390,7 @@
 			var nextPrevX = output.element.x2;
 			var nextPrevY = output.element.y2;
 			if (output.type == Constants.TYPES.HORIZONTAL_LINE) {
-				if (Math.abs(output.element.x2 - prevX) < 1e-6) {
+				if (Math.abs(output.element.x2 - prevX) < Constants.EPS) {
 					output.element.set({
 						y1: output.element.y1 + dy,
 						y2: output.element.y2 + dy,
@@ -43404,7 +43406,7 @@
 					output.element.setCoords();
 				}
 			} else if (output.type == Constants.TYPES.VERTICAL_LINE) {
-				if (Math.abs(output.element.y2 - prevY) < 1e-6) {
+				if (Math.abs(output.element.y2 - prevY) < Constants.EPS) {
 					output.element.set({
 						y2: output.element.y2 + dy
 					});
@@ -43499,6 +43501,7 @@
 		var obj = Main.objects[key].element;
 		var inputGap = 50 / (Main.objects[key].inputLength + 1);
 		var outputGap = 50 / (Main.objects[key].outputLength + 1);
+
 		// checking if touching input
 		for (var i = 0; i < Main.objects[key].inputLength; i++) {
 			var centerX = obj.left;
@@ -43649,6 +43652,7 @@
 						});
 					}
 				}
+
 				// changing input
 				else if (options.target && Main.objects[options.target.id] && Main.objects[options.target.id].type == Constants.TYPES.INPUT_GATE) {
 
@@ -43799,10 +43803,10 @@
 				xcoords.sort();
 				var jointX;
 				for (var i = 0; i < 3; i++) {
-					if (xcoords[i] == xcoords[i + 1]) jointX = xcoords[i];
-				}if (Math.abs(inputElement.element.x1 - jointX) < 1e-6) inputElement.element.set({ x1: options.target.left });else inputElement.element.set({ x2: options.target.left });
+					if (Math.abs(xcoords[i] - xcoords[i + 1]) < Constants.EPS) jointX = xcoords[i];
+				}if (Math.abs(inputElement.element.x1 - jointX) < Constants.EPS) inputElement.element.set({ x1: options.target.left });else inputElement.element.set({ x2: options.target.left });
 
-				if (Math.abs(outputElement.element.x1 - jointX) < 1e-6) outputElement.element.set({ x1: options.target.left });else outputElement.element.set({ x2: options.target.left });
+				if (Math.abs(outputElement.element.x1 - jointX) < Constants.EPS) outputElement.element.set({ x1: options.target.left });else outputElement.element.set({ x2: options.target.left });
 
 				element.element.set({
 					y1: y1,
