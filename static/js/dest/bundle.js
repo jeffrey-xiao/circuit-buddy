@@ -10775,7 +10775,7 @@
 						if (!map[negateId]) {
 							map[negateId] = {
 								id: Main.currObjectId,
-								inputs: [{ prevInput: prevInput }]
+								inputs: [prevInput]
 							};
 
 							objects[Main.currObjectId] = {
@@ -10843,6 +10843,7 @@
 	//  - id 		current id of element corresponding to map
 	//  - depth 	current depth
 	var setMaxDepth = function setMaxDepth(map, id, depth) {
+		console.log(id);
 		if (!map[id].depth) map[id].depth = 0;
 		map[id].depth = Math.max(map[id].depth, depth);
 		for (var i = 0; i < map[id].inputs.length; i++) {
@@ -10919,6 +10920,8 @@
 		for (var i = 0; i < maxDepth; i++) {
 			depths.push(0);
 		}var outputGate = buildCircuitTree(str, map, generatedObjects);
+		console.log(map);
+		console.log(outputGate);
 		setMaxDepth(map, outputGate, 0);
 		createObjects(map, outputGate, depths, 0, generatedObjects);
 		linkObjects(map, outputGate, generatedObjects);
