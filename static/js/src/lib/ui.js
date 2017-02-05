@@ -84,7 +84,8 @@ $(document).ready(function () {
 				id: 0
 			}],
 			activeTab: 0,
-			objectsList: [{}]
+			objectsList: [{}],
+			customObjects: {}
 		},
 		methods: {
 			addTab: function () {
@@ -101,6 +102,7 @@ $(document).ready(function () {
 		},
 		mounted: function () {
 			Main.objects = this.objectsList[0];
+			Main.customObjects = this.customObjects;
 			var ref = this;
 			
 			Main.Events.$on('tabs:add-tab', this.addTab);
@@ -135,14 +137,28 @@ $(document).ready(function () {
 				Main.addAllCanvasObjects();
 				Main.updateOutputs();
 			});
-			Main.Events.$on('tabs:import-tabs', function (objectsListJson) {
+			Main.Events.$on('tabs:import-tabs', function (json) {
 				Main.removeAllCanvasObjects();
 				ref.tabs = [];
-				ref.objectsList = JSON.parse(objectsListJson);
+				var jsonObj = JSON.parse(json);
+				ref.objectsList = jsonObj.objectsList;
+				ref.customObjects = jsonObj.customObjects;
 				ref.activeTab = 0;
 				globalTabCounter = 1;
 				globalTabIdCounter = 0;
+				Main.currObjectId = 0;
 
+				// initializing custom toolbox
+				for (var key in ref.customObjects) {
+					var obj = ref.customObjects[key];
+					obj.getOutput = Main.getCustomObjectOutputFunction(obj);
+					obj.element = Main.createCustomGate(obj, true, obj.y1, obj.x1, function (customObject, element) {
+						element.id = customObject.id;
+						customObject.element = element;
+					});
+				}
+
+				// initializing objects
 				for (var i = 0; i < ref.objectsList.length; i++) {
 					for (var key in ref.objectsList[i]) {
 						var tab = i;
@@ -151,8 +167,12 @@ $(document).ready(function () {
 
 						if (!Main.isCustomGate(obj.type))
 							obj.getOutput = Constants.TYPE_OUTPUTS[obj.type];
-						else
+						else {
 							obj.getOutput = Main.getCustomObjectOutputFunction(obj);
+							Main.createCustomGate(obj, false, obj.y1, obj.x1, function (customObject, element) {
+								customObject.element = element;
+							});
+						}
 						if (element.type == "image") {
 							var src = ref.objectsList[tab][key].type == Constants.TYPES.INPUT_GATE ? Constants.STATES.INPUT_OFF : element.src;
 							fabric.Image.fromURL(src, function (oImage) {
@@ -200,6 +220,7 @@ $(document).ready(function () {
 
 				globalTabCounter = 1;
 				Main.objects = ref.objectsList[0];
+				Main.customObjects = ref.customObjects;
 
 				setTimeout(function () {
 					Main.addAllCanvasObjects();
@@ -226,7 +247,6 @@ $(document).ready(function () {
 				});
 			});
 			Main.Events.$on('custom-object:clicked', function () {
-				console.log("CUSTOM OBJECT CLICKED");
 				Main.addCustomObject();
 			});
 		}

@@ -9,7 +9,7 @@ ret.currObjectId = Constants.OPTS.initialObjectId;
 ret.currTab = 0;
 ret.canvas = null;
 ret.objects = {};
-ret.customObjects = [];
+ret.customObjects = {};
 ret.Events = new Vue({});
 
 ret.initApp = function () {
@@ -102,16 +102,16 @@ ret.getCost = function (objects) {
 	return cost;
 };
 
-ret.createCustomGate = function (customGateId, isToolbox, callback) {
+ret.createCustomGate = function (customObject, isToolbox, top, left, callback) {
 	fabric.Image.fromURL(Constants.GATES[Constants.TYPES.CUSTOM_GATE].url, function (oImage) {
-		var leftText = new fabric.Text("" + ret.customObjects[customGateId].inputLength, {
+		var leftText = new fabric.Text("" + customObject.inputLength, {
 			fontFamily: 'monospace',
 			left: 10,
 			top: 13,
 			fontSize: 20,
 			fill: '#18abe2'
 		});
-		var rightText = new fabric.Text("" + ret.customObjects[customGateId].outputLength, {
+		var rightText = new fabric.Text("" + customObject.outputLength, {
 			fontFamily: 'monospace',
 			left: 28,
 			top: 13,
@@ -119,10 +119,11 @@ ret.createCustomGate = function (customGateId, isToolbox, callback) {
 			fill: '#18abe2'
 		});
 		var element = new fabric.Group([oImage, leftText, rightText], {
-			// NOTE THAT THIS ID IS NOT THE SAME AS THE OTHER TOOL BOXES ID; SHOULD CHANGE TO ACTUAL OBJECT ID IF ISTOOLBOX IS FALSE
-			id: customGateId, 
-			top: (Constants.GATES.length - 1 + customGateId) * Constants.OPTS.gridSize,
-			left: isToolbox ? 0 : Constants.OPTS.gridSize,
+			// NOTE THAT THIS ID IS NOT THE SAME AS THE OTHER TOOL BOXES ID; SHOULD CHANGE TO ACTUAL OBJECT ID 
+			// IF ISTOOLBOX IS FALSE
+			id: customObject.id, 
+			top: top,
+			left: left,
 			height: Constants.OPTS.gridSize,
 			width: Constants.OPTS.gridSize,
 			hasBorders: false,
@@ -133,9 +134,7 @@ ret.createCustomGate = function (customGateId, isToolbox, callback) {
 			type: Constants.TYPES.CUSTOM_GATE
 		});
 
-		ret.canvas.add(element);
-
-		callback(element);
+		callback(customObject, element);
 	});
 };
 
@@ -240,26 +239,26 @@ ret.containsInput = function (inputs, id) {
 	return false;
 };
 
-ret.topSort = function topSort (vis, sorted, key) {
+ret.topSort = function topSort (objects, vis, sorted, key) {
 	vis.add(parseInt(key));
-	if (!ret.objects[key])
+	if (!objects[key])
 		return;
-	for (var i = 0; i < ret.objects[key].inputs.length; i++) {
-		var nextKey = ret.objects[key].inputs[i].id;
+	for (var i = 0; i < objects[key].inputs.length; i++) {
+		var nextKey = objects[key].inputs[i].id;
 		if (vis.has(parseInt(nextKey)))
 			continue;
-		topSort(vis, sorted, nextKey);
+		topSort(objects, vis, sorted, nextKey);
 	}
-	sorted.push(ret.objects[key]);
+	sorted.push(objects[key]);
 };
 
-ret.getOutputs = function (inputMap) {
+ret.getOutputs = function (objects, inputMap) {
 	var vis = new Set();
 	var sorted = [];
 
-	for (var key in ret.objects)
+	for (var key in objects)
 		if (!vis.has(parseInt(key)))
-			ret.topSort(vis, sorted, key);
+			ret.topSort(objects, vis, sorted, key);
 
 	var computedOutputs = [];
 	var outputMap = new SortedMap();
@@ -301,7 +300,7 @@ ret.getOutputs = function (inputMap) {
 
 
 ret.updateOutputs = function () {
-	var outputMap = ret.getOutputs(null);
+	var outputMap = ret.getOutputs(ret.objects, null);
 
 	for (var key in ret.objects) {
 		var currGate = ret.objects[key];
@@ -315,9 +314,6 @@ ret.updateOutputs = function () {
 };
 
 ret.getTruthTable = function (objects) {
-	if (objects === undefined)
-		objects = ret.objects;
-
 	var inputIds = [];
 	var outputIds = [];
 
@@ -343,7 +339,7 @@ ret.getTruthTable = function (objects) {
 			truthTable[i][j] = (i & 1 << j) > 0 ? 1 : 0;
 		}
 
-		var outputMap = ret.getOutputs(inputMap);
+		var outputMap = ret.getOutputs(objects, inputMap);
 		for (var j = 0; j < outputIds.length; j++) 
 			truthTable[i][inputIds.length + j] = outputMap.get(parseInt(outputIds[j]));
 	}
@@ -380,28 +376,37 @@ ret.getCustomObjectOutputFunction = function (customObject) {
 
 ret.addCustomObject = function () {
 	var customObject = {};
-	var truthTableObject = ret.getTruthTable();
-	
+	var truthTableObject = ret.getTruthTable(ret.objects);
+
 	customObject.type = Constants.TYPES.CUSTOM_GATE;
-	customObject.id = ret.customObjects.length;
+	customObject.id = ret.currObjectId;
 	customObject.table = truthTableObject.table;
 	customObject.inputLength = truthTableObject.inputLength;
 	customObject.outputLength = truthTableObject.outputLength;
 	customObject.getOutput = ret.getCustomObjectOutputFunction(customObject);
 
-	ret.customObjects.push(customObject);
-	ret.createCustomGate(customObject.id, true, function (element) {});
+	Vue.set(ret.customObjects, ret.currObjectId++, customObject);
+	var top = (Constants.GATES.length - 1 + Object.keys(ret.customObjects).length - 1) * Constants.OPTS.gridSize;
+	var left = 0;
+	ret.createCustomGate(customObject, true, top, left, function (customObject, element) {
+		customObject.element = element;
+		ret.canvas.add(element);
+	});
 };
 
 
 ret.removeAllCanvasObjects = function () {
 	for (var key in ret.objects)
 		ret.canvas.remove(ret.objects[key].element);
+	for (var key in ret.customObjects)
+		ret.canvas.remove(ret.customObjects[key].element);
 }
 
 ret.addAllCanvasObjects = function () {
 	for (var key in ret.objects)
 		ret.canvas.add(ret.objects[key].element);
+	for (var key in ret.customObjects) 
+		ret.canvas.add(ret.customObjects[key].element);
 }
 
 module.exports = ret;

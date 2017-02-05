@@ -28,7 +28,7 @@
                 <cost-info v-bind:objects="objectsList[activeTab]"></cost-info>
             </div>
 
-            <modal name="export" title="Export Content" v-bind:objects-list="objectsList"></modal>
+            <modal name="export" title="Export Content" v-bind:objects-list="objectsList" v-bind:custom-objects="customObjects"></modal>
             <modal name="import" title="Import Content"></modal>
             <modal name="camera" title="Import Scanned Image"></modal>
         </div>

@@ -13,21 +13,32 @@
 <script>
 	var Main = require("../lib/main.js");
 
-	var getJsonOutput = function (objectsList) {
+	var getJsonOutput = function (objectsList, customObjects) {
 		for (var i = 0; i < objectsList.length; i++) {
 			for (var key in objectsList[i]) {
 				var element = objectsList[i][key].element;
-				objectsList[i][key].x1 = element.x1;
-				objectsList[i][key].x2 = element.x2;
-				objectsList[i][key].y1 = element.y1;
-				objectsList[i][key].y2 = element.y2;
+				objectsList[i][key].x1 = element.x1 || (element.left);
+				objectsList[i][key].x2 = element.x2 || (element.left + 50);
+				objectsList[i][key].y1 = element.y1 || (element.top);
+				objectsList[i][key].y2 = element.y2 || (element.top + 50);
 			}
 		}
-		return JSON.stringify(objectsList);
+		for (var key in customObjects) {
+			var element = customObjects[key].element;
+			customObjects[key].x1 = element.x1 || (element.left);
+			customObjects[key].x2 = element.x2 || (element.left + 50);
+			customObjects[key].y1 = element.y1 || (element.top);
+			customObjects[key].y2 = element.y2 || (element.top + 50);
+		}
+		var obj = {
+			objectsList: objectsList,
+			customObjects: customObjects
+		};
+		return JSON.stringify(obj);
 	};
 
 	module.exports = {
-		props: ["name", "title", "objectsList"],
+		props: ["name", "title", "objectsList", "customObjects"],
 		data: function () {
 			return {
 				isVisible: false,
@@ -64,7 +75,7 @@
 			var ref = this;
 			Main.Events.$on(this.name+":clicked", function () {
 				if (ref.name == "export")
-					ref.textAreaContent = getJsonOutput(ref.objectsList);
+					ref.textAreaContent = getJsonOutput(ref.objectsList, ref.customObjects);
 				ref.isVisible = true;
 			});
 		}

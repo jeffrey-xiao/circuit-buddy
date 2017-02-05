@@ -137,12 +137,36 @@ var getOutputId = function (id) {
 var removeObject = function (element, depth) {
 	if (!element || !element.element || (depth != 0 && Main.isGate(element.type)))
 		return;
-	if (depth >= 0) {
-		for (var i = element.inputs.length - 1; i >= 0; i--) {
-			var nextInputElement = Main.objects[element.inputs[i].id];
-			var index = nextInputElement.outputs.indexOf(element.id);
-			nextInputElement.outputs.splice(index, 1);
+
+	for (var i = element.inputs.length - 1; i >= 0; i--) {
+		var nextInputElement = Main.objects[element.inputs[i].id];
+		var index = nextInputElement.outputs.indexOf(element.id);
+		nextInputElement.outputs.splice(index, 1);
+	}
+	for (var i = element.outputs.length - 1; i >= 0; i--) {
+		var nextOutputElement = Main.objects[element.outputs[i]];
+		var index = nextOutputElement.inputs.findIndex(obj => obj.id == element.id);
+		nextOutputElement.inputs.splice(index, 1);
+	}
+
+	var id = element.id;
+	Main.canvas.remove(element.element);
+	Vue.delete(Main.objects, element.id);
+
+	for (var key in Main.objects) {
+		var curr = Main.objects[key];
+		for (var i = 0; i < curr.outputs.length; i++) {
+			console.assert(curr.outputs[i] != id, "SHOULD NOT CONTAIN ELEMENT " + id);
+			console.assert(Main.objects[curr.outputs[i]], "SHOULD EXIST" + curr.outputs[i]);
 		}
+		for (var i = 0; i < curr.inputs.length; i++) {
+			console.assert(curr.inputs[i].id != id, "SHOULD NOT CONTAIN ELEMENT " + id);
+			console.assert(Main.objects[curr.inputs[i].id], "SHOULD EXIST " + curr.inputs[i].id);
+		}
+
+	}
+
+	if (depth >= 0) {
 		for (var i = element.inputs.length - 1; i >= 0; i--) {
 			var nextInputElement = Main.objects[element.inputs[i].id];
 			removeObject(nextInputElement, depth + 1);
@@ -152,17 +176,10 @@ var removeObject = function (element, depth) {
 	if (depth <= 0) {
 		for (var i = element.outputs.length - 1; i >= 0; i--) {
 			var nextOutputElement = Main.objects[element.outputs[i]];
-			var index = nextOutputElement.inputs.findIndex(obj => obj.id == element.id);
-			nextOutputElement.inputs.splice(index, 1);
-		}
-		for (var i = element.outputs.length - 1; i >= 0; i--) {
-			var nextOutputElement = Main.objects[element.outputs[i]];
 			removeObject(nextOutputElement, depth - 1);
 		}
 	}
 
-	Main.canvas.remove(element.element);
-	Vue.delete(Main.objects, element.id);
 };
 
 var getCustomGateConnection = function (key, x, y) {
@@ -254,6 +271,8 @@ module.exports = {
 		if (options.target && Main.isEditableObject(options.target.id)) {
 			var id = options.target.id;
 			if (isDeleting) {
+				console.log("BEFORE REMOVE");
+				console.log(Main.objects);
 				removeObject(Main.objects[id], 0);
 				Main.updateOutputs();
 			} else if (Main.objects[id]) {
@@ -275,16 +294,18 @@ module.exports = {
 			// creating new editable gate
 			if (options.target && options.target.isToolbox) {
 				if (Main.isCustomGate(options.target.type)) {
-					Main.createCustomGate(options.target.id, false, function (element) {
+					var top = (Constants.GATES.length - 1 + Object.keys(Main.customObjects).length - 1) * Constants.OPTS.gridSize;
+					var left = Constants.OPTS.gridSize;
+					Main.createCustomGate(Main.customObjects[options.target.id], false, top, left, function (customObject, element) {
 						var customGateId = element.id;
 						element.id = Main.currObjectId++;
 						Vue.set(Main.objects, element.id, {
 							id: element.id,
 							element: element,
 							type: Constants.TYPES.CUSTOM_GATE,
-							inputLength: Main.customObjects[customGateId].inputLength,
-							outputLength: Main.customObjects[customGateId].outputLength,
-							table: Main.customObjects[customGateId].table,
+							inputLength: customObject.inputLength,
+							outputLength: customObject.outputLength,
+							table: customObject.table,
 							outputs: [],
 							inputs: [],
 							top: element.top,
@@ -292,8 +313,9 @@ module.exports = {
 							width: element.width,
 							height: element.height,
 							state: Constants.STATES.INPUT_OFF,
-							getOutput: Main.customObjects[customGateId].getOutput
+							getOutput: customObject.getOutput
 						});
+						Main.canvas.add(element);
 					});
 				} else {
 					var currGate = Constants.GATES[options.target.id];
@@ -352,8 +374,7 @@ module.exports = {
 			Vue.set(Main.objects, hline1.id, hline1);
 			Vue.set(Main.objects, hline2.id, hline2);
 			Vue.set(Main.objects, vline.id, vline);
-			console.log(isDrawingFromOutput);
-			console.log(isDrawingFromInput);
+
 			for (var key in Main.objects) {
 				var currGate = Main.objects[key];
 
@@ -362,7 +383,6 @@ module.exports = {
 					connectionInfo = getCustomGateConnection(key, x, y);
 				else
 					connectionInfo = getGateConnection(key, x, y)
-				console.log(connectionInfo.type);
 				if (connectionInfo.type == "input") {
 					if (isDrawingFromInput)
 						continue;

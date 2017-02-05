@@ -10307,6 +10307,12 @@
 
 	"use strict";
 
+	var _keys = __webpack_require__(116);
+
+	var _keys2 = _interopRequireDefault(_keys);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 	var Vue = __webpack_require__(63);
 	var Constants = __webpack_require__(14);
 	var fabric = __webpack_require__(15).fabric;
@@ -10318,7 +10324,7 @@
 	ret.currTab = 0;
 	ret.canvas = null;
 	ret.objects = {};
-	ret.customObjects = [];
+	ret.customObjects = {};
 	ret.Events = new Vue({});
 
 	ret.initApp = function () {
@@ -10406,16 +10412,16 @@
 		return cost;
 	};
 
-	ret.createCustomGate = function (customGateId, isToolbox, callback) {
+	ret.createCustomGate = function (customObject, isToolbox, top, left, callback) {
 		fabric.Image.fromURL(Constants.GATES[Constants.TYPES.CUSTOM_GATE].url, function (oImage) {
-			var leftText = new fabric.Text("" + ret.customObjects[customGateId].inputLength, {
+			var leftText = new fabric.Text("" + customObject.inputLength, {
 				fontFamily: 'monospace',
 				left: 10,
 				top: 13,
 				fontSize: 20,
 				fill: '#18abe2'
 			});
-			var rightText = new fabric.Text("" + ret.customObjects[customGateId].outputLength, {
+			var rightText = new fabric.Text("" + customObject.outputLength, {
 				fontFamily: 'monospace',
 				left: 28,
 				top: 13,
@@ -10423,10 +10429,11 @@
 				fill: '#18abe2'
 			});
 			var element = new fabric.Group([oImage, leftText, rightText], {
-				// NOTE THAT THIS ID IS NOT THE SAME AS THE OTHER TOOL BOXES ID; SHOULD CHANGE TO ACTUAL OBJECT ID IF ISTOOLBOX IS FALSE
-				id: customGateId,
-				top: (Constants.GATES.length - 1 + customGateId) * Constants.OPTS.gridSize,
-				left: isToolbox ? 0 : Constants.OPTS.gridSize,
+				// NOTE THAT THIS ID IS NOT THE SAME AS THE OTHER TOOL BOXES ID; SHOULD CHANGE TO ACTUAL OBJECT ID 
+				// IF ISTOOLBOX IS FALSE
+				id: customObject.id,
+				top: top,
+				left: left,
 				height: Constants.OPTS.gridSize,
 				width: Constants.OPTS.gridSize,
 				hasBorders: false,
@@ -10437,9 +10444,7 @@
 				type: Constants.TYPES.CUSTOM_GATE
 			});
 
-			ret.canvas.add(element);
-
-			callback(element);
+			callback(customObject, element);
 		});
 	};
 
@@ -10542,23 +10547,23 @@
 		}return false;
 	};
 
-	ret.topSort = function topSort(vis, sorted, key) {
+	ret.topSort = function topSort(objects, vis, sorted, key) {
 		vis.add(parseInt(key));
-		if (!ret.objects[key]) return;
-		for (var i = 0; i < ret.objects[key].inputs.length; i++) {
-			var nextKey = ret.objects[key].inputs[i].id;
+		if (!objects[key]) return;
+		for (var i = 0; i < objects[key].inputs.length; i++) {
+			var nextKey = objects[key].inputs[i].id;
 			if (vis.has(parseInt(nextKey))) continue;
-			topSort(vis, sorted, nextKey);
+			topSort(objects, vis, sorted, nextKey);
 		}
-		sorted.push(ret.objects[key]);
+		sorted.push(objects[key]);
 	};
 
-	ret.getOutputs = function (inputMap) {
+	ret.getOutputs = function (objects, inputMap) {
 		var vis = new Set();
 		var sorted = [];
 
-		for (var key in ret.objects) {
-			if (!vis.has(parseInt(key))) ret.topSort(vis, sorted, key);
+		for (var key in objects) {
+			if (!vis.has(parseInt(key))) ret.topSort(objects, vis, sorted, key);
 		}var computedOutputs = [];
 		var outputMap = new SortedMap();
 
@@ -10594,7 +10599,7 @@
 	};
 
 	ret.updateOutputs = function () {
-		var outputMap = ret.getOutputs(null);
+		var outputMap = ret.getOutputs(ret.objects, null);
 
 		for (var key in ret.objects) {
 			var currGate = ret.objects[key];
@@ -10608,8 +10613,6 @@
 	};
 
 	ret.getTruthTable = function (objects) {
-		if (objects === undefined) objects = ret.objects;
-
 		var inputIds = [];
 		var outputIds = [];
 
@@ -10633,7 +10636,7 @@
 				truthTable[i][j] = (i & 1 << j) > 0 ? 1 : 0;
 			}
 
-			var outputMap = ret.getOutputs(inputMap);
+			var outputMap = ret.getOutputs(objects, inputMap);
 			for (var j = 0; j < outputIds.length; j++) {
 				truthTable[i][inputIds.length + j] = outputMap.get(parseInt(outputIds[j]));
 			}
@@ -10671,28 +10674,37 @@
 
 	ret.addCustomObject = function () {
 		var customObject = {};
-		var truthTableObject = ret.getTruthTable();
+		var truthTableObject = ret.getTruthTable(ret.objects);
 
 		customObject.type = Constants.TYPES.CUSTOM_GATE;
-		customObject.id = ret.customObjects.length;
+		customObject.id = ret.currObjectId;
 		customObject.table = truthTableObject.table;
 		customObject.inputLength = truthTableObject.inputLength;
 		customObject.outputLength = truthTableObject.outputLength;
 		customObject.getOutput = ret.getCustomObjectOutputFunction(customObject);
 
-		ret.customObjects.push(customObject);
-		ret.createCustomGate(customObject.id, true, function (element) {});
+		Vue.set(ret.customObjects, ret.currObjectId++, customObject);
+		var top = (Constants.GATES.length - 1 + (0, _keys2.default)(ret.customObjects).length - 1) * Constants.OPTS.gridSize;
+		var left = 0;
+		ret.createCustomGate(customObject, true, top, left, function (customObject, element) {
+			customObject.element = element;
+			ret.canvas.add(element);
+		});
 	};
 
 	ret.removeAllCanvasObjects = function () {
 		for (var key in ret.objects) {
 			ret.canvas.remove(ret.objects[key].element);
+		}for (var key in ret.customObjects) {
+			ret.canvas.remove(ret.customObjects[key].element);
 		}
 	};
 
 	ret.addAllCanvasObjects = function () {
 		for (var key in ret.objects) {
 			ret.canvas.add(ret.objects[key].element);
+		}for (var key in ret.customObjects) {
+			ret.canvas.add(ret.customObjects[key].element);
 		}
 	};
 
@@ -43300,6 +43312,12 @@
 
 	"use strict";
 
+	var _keys = __webpack_require__(116);
+
+	var _keys2 = _interopRequireDefault(_keys);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 	var Constants = __webpack_require__(14);
 	var Main = __webpack_require__(9);
 	var fabric = __webpack_require__(15).fabric;
@@ -43432,12 +43450,37 @@
 
 	var removeObject = function removeObject(element, depth) {
 		if (!element || !element.element || depth != 0 && Main.isGate(element.type)) return;
-		if (depth >= 0) {
-			for (var i = element.inputs.length - 1; i >= 0; i--) {
-				var nextInputElement = Main.objects[element.inputs[i].id];
-				var index = nextInputElement.outputs.indexOf(element.id);
-				nextInputElement.outputs.splice(index, 1);
+
+		for (var i = element.inputs.length - 1; i >= 0; i--) {
+			var nextInputElement = Main.objects[element.inputs[i].id];
+			var index = nextInputElement.outputs.indexOf(element.id);
+			nextInputElement.outputs.splice(index, 1);
+		}
+		for (var i = element.outputs.length - 1; i >= 0; i--) {
+			var nextOutputElement = Main.objects[element.outputs[i]];
+			var index = nextOutputElement.inputs.findIndex(function (obj) {
+				return obj.id == element.id;
+			});
+			nextOutputElement.inputs.splice(index, 1);
+		}
+
+		var id = element.id;
+		Main.canvas.remove(element.element);
+		Vue.delete(Main.objects, element.id);
+
+		for (var key in Main.objects) {
+			var curr = Main.objects[key];
+			for (var i = 0; i < curr.outputs.length; i++) {
+				console.assert(curr.outputs[i] != id, "SHOULD NOT CONTAIN ELEMENT " + id);
+				console.assert(Main.objects[curr.outputs[i]], "SHOULD EXIST" + curr.outputs[i]);
 			}
+			for (var i = 0; i < curr.inputs.length; i++) {
+				console.assert(curr.inputs[i].id != id, "SHOULD NOT CONTAIN ELEMENT " + id);
+				console.assert(Main.objects[curr.inputs[i].id], "SHOULD EXIST " + curr.inputs[i].id);
+			}
+		}
+
+		if (depth >= 0) {
 			for (var i = element.inputs.length - 1; i >= 0; i--) {
 				var nextInputElement = Main.objects[element.inputs[i].id];
 				removeObject(nextInputElement, depth + 1);
@@ -43447,19 +43490,9 @@
 		if (depth <= 0) {
 			for (var i = element.outputs.length - 1; i >= 0; i--) {
 				var nextOutputElement = Main.objects[element.outputs[i]];
-				var index = nextOutputElement.inputs.findIndex(function (obj) {
-					return obj.id == element.id;
-				});
-				nextOutputElement.inputs.splice(index, 1);
-			}
-			for (var i = element.outputs.length - 1; i >= 0; i--) {
-				var nextOutputElement = Main.objects[element.outputs[i]];
 				removeObject(nextOutputElement, depth - 1);
 			}
 		}
-
-		Main.canvas.remove(element.element);
-		Vue.delete(Main.objects, element.id);
 	};
 
 	var getCustomGateConnection = function getCustomGateConnection(key, x, y) {
@@ -43548,6 +43581,8 @@
 			if (options.target && Main.isEditableObject(options.target.id)) {
 				var id = options.target.id;
 				if (isDeleting) {
+					console.log("BEFORE REMOVE");
+					console.log(Main.objects);
 					removeObject(Main.objects[id], 0);
 					Main.updateOutputs();
 				} else if (Main.objects[id]) {
@@ -43564,16 +43599,18 @@
 				// creating new editable gate
 				if (options.target && options.target.isToolbox) {
 					if (Main.isCustomGate(options.target.type)) {
-						Main.createCustomGate(options.target.id, false, function (element) {
+						var top = (Constants.GATES.length - 1 + (0, _keys2.default)(Main.customObjects).length - 1) * Constants.OPTS.gridSize;
+						var left = Constants.OPTS.gridSize;
+						Main.createCustomGate(Main.customObjects[options.target.id], false, top, left, function (customObject, element) {
 							var customGateId = element.id;
 							element.id = Main.currObjectId++;
 							Vue.set(Main.objects, element.id, {
 								id: element.id,
 								element: element,
 								type: Constants.TYPES.CUSTOM_GATE,
-								inputLength: Main.customObjects[customGateId].inputLength,
-								outputLength: Main.customObjects[customGateId].outputLength,
-								table: Main.customObjects[customGateId].table,
+								inputLength: customObject.inputLength,
+								outputLength: customObject.outputLength,
+								table: customObject.table,
 								outputs: [],
 								inputs: [],
 								top: element.top,
@@ -43581,8 +43618,9 @@
 								width: element.width,
 								height: element.height,
 								state: Constants.STATES.INPUT_OFF,
-								getOutput: Main.customObjects[customGateId].getOutput
+								getOutput: customObject.getOutput
 							});
+							Main.canvas.add(element);
 						});
 					} else {
 						var currGate = Constants.GATES[options.target.id];
@@ -43636,14 +43674,12 @@
 				Vue.set(Main.objects, hline1.id, hline1);
 				Vue.set(Main.objects, hline2.id, hline2);
 				Vue.set(Main.objects, vline.id, vline);
-				console.log(isDrawingFromOutput);
-				console.log(isDrawingFromInput);
+
 				for (var key in Main.objects) {
 					var currGate = Main.objects[key];
 
 					var connectionInfo;
 					if (Main.isCustomGate(Main.objects[key].type)) connectionInfo = getCustomGateConnection(key, x, y);else connectionInfo = getGateConnection(key, x, y);
-					console.log(connectionInfo.type);
 					if (connectionInfo.type == "input") {
 						if (isDrawingFromInput) continue;
 						if (currGate.id == startComponentId) continue;
@@ -52678,7 +52714,8 @@
 					id: 0
 				}],
 				activeTab: 0,
-				objectsList: [{}]
+				objectsList: [{}],
+				customObjects: {}
 			},
 			methods: {
 				addTab: function addTab() {
@@ -52695,6 +52732,7 @@
 			},
 			mounted: function mounted() {
 				Main.objects = this.objectsList[0];
+				Main.customObjects = this.customObjects;
 				var ref = this;
 
 				Main.Events.$on('tabs:add-tab', this.addTab);
@@ -52732,21 +52770,40 @@
 					Main.addAllCanvasObjects();
 					Main.updateOutputs();
 				});
-				Main.Events.$on('tabs:import-tabs', function (objectsListJson) {
+				Main.Events.$on('tabs:import-tabs', function (json) {
 					Main.removeAllCanvasObjects();
 					ref.tabs = [];
-					ref.objectsList = JSON.parse(objectsListJson);
+					var jsonObj = JSON.parse(json);
+					ref.objectsList = jsonObj.objectsList;
+					ref.customObjects = jsonObj.customObjects;
 					ref.activeTab = 0;
 					globalTabCounter = 1;
 					globalTabIdCounter = 0;
+					Main.currObjectId = 0;
 
+					// initializing custom toolbox
+					for (var key in ref.customObjects) {
+						var obj = ref.customObjects[key];
+						obj.getOutput = Main.getCustomObjectOutputFunction(obj);
+						obj.element = Main.createCustomGate(obj, true, obj.y1, obj.x1, function (customObject, element) {
+							element.id = customObject.id;
+							customObject.element = element;
+						});
+					}
+
+					// initializing objects
 					for (var i = 0; i < ref.objectsList.length; i++) {
 						for (var key in ref.objectsList[i]) {
 							var tab = i;
 							var obj = ref.objectsList[tab][key];
 							var element = obj.element;
 
-							if (!Main.isCustomGate(obj.type)) obj.getOutput = Constants.TYPE_OUTPUTS[obj.type];else obj.getOutput = Main.getCustomObjectOutputFunction(obj);
+							if (!Main.isCustomGate(obj.type)) obj.getOutput = Constants.TYPE_OUTPUTS[obj.type];else {
+								obj.getOutput = Main.getCustomObjectOutputFunction(obj);
+								Main.createCustomGate(obj, false, obj.y1, obj.x1, function (customObject, element) {
+									customObject.element = element;
+								});
+							}
 							if (element.type == "image") {
 								var src = ref.objectsList[tab][key].type == Constants.TYPES.INPUT_GATE ? Constants.STATES.INPUT_OFF : element.src;
 								fabric.Image.fromURL(src, function (oImage) {
@@ -52794,6 +52851,7 @@
 
 					globalTabCounter = 1;
 					Main.objects = ref.objectsList[0];
+					Main.customObjects = ref.customObjects;
 
 					setTimeout(function () {
 						Main.addAllCanvasObjects();
@@ -52822,7 +52880,6 @@
 					});
 				});
 				Main.Events.$on('custom-object:clicked', function () {
-					console.log("CUSTOM OBJECT CLICKED");
 					Main.addCustomObject();
 				});
 			}
@@ -55527,21 +55584,32 @@
 	// <script>
 	var Main = __webpack_require__(9);
 
-	var getJsonOutput = function getJsonOutput(objectsList) {
+	var getJsonOutput = function getJsonOutput(objectsList, customObjects) {
 		for (var i = 0; i < objectsList.length; i++) {
 			for (var key in objectsList[i]) {
 				var element = objectsList[i][key].element;
-				objectsList[i][key].x1 = element.x1;
-				objectsList[i][key].x2 = element.x2;
-				objectsList[i][key].y1 = element.y1;
-				objectsList[i][key].y2 = element.y2;
+				objectsList[i][key].x1 = element.x1 || element.left;
+				objectsList[i][key].x2 = element.x2 || element.left + 50;
+				objectsList[i][key].y1 = element.y1 || element.top;
+				objectsList[i][key].y2 = element.y2 || element.top + 50;
 			}
 		}
-		return (0, _stringify2.default)(objectsList);
+		for (var key in customObjects) {
+			var element = customObjects[key].element;
+			customObjects[key].x1 = element.x1 || element.left;
+			customObjects[key].x2 = element.x2 || element.left + 50;
+			customObjects[key].y1 = element.y1 || element.top;
+			customObjects[key].y2 = element.y2 || element.top + 50;
+		}
+		var obj = {
+			objectsList: objectsList,
+			customObjects: customObjects
+		};
+		return (0, _stringify2.default)(obj);
 	};
 
 	module.exports = {
-		props: ["name", "title", "objectsList"],
+		props: ["name", "title", "objectsList", "customObjects"],
 		data: function data() {
 			return {
 				isVisible: false,
@@ -55575,7 +55643,7 @@
 		mounted: function mounted() {
 			var ref = this;
 			Main.Events.$on(this.name + ":clicked", function () {
-				if (ref.name == "export") ref.textAreaContent = getJsonOutput(ref.objectsList);
+				if (ref.name == "export") ref.textAreaContent = getJsonOutput(ref.objectsList, ref.customObjects);
 				ref.isVisible = true;
 			});
 		}
@@ -62771,6 +62839,474 @@
 	    return this._iterationObject;
 	};
 
+
+/***/ },
+/* 116 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = { "default": __webpack_require__(117), __esModule: true };
+
+/***/ },
+/* 117 */
+/***/ function(module, exports, __webpack_require__) {
+
+	__webpack_require__(118);
+	module.exports = __webpack_require__(13).Object.keys;
+
+/***/ },
+/* 118 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// 19.1.2.14 Object.keys(O)
+	var toObject = __webpack_require__(119)
+	  , $keys    = __webpack_require__(121);
+
+	__webpack_require__(136)('keys', function(){
+	  return function keys(it){
+	    return $keys(toObject(it));
+	  };
+	});
+
+/***/ },
+/* 119 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// 7.1.13 ToObject(argument)
+	var defined = __webpack_require__(120);
+	module.exports = function(it){
+	  return Object(defined(it));
+	};
+
+/***/ },
+/* 120 */
+/***/ function(module, exports) {
+
+	// 7.2.1 RequireObjectCoercible(argument)
+	module.exports = function(it){
+	  if(it == undefined)throw TypeError("Can't call method on  " + it);
+	  return it;
+	};
+
+/***/ },
+/* 121 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// 19.1.2.14 / 15.2.3.14 Object.keys(O)
+	var $keys       = __webpack_require__(122)
+	  , enumBugKeys = __webpack_require__(135);
+
+	module.exports = Object.keys || function keys(O){
+	  return $keys(O, enumBugKeys);
+	};
+
+/***/ },
+/* 122 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var has          = __webpack_require__(123)
+	  , toIObject    = __webpack_require__(124)
+	  , arrayIndexOf = __webpack_require__(127)(false)
+	  , IE_PROTO     = __webpack_require__(131)('IE_PROTO');
+
+	module.exports = function(object, names){
+	  var O      = toIObject(object)
+	    , i      = 0
+	    , result = []
+	    , key;
+	  for(key in O)if(key != IE_PROTO)has(O, key) && result.push(key);
+	  // Don't enum bug & hidden keys
+	  while(names.length > i)if(has(O, key = names[i++])){
+	    ~arrayIndexOf(result, key) || result.push(key);
+	  }
+	  return result;
+	};
+
+/***/ },
+/* 123 */
+/***/ function(module, exports) {
+
+	var hasOwnProperty = {}.hasOwnProperty;
+	module.exports = function(it, key){
+	  return hasOwnProperty.call(it, key);
+	};
+
+/***/ },
+/* 124 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// to indexed object, toObject with fallback for non-array-like ES3 strings
+	var IObject = __webpack_require__(125)
+	  , defined = __webpack_require__(120);
+	module.exports = function(it){
+	  return IObject(defined(it));
+	};
+
+/***/ },
+/* 125 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// fallback for non-array-like ES3 and non-enumerable old V8 strings
+	var cof = __webpack_require__(126);
+	module.exports = Object('z').propertyIsEnumerable(0) ? Object : function(it){
+	  return cof(it) == 'String' ? it.split('') : Object(it);
+	};
+
+/***/ },
+/* 126 */
+/***/ function(module, exports) {
+
+	var toString = {}.toString;
+
+	module.exports = function(it){
+	  return toString.call(it).slice(8, -1);
+	};
+
+/***/ },
+/* 127 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// false -> Array#indexOf
+	// true  -> Array#includes
+	var toIObject = __webpack_require__(124)
+	  , toLength  = __webpack_require__(128)
+	  , toIndex   = __webpack_require__(130);
+	module.exports = function(IS_INCLUDES){
+	  return function($this, el, fromIndex){
+	    var O      = toIObject($this)
+	      , length = toLength(O.length)
+	      , index  = toIndex(fromIndex, length)
+	      , value;
+	    // Array#includes uses SameValueZero equality algorithm
+	    if(IS_INCLUDES && el != el)while(length > index){
+	      value = O[index++];
+	      if(value != value)return true;
+	    // Array#toIndex ignores holes, Array#includes - not
+	    } else for(;length > index; index++)if(IS_INCLUDES || index in O){
+	      if(O[index] === el)return IS_INCLUDES || index || 0;
+	    } return !IS_INCLUDES && -1;
+	  };
+	};
+
+/***/ },
+/* 128 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// 7.1.15 ToLength
+	var toInteger = __webpack_require__(129)
+	  , min       = Math.min;
+	module.exports = function(it){
+	  return it > 0 ? min(toInteger(it), 0x1fffffffffffff) : 0; // pow(2, 53) - 1 == 9007199254740991
+	};
+
+/***/ },
+/* 129 */
+/***/ function(module, exports) {
+
+	// 7.1.4 ToInteger
+	var ceil  = Math.ceil
+	  , floor = Math.floor;
+	module.exports = function(it){
+	  return isNaN(it = +it) ? 0 : (it > 0 ? floor : ceil)(it);
+	};
+
+/***/ },
+/* 130 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var toInteger = __webpack_require__(129)
+	  , max       = Math.max
+	  , min       = Math.min;
+	module.exports = function(index, length){
+	  index = toInteger(index);
+	  return index < 0 ? max(index + length, 0) : min(index, length);
+	};
+
+/***/ },
+/* 131 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var shared = __webpack_require__(132)('keys')
+	  , uid    = __webpack_require__(134);
+	module.exports = function(key){
+	  return shared[key] || (shared[key] = uid(key));
+	};
+
+/***/ },
+/* 132 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var global = __webpack_require__(133)
+	  , SHARED = '__core-js_shared__'
+	  , store  = global[SHARED] || (global[SHARED] = {});
+	module.exports = function(key){
+	  return store[key] || (store[key] = {});
+	};
+
+/***/ },
+/* 133 */
+/***/ function(module, exports) {
+
+	// https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
+	var global = module.exports = typeof window != 'undefined' && window.Math == Math
+	  ? window : typeof self != 'undefined' && self.Math == Math ? self : Function('return this')();
+	if(typeof __g == 'number')__g = global; // eslint-disable-line no-undef
+
+/***/ },
+/* 134 */
+/***/ function(module, exports) {
+
+	var id = 0
+	  , px = Math.random();
+	module.exports = function(key){
+	  return 'Symbol('.concat(key === undefined ? '' : key, ')_', (++id + px).toString(36));
+	};
+
+/***/ },
+/* 135 */
+/***/ function(module, exports) {
+
+	// IE 8- don't enum bug keys
+	module.exports = (
+	  'constructor,hasOwnProperty,isPrototypeOf,propertyIsEnumerable,toLocaleString,toString,valueOf'
+	).split(',');
+
+/***/ },
+/* 136 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// most Object methods by ES6 should accept primitives
+	var $export = __webpack_require__(137)
+	  , core    = __webpack_require__(13)
+	  , fails   = __webpack_require__(146);
+	module.exports = function(KEY, exec){
+	  var fn  = (core.Object || {})[KEY] || Object[KEY]
+	    , exp = {};
+	  exp[KEY] = exec(fn);
+	  $export($export.S + $export.F * fails(function(){ fn(1); }), 'Object', exp);
+	};
+
+/***/ },
+/* 137 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var global    = __webpack_require__(133)
+	  , core      = __webpack_require__(13)
+	  , ctx       = __webpack_require__(138)
+	  , hide      = __webpack_require__(140)
+	  , PROTOTYPE = 'prototype';
+
+	var $export = function(type, name, source){
+	  var IS_FORCED = type & $export.F
+	    , IS_GLOBAL = type & $export.G
+	    , IS_STATIC = type & $export.S
+	    , IS_PROTO  = type & $export.P
+	    , IS_BIND   = type & $export.B
+	    , IS_WRAP   = type & $export.W
+	    , exports   = IS_GLOBAL ? core : core[name] || (core[name] = {})
+	    , expProto  = exports[PROTOTYPE]
+	    , target    = IS_GLOBAL ? global : IS_STATIC ? global[name] : (global[name] || {})[PROTOTYPE]
+	    , key, own, out;
+	  if(IS_GLOBAL)source = name;
+	  for(key in source){
+	    // contains in native
+	    own = !IS_FORCED && target && target[key] !== undefined;
+	    if(own && key in exports)continue;
+	    // export native or passed
+	    out = own ? target[key] : source[key];
+	    // prevent global pollution for namespaces
+	    exports[key] = IS_GLOBAL && typeof target[key] != 'function' ? source[key]
+	    // bind timers to global for call from export context
+	    : IS_BIND && own ? ctx(out, global)
+	    // wrap global constructors for prevent change them in library
+	    : IS_WRAP && target[key] == out ? (function(C){
+	      var F = function(a, b, c){
+	        if(this instanceof C){
+	          switch(arguments.length){
+	            case 0: return new C;
+	            case 1: return new C(a);
+	            case 2: return new C(a, b);
+	          } return new C(a, b, c);
+	        } return C.apply(this, arguments);
+	      };
+	      F[PROTOTYPE] = C[PROTOTYPE];
+	      return F;
+	    // make static versions for prototype methods
+	    })(out) : IS_PROTO && typeof out == 'function' ? ctx(Function.call, out) : out;
+	    // export proto methods to core.%CONSTRUCTOR%.methods.%NAME%
+	    if(IS_PROTO){
+	      (exports.virtual || (exports.virtual = {}))[key] = out;
+	      // export proto methods to core.%CONSTRUCTOR%.prototype.%NAME%
+	      if(type & $export.R && expProto && !expProto[key])hide(expProto, key, out);
+	    }
+	  }
+	};
+	// type bitmap
+	$export.F = 1;   // forced
+	$export.G = 2;   // global
+	$export.S = 4;   // static
+	$export.P = 8;   // proto
+	$export.B = 16;  // bind
+	$export.W = 32;  // wrap
+	$export.U = 64;  // safe
+	$export.R = 128; // real proto method for `library` 
+	module.exports = $export;
+
+/***/ },
+/* 138 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// optional / simple context binding
+	var aFunction = __webpack_require__(139);
+	module.exports = function(fn, that, length){
+	  aFunction(fn);
+	  if(that === undefined)return fn;
+	  switch(length){
+	    case 1: return function(a){
+	      return fn.call(that, a);
+	    };
+	    case 2: return function(a, b){
+	      return fn.call(that, a, b);
+	    };
+	    case 3: return function(a, b, c){
+	      return fn.call(that, a, b, c);
+	    };
+	  }
+	  return function(/* ...args */){
+	    return fn.apply(that, arguments);
+	  };
+	};
+
+/***/ },
+/* 139 */
+/***/ function(module, exports) {
+
+	module.exports = function(it){
+	  if(typeof it != 'function')throw TypeError(it + ' is not a function!');
+	  return it;
+	};
+
+/***/ },
+/* 140 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var dP         = __webpack_require__(141)
+	  , createDesc = __webpack_require__(149);
+	module.exports = __webpack_require__(145) ? function(object, key, value){
+	  return dP.f(object, key, createDesc(1, value));
+	} : function(object, key, value){
+	  object[key] = value;
+	  return object;
+	};
+
+/***/ },
+/* 141 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var anObject       = __webpack_require__(142)
+	  , IE8_DOM_DEFINE = __webpack_require__(144)
+	  , toPrimitive    = __webpack_require__(148)
+	  , dP             = Object.defineProperty;
+
+	exports.f = __webpack_require__(145) ? Object.defineProperty : function defineProperty(O, P, Attributes){
+	  anObject(O);
+	  P = toPrimitive(P, true);
+	  anObject(Attributes);
+	  if(IE8_DOM_DEFINE)try {
+	    return dP(O, P, Attributes);
+	  } catch(e){ /* empty */ }
+	  if('get' in Attributes || 'set' in Attributes)throw TypeError('Accessors not supported!');
+	  if('value' in Attributes)O[P] = Attributes.value;
+	  return O;
+	};
+
+/***/ },
+/* 142 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var isObject = __webpack_require__(143);
+	module.exports = function(it){
+	  if(!isObject(it))throw TypeError(it + ' is not an object!');
+	  return it;
+	};
+
+/***/ },
+/* 143 */
+/***/ function(module, exports) {
+
+	module.exports = function(it){
+	  return typeof it === 'object' ? it !== null : typeof it === 'function';
+	};
+
+/***/ },
+/* 144 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = !__webpack_require__(145) && !__webpack_require__(146)(function(){
+	  return Object.defineProperty(__webpack_require__(147)('div'), 'a', {get: function(){ return 7; }}).a != 7;
+	});
+
+/***/ },
+/* 145 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// Thank's IE8 for his funny defineProperty
+	module.exports = !__webpack_require__(146)(function(){
+	  return Object.defineProperty({}, 'a', {get: function(){ return 7; }}).a != 7;
+	});
+
+/***/ },
+/* 146 */
+/***/ function(module, exports) {
+
+	module.exports = function(exec){
+	  try {
+	    return !!exec();
+	  } catch(e){
+	    return true;
+	  }
+	};
+
+/***/ },
+/* 147 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var isObject = __webpack_require__(143)
+	  , document = __webpack_require__(133).document
+	  // in old IE typeof document.createElement is 'object'
+	  , is = isObject(document) && isObject(document.createElement);
+	module.exports = function(it){
+	  return is ? document.createElement(it) : {};
+	};
+
+/***/ },
+/* 148 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// 7.1.1 ToPrimitive(input [, PreferredType])
+	var isObject = __webpack_require__(143);
+	// instead of the ES6 spec version, we didn't implement @@toPrimitive case
+	// and the second argument - flag - preferred type is a string
+	module.exports = function(it, S){
+	  if(!isObject(it))return it;
+	  var fn, val;
+	  if(S && typeof (fn = it.toString) == 'function' && !isObject(val = fn.call(it)))return val;
+	  if(typeof (fn = it.valueOf) == 'function' && !isObject(val = fn.call(it)))return val;
+	  if(!S && typeof (fn = it.toString) == 'function' && !isObject(val = fn.call(it)))return val;
+	  throw TypeError("Can't convert object to primitive value");
+	};
+
+/***/ },
+/* 149 */
+/***/ function(module, exports) {
+
+	module.exports = function(bitmap, value){
+	  return {
+	    enumerable  : !(bitmap & 1),
+	    configurable: !(bitmap & 2),
+	    writable    : !(bitmap & 4),
+	    value       : value
+	  };
+	};
 
 /***/ }
 /******/ ]);
