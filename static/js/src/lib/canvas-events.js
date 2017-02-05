@@ -206,9 +206,10 @@ var getCustomGateConnection = function (key, x, y) {
 	for (var i = 0; i < Main.objects[key].outputLength; i++) {
 		var centerX = obj.left + 50;
 		var centerY = obj.top + outputGap * (i + 1);
-		var connected = centerX <= x && x <= centerX + 10 && centerY - outputGap / 2 <= y && y <= centerY + inputGap / 2;
+		var connected = centerX <= x && x <= centerX + 10 && centerY - outputGap / 2 <= y && y <= centerY + outputGap / 2;
 	
 		if (connected) {
+			console.log("CONNECTED TO " + centerY);
 			return {
 				type: "output",
 				centerX: centerX,
@@ -677,12 +678,7 @@ module.exports = {
 
 					initialX = connectionInfo.centerX;
 					initialY = connectionInfo.centerY;
-
-					if (connectedOutput) {
-						initialX = obj.left + 50;
-						initialY = obj.top + 25;
-					}
-
+					
 					var hlineElement1 = new fabric.Line([initialX, initialY, initialX, initialY], {
 						id: Main.currObjectId++,
 						stroke: '#81a2be',
