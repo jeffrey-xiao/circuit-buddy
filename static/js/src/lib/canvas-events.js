@@ -57,7 +57,7 @@ var propagateInputMovement = function (dx, dy, element, depth, prevX, prevY, vis
 		}
 		propagateInputMovement(dx, dy, input, depth + 1, nextPrevX, nextPrevY, vis);
 	}
-}
+};
 
 var propagateOutputMovement = function (dx, dy, element, depth, prevX, prevY, vis) {
 	if (depth == 2 || !element)
@@ -104,7 +104,7 @@ var propagateOutputMovement = function (dx, dy, element, depth, prevX, prevY, vi
 		}
 		propagateOutputMovement(dx, dy, output, depth + 1, nextPrevX, nextPrevY, vis);
 	}
-}
+};
 
 var getInputId = function (id) {
 	var ids = [];
@@ -204,7 +204,7 @@ var getCustomGateConnection = function (key, x, y) {
 	}
 
 	// checking if touching output
-	for (var i = 0; i < Main.objects[key].outputLength; i++) {
+	 for (var i = 0; i < Main.objects[key].outputLength; i++) {
 		var centerX = obj.left + 50;
 		var centerY = obj.top + outputGap * (i + 1);
 		var connected = centerX <= x && x <= centerX + 10 && centerY - outputGap / 2 <= y && y <= centerY + outputGap / 2;
@@ -215,7 +215,7 @@ var getCustomGateConnection = function (key, x, y) {
 				centerX: centerX,
 				centerY: centerY,
 				index: i
-			}
+			};
 		}
 	}
 
@@ -251,7 +251,7 @@ var getGateConnection = function (key, x, y) {
 	return {
 		type: "none"
 	};
-}
+};
 
 module.exports = {
 	onKeyDown: function (e) {
@@ -265,6 +265,9 @@ module.exports = {
 		var key = e.keyCode ? e.keyCode : e.which;
 		if (key == 8)
 			isDeleting = false;
+		if (key == 18) {
+			// copy
+		}
 	},
 
 	// displaying the name of the component when hovering over
