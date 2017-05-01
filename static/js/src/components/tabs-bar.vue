@@ -7,7 +7,7 @@
 </template>
 
 <script>
-	module.exports = {
-		props: ['tabs', 'activeTab']
-	};
+  module.exports = {
+    props: ['tabs', 'activeTab']
+  };
 </script>

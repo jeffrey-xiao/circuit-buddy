@@ -3,13 +3,13 @@
 </template>
 
 <script>
-	var Main = require("../lib/main.js");
+  var Main = require("../lib/main.js");
 
-	module.exports = {
-		methods: {
-			addTab: function (event) {
-				Main.Events.$emit('tabs:add-tab');
-			}
-		}
-	};
+  module.exports = {
+    methods: {
+      addTab: function (event) {
+        Main.Events.$emit('tabs:add-tab');
+      }
+    }
+  };
 </script>

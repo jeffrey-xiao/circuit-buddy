@@ -6,16 +6,16 @@ var Constants = require("./lib/constants.js");
 var Ui = require("./lib/ui.js");
 
 $(function () {
-	$(this).keydown(CanvasEvents.onKeyDown);
-	$(this).keyup(CanvasEvents.onKeyUp);
+  $(this).keydown(CanvasEvents.onKeyDown);
+  $(this).keyup(CanvasEvents.onKeyUp);
 
-	$(document).ready(function () {
-		Main.initApp();
+  $(document).ready(function () {
+    Main.initApp();
 
-		Main.canvas.on('mouse:over', CanvasEvents.onMouseOver);
-		Main.canvas.on('mouse:up', CanvasEvents.onMouseUp);
-		Main.canvas.on('object:moving', CanvasEvents.onObjectMoving);
-		Main.canvas.on('mouse:move', CanvasEvents.onMouseMove);
-		Main.canvas.on('mouse:down', CanvasEvents.onMouseDown);
-	});
+    Main.canvas.on('mouse:over', CanvasEvents.onMouseOver);
+    Main.canvas.on('mouse:up', CanvasEvents.onMouseUp);
+    Main.canvas.on('object:moving', CanvasEvents.onObjectMoving);
+    Main.canvas.on('mouse:move', CanvasEvents.onMouseMove);
+    Main.canvas.on('mouse:down', CanvasEvents.onMouseDown);
+  });
 });

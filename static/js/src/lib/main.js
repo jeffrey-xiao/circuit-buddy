@@ -25,7 +25,7 @@ ret.initApp = function () {
 	for (var i = 1; i < Constants.OPTS.width / Constants.OPTS.gridSize; i++) {
 		ret.canvas.add(new fabric.Line([i * Constants.OPTS.gridSize, 0, i * Constants.OPTS.gridSize, Constants.OPTS.height], {
 			stroke: '#373b41',
-			selectable: false 
+			selectable: false
 		}));
 	}
 
@@ -119,9 +119,9 @@ ret.createCustomGate = function (customObject, isToolbox, top, left, callback) {
 			fill: '#18abe2'
 		});
 		var element = new fabric.Group([oImage, leftText, rightText], {
-			// NOTE THAT THIS ID IS NOT THE SAME AS THE OTHER TOOL BOXES ID; SHOULD CHANGE TO ACTUAL OBJECT ID 
+			// NOTE THAT THIS ID IS NOT THE SAME AS THE OTHER TOOL BOXES ID; SHOULD CHANGE TO ACTUAL OBJECT ID
 			// IF ISTOOLBOX IS FALSE
-			id: customObject.id, 
+			id: customObject.id,
 			top: top,
 			left: left,
 			height: Constants.OPTS.gridSize,
@@ -217,7 +217,7 @@ ret.wireObjects = function (objId1, objId2, objects, outputInputLength) {
 	hline2.inputs.push({
 		id: objId2,
 		inputIndex: 0,
-		outputIndex: 0 
+		outputIndex: 0
 	});
 
 	objects[objId2].outputs.push(hline2.id);
@@ -286,7 +286,7 @@ ret.getOutputs = function (objects, inputMap) {
 					if (sorted[i].inputs[k].id == sorted[j].id)
 						inputs[sorted[i].inputs[k].outputIndex] = computedOutputs[j][sorted[i].inputs[k].inputIndex];
 		}
-		
+
 		computedOutputs[i] = sorted[i].getOutput(inputs);
 		if (sorted[i].type == Constants.TYPES.OUTPUT_GATE)
 			outputMap.set(parseInt(sorted[i].id), computedOutputs[i][0]);
@@ -331,7 +331,7 @@ ret.getTruthTable = function (objects) {
 	var inputMap = {};
 
 	var truthTable = [];
-	
+
 	for (var i = 0; i < 1 << inputIds.length; i++) {
 		truthTable.push(new Array(inputIds.length + outputIds.length));
 		for (var j = 0; j < inputIds.length; j++) {
@@ -340,7 +340,7 @@ ret.getTruthTable = function (objects) {
 		}
 
 		var outputMap = ret.getOutputs(objects, inputMap);
-		for (var j = 0; j < outputIds.length; j++) 
+		for (var j = 0; j < outputIds.length; j++)
 			truthTable[i][inputIds.length + j] = outputMap.get(parseInt(outputIds[j]));
 	}
 
@@ -348,7 +348,7 @@ ret.getTruthTable = function (objects) {
 		table: truthTable,
 		inputLength: inputIds.length,
 		outputLength: outputIds.length
-	};	
+	};
 };
 
 ret.getCustomObjectOutputFunction = function (customObject) {
@@ -357,7 +357,7 @@ ret.getCustomObjectOutputFunction = function (customObject) {
 		var bitstring = 0;
 		for (var j = 0; j < customObject.table[i].length; j++)
 			bitstring = (bitstring << 1) | customObject.table[i][j];
-		lut[bitstring >> customObject.outputLength] = bitstring & ((1 << customObject.outputLength) - 1); 
+		lut[bitstring >> customObject.outputLength] = bitstring & ((1 << customObject.outputLength) - 1);
 	}
 
 	return function (input) {
@@ -405,7 +405,7 @@ ret.removeAllCanvasObjects = function () {
 ret.addAllCanvasObjects = function () {
 	for (var key in ret.objects)
 		ret.canvas.add(ret.objects[key].element);
-	for (var key in ret.customObjects) 
+	for (var key in ret.customObjects)
 		ret.canvas.add(ret.customObjects[key].element);
 }
 
