@@ -60087,6 +60087,7 @@
 					this.activeTab = globalTabIdCounter - 1;
 					Main.removeAllCanvasObjects();
 					Main.objects = this.objectsList[this.tabs.length - 1];
+					Main.addAllCanvasObjects();
 				}
 			},
 			mounted: function mounted() {
