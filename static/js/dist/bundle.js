@@ -59511,6 +59511,9 @@
 		onKeyUp: function onKeyUp(e) {
 			var key = e.keyCode ? e.keyCode : e.which;
 			if (key == 8) isDeleting = false;
+			if (key == 18) {
+				// copy
+			}
 		},
 
 		// displaying the name of the component when hovering over
@@ -62785,7 +62788,7 @@
 	  var hotAPI = require("vue-hot-reload-api")
 	  hotAPI.install(require("vue"), true)
 	  if (!hotAPI.compatible) return
-	  var id = "C:\\Users\\Jeffrey\\workspace\\GitHub\\Circuit-Buddy\\static\\js\\src\\components\\add-tab.vue"
+	  var id = "/media/jeffreyxiao/Windows8_OS/Users/Jeffrey/workspace/GitHub/Circuit-Buddy/static/js/src/components/add-tab.vue"
 	  if (!module.hot.data) {
 	    hotAPI.createRecord(id, module.exports)
 	  } else {
@@ -62835,7 +62838,7 @@
 	  var hotAPI = require("vue-hot-reload-api")
 	  hotAPI.install(require("vue"), true)
 	  if (!hotAPI.compatible) return
-	  var id = "C:\\Users\\Jeffrey\\workspace\\GitHub\\Circuit-Buddy\\static\\js\\src\\components\\cost-info.vue"
+	  var id = "/media/jeffreyxiao/Windows8_OS/Users/Jeffrey/workspace/GitHub/Circuit-Buddy/static/js/src/components/cost-info.vue"
 	  if (!module.hot.data) {
 	    hotAPI.createRecord(id, module.exports)
 	  } else {
@@ -62887,7 +62890,7 @@
 	  var hotAPI = require("vue-hot-reload-api")
 	  hotAPI.install(require("vue"), true)
 	  if (!hotAPI.compatible) return
-	  var id = "C:\\Users\\Jeffrey\\workspace\\GitHub\\Circuit-Buddy\\static\\js\\src\\components\\modal.vue"
+	  var id = "/media/jeffreyxiao/Windows8_OS/Users/Jeffrey/workspace/GitHub/Circuit-Buddy/static/js/src/components/modal.vue"
 	  if (!module.hot.data) {
 	    hotAPI.createRecord(id, module.exports)
 	  } else {
@@ -63008,7 +63011,7 @@
 	  var hotAPI = require("vue-hot-reload-api")
 	  hotAPI.install(require("vue"), true)
 	  if (!hotAPI.compatible) return
-	  var id = "C:\\Users\\Jeffrey\\workspace\\GitHub\\Circuit-Buddy\\static\\js\\src\\components\\tab.vue"
+	  var id = "/media/jeffreyxiao/Windows8_OS/Users/Jeffrey/workspace/GitHub/Circuit-Buddy/static/js/src/components/tab.vue"
 	  if (!module.hot.data) {
 	    hotAPI.createRecord(id, module.exports)
 	  } else {
@@ -63075,7 +63078,7 @@
 	  var hotAPI = require("vue-hot-reload-api")
 	  hotAPI.install(require("vue"), true)
 	  if (!hotAPI.compatible) return
-	  var id = "C:\\Users\\Jeffrey\\workspace\\GitHub\\Circuit-Buddy\\static\\js\\src\\components\\tabs-bar.vue"
+	  var id = "/media/jeffreyxiao/Windows8_OS/Users/Jeffrey/workspace/GitHub/Circuit-Buddy/static/js/src/components/tabs-bar.vue"
 	  if (!module.hot.data) {
 	    hotAPI.createRecord(id, module.exports)
 	  } else {
@@ -63123,7 +63126,7 @@
 	  var hotAPI = require("vue-hot-reload-api")
 	  hotAPI.install(require("vue"), true)
 	  if (!hotAPI.compatible) return
-	  var id = "C:\\Users\\Jeffrey\\workspace\\GitHub\\Circuit-Buddy\\static\\js\\src\\components\\truth-button.vue"
+	  var id = "/media/jeffreyxiao/Windows8_OS/Users/Jeffrey/workspace/GitHub/Circuit-Buddy/static/js/src/components/truth-button.vue"
 	  if (!module.hot.data) {
 	    hotAPI.createRecord(id, module.exports)
 	  } else {
@@ -63192,7 +63195,7 @@
 	  var hotAPI = require("vue-hot-reload-api")
 	  hotAPI.install(require("vue"), true)
 	  if (!hotAPI.compatible) return
-	  var id = "C:\\Users\\Jeffrey\\workspace\\GitHub\\Circuit-Buddy\\static\\js\\src\\components\\truth-table-content.vue"
+	  var id = "/media/jeffreyxiao/Windows8_OS/Users/Jeffrey/workspace/GitHub/Circuit-Buddy/static/js/src/components/truth-table-content.vue"
 	  if (!module.hot.data) {
 	    hotAPI.createRecord(id, module.exports)
 	  } else {
